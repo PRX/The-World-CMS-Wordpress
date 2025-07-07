@@ -15,6 +15,5 @@ define(
 		'fg-drupal-to-wp-premium-metatag-module/fg-drupal-to-wp-metatag.php',
 		'pri-migration-helper/pri-migration-helper.php',
 		'pri-external-attachment/pri-external-attachment.php',
-		'pantheon-advanced-page-cache/pantheon-advanced-page-cache.php',
 	)
 );
