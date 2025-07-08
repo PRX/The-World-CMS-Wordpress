@@ -1,0 +1,46 @@
+services:
+
+  wordpress:
+    build: .
+    restart: always
+    ports:
+      - 8090:80
+    environment:
+      PRX_ENVIRONMENT: development
+      DB_HOST: db
+      DB_USER: exampleuser
+      DB_PASSWORD: examplepass
+      DB_NAME: exampledb
+      AUTH_KEY: 1
+      SECURE_AUTH_KEY: 1
+      LOGGED_IN_KEY: 1
+      NONCE_KEY: 1
+      AUTH_SALT: 1
+      SECURE_AUTH_SALT: 1
+      LOGGED_IN_SALT: 1
+      NONCE_SALT: 1
+    volumes:
+      - wordpress:/var/www/html
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+    volumes:
+      - db:/var/lib/mysql
+
+      # If you'd like to have this development database initialized with data
+      # from a backup, place the backup fule in ./db-dump, and update the path
+      # below to reflect the file you'd like to initialize with.
+      #
+      # This will only be run the FIRST time the container is started, when
+      # it's setting up the default database.
+      # - ./db-dump/the-world_live_YYYY-MM-DDTHH-MM-SS_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
+
+volumes:
+  wordpress:
+  db:
