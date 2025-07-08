@@ -38,7 +38,8 @@ services:
       # below to reflect the file you'd like to initialize with.
       #
       # This will only be run the FIRST time the container is started, when
-      # it's setting up the default database.
+      # it's setting up the default database. Once you've loaded the data and
+      # deleted the backup file, comment this line out again.
       # - ./db-dump/the-world_live_YYYY-MM-DDTHH-MM-SS_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
 
 volumes:
