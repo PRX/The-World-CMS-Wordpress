@@ -56,9 +56,8 @@ if ( isset( $_SERVER['HTTP_HOST'] ) ) {
 	// If we have detected that the end use is HTTPS, make sure we pass that
 	// through here, so <img> tags and the like don't generate mixed-mode
 	// content warnings.
-	if ( isset( $_SERVER['HTTP_USER_AGENT_HTTPS'] ) && $_SERVER['HTTP_USER_AGENT_HTTPS'] == 'ON' ) {
-		$scheme           = 'https';
-		$_SERVER['HTTPS'] = 'on';
+	if ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) {
+		$scheme = 'https';
 	}
 	define( 'WP_HOME', $scheme . '://' . $_SERVER['HTTP_HOST'] );
 	define( 'WP_SITEURL', $scheme . '://' . $_SERVER['HTTP_HOST'] );
