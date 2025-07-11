@@ -21,7 +21,7 @@ define( 'WP_REDIS_HOST', '127.0.0.1' );
 define( 'WP_REDIS_PORT', 6379 );
 
 // change the prefix and database for each site to avoid cache data collisions
-define( 'WP_REDIS_PREFIX', 'my-moms-site' );
+define( 'WP_REDIS_PREFIX', 'wordpress' );
 define( 'WP_REDIS_DATABASE', 0 ); // 0-15
 
 // reasonable connection and read+write timeouts
