@@ -32,7 +32,6 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
-
       # If you'd like to have this development database initialized with data
       # from a backup, place the backup fule in ./db-dump, and update the path
       # below to reflect the file you'd like to initialize with.
@@ -40,7 +39,7 @@ services:
       # This will only be run the FIRST time the container is started, when
       # it's setting up the default database. Once you've loaded the data and
       # deleted the backup file, comment this line out again.
-      - ./db-dump/the-world_live_2025-07-10T18-00-00_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
+      # - ./db-dump/the-world_live_YYYY-MM-DDTHH-MM-SS_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
 
 volumes:
   wordpress:
