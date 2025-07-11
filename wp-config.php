@@ -16,6 +16,18 @@ if ( file_exists( __DIR__ . '/wp-config-' . SERVER_PLATFORM_NAME . '.php' ) && i
 	require_once __DIR__ . '/wp-config-' . SERVER_PLATFORM_NAME . '.php';
 }
 
+// adjust Redis host and port if necessary
+define( 'WP_REDIS_HOST', '127.0.0.1' );
+define( 'WP_REDIS_PORT', 6379 );
+
+// change the prefix and database for each site to avoid cache data collisions
+define( 'WP_REDIS_PREFIX', 'my-moms-site' );
+define( 'WP_REDIS_DATABASE', 0 ); // 0-15
+
+// reasonable connection and read+write timeouts
+define( 'WP_REDIS_TIMEOUT', 1 );
+define( 'WP_REDIS_READ_TIMEOUT', 1 );
+
 /**
  * Wire up S3 Uploads key and secret values to ENV variable.
  * Needs to be assigned AFTER platform config.

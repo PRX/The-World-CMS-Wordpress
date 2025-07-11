@@ -18,6 +18,7 @@ define(
 		'microsoft-start/index.php',
 		'pwa/pwa.php',
 		'redirection/redirection.php',
+		'redis-cache/redis-cache.php',
 		'revisionary/revisionary.php',
 		'user-role-editor/user-role-editor.php',
 		'taxopress-pro/taxopress-pro.php',
