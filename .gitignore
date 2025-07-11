@@ -75,3 +75,5 @@ reference/
 # Node Dependencies #
 #####################
 node_modules
+
+db-dump

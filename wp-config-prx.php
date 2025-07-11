@@ -10,6 +10,12 @@
  * when attempting to apply upstream updates.
  */
 
+// If we're behind a proxy server and using HTTPS, we need to alert WordPress of that fact
+// see also https://wordpress.org/support/article/administration-over-ssl/#using-a-reverse-proxy
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
+	$_SERVER['HTTPS'] = 'on';
+}
+
 // ** MySQL settings - included in the Pantheon Environment ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', $_ENV['DB_NAME'] );
@@ -21,7 +27,7 @@ define( 'DB_USER', $_ENV['DB_USER'] );
 define( 'DB_PASSWORD', $_ENV['DB_PASSWORD'] );
 
 /** MySQL hostname; on Pantheon this includes a specific port number. */
-define( 'DB_HOST', $_ENV['DB_HOST'] . ':' . $_ENV['DB_PORT'] );
+define( 'DB_HOST', $_ENV['DB_HOST'] );
 
 /** Database Charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8mb4' );
@@ -56,9 +62,8 @@ if ( isset( $_SERVER['HTTP_HOST'] ) ) {
 	// If we have detected that the end use is HTTPS, make sure we pass that
 	// through here, so <img> tags and the like don't generate mixed-mode
 	// content warnings.
-	if ( isset( $_SERVER['HTTP_USER_AGENT_HTTPS'] ) && $_SERVER['HTTP_USER_AGENT_HTTPS'] == 'ON' ) {
-		$scheme           = 'https';
-		$_SERVER['HTTPS'] = 'on';
+	if ( ! empty( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) {
+		$scheme = 'https';
 	}
 	define( 'WP_HOME', $scheme . '://' . $_SERVER['HTTP_HOST'] );
 	define( 'WP_SITEURL', $scheme . '://' . $_SERVER['HTTP_HOST'] );
@@ -69,7 +74,7 @@ error_reporting( E_ALL ^ E_DEPRECATED );
 define( 'WP_TEMP_DIR', sys_get_temp_dir() );
 
 // FS writes aren't permitted in test or live, so we should let WordPress know to disable relevant UI
-if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'test', 'live' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
+if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'production', 'staging' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
 	define( 'DISALLOW_FILE_MODS', true );
 }
 
