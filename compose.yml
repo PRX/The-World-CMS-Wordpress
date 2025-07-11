@@ -32,7 +32,6 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
-
       # If you'd like to have this development database initialized with data
       # from a backup, place the backup fule in ./db-dump, and update the path
       # below to reflect the file you'd like to initialize with.
