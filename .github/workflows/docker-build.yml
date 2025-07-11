@@ -5,6 +5,10 @@ on:
   push:
     branches: [dockerize]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   docker-build:
     runs-on: ubuntu-latest
