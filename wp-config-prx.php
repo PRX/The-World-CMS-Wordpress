@@ -10,6 +10,12 @@
  * when attempting to apply upstream updates.
  */
 
+// If we're behind a proxy server and using HTTPS, we need to alert WordPress of that fact
+// see also https://wordpress.org/support/article/administration-over-ssl/#using-a-reverse-proxy
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strpos($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {
+	$_SERVER['HTTPS'] = 'on';
+}
+
 // ** MySQL settings - included in the Pantheon Environment ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', $_ENV['DB_NAME'] );
@@ -68,7 +74,7 @@ error_reporting( E_ALL ^ E_DEPRECATED );
 define( 'WP_TEMP_DIR', sys_get_temp_dir() );
 
 // FS writes aren't permitted in test or live, so we should let WordPress know to disable relevant UI
-if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'test', 'live' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
+if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'production', 'staging' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
 	define( 'DISALLOW_FILE_MODS', true );
 }
 
