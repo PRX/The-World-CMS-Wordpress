@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Pantheon MU Plugin Loader
+ * Plugin Name: MU Plugin Loader
  * Description: Loads the MU plugins required to run the site
  * Author: Pantheon Systems
  * Author URI: https://pantheon.io
@@ -12,21 +12,22 @@ if ( defined( 'WP_INSTALLING' ) && WP_INSTALLING ) {
 }
 
 // Add mu-plugins here.
-$pantheon_mu_plugins = [
-	'pantheon-mu-plugin/pantheon.php',
+$mu_plugins = [
 	'the-world-site-config/the-world-site-config.php'
 ];
 
-foreach ( $pantheon_mu_plugins as $file ) {
+foreach ( $mu_plugins as $file ) {
 	require_once WPMU_PLUGIN_DIR . '/' . $file;
 }
 unset( $file );
 
-add_action( 'pre_current_active_plugins', function () use ( $pantheon_mu_plugins ) {
+add_action( 'pre_current_active_plugins', function () use ( $mu_plugins ) {
 	global $plugins, $wp_list_table;
 
+	error_log( print_r( $mu_plugins, true ) );
+
 	// Add our own mu-plugins to the page.
-	foreach ( $pantheon_mu_plugins as $plugin_file ) {
+	foreach ( $mu_plugins as $plugin_file ) {
 		// Do not apply markup/translate as it'll be cached.
 		$plugin_data = get_plugin_data( WPMU_PLUGIN_DIR . "/$plugin_file", false, false );
 
@@ -67,8 +68,8 @@ add_action( 'pre_current_active_plugins', function () use ( $pantheon_mu_plugins
 	] );
 });
 
-add_filter( 'network_admin_plugin_action_links', function ( $actions, $plugin_file, $plugin_data, $context ) use ( $pantheon_mu_plugins ) {
-	if ( $context !== 'mustuse' || ! in_array( $plugin_file, $pantheon_mu_plugins, true ) ) {
+add_filter( 'network_admin_plugin_action_links', function ( $actions, $plugin_file, $plugin_data, $context ) use ( $mu_plugins ) {
+	if ( $context !== 'mustuse' || ! in_array( $plugin_file, $mu_plugins, true ) ) {
 		return $actions;
 	}
 
