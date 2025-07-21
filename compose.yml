@@ -19,6 +19,12 @@ services:
       SECURE_AUTH_SALT: 1
       LOGGED_IN_SALT: 1
       NONCE_SALT: 1
+      WP_REDIS_HOST: valkey
+      WP_REDIS_PORT: 6379
+      WP_REDIS_PREFIX: tw-wordpress
+      WP_REDIS_DATABASE: 0
+      WP_REDIS_TIMEOUT: 1
+      WP_REDIS_READ_TIMEOUT: 1
     volumes:
       - wordpress:/var/www/html
 
@@ -32,7 +38,6 @@ services:
       MYSQL_RANDOM_ROOT_PASSWORD: '1'
     volumes:
       - db:/var/lib/mysql
-
       # If you'd like to have this development database initialized with data
       # from a backup, place the backup fule in ./db-dump, and update the path
       # below to reflect the file you'd like to initialize with.
@@ -41,6 +46,10 @@ services:
       # it's setting up the default database. Once you've loaded the data and
       # deleted the backup file, comment this line out again.
       # - ./db-dump/the-world_live_YYYY-MM-DDTHH-MM-SS_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
+
+  valkey:
+    image: valkey/valkey
+    restart: always
 
 volumes:
   wordpress:
