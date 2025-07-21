@@ -51,7 +51,6 @@ define(
 		'wordpress-seo/wp-seo.php',
 		'wp-rest-menu/wp-rest-menus.php',
 		'xml-sitemap-feed/xml-sitemap.php',
-		'wp-redis/wp-redis.php',
 		'svg-block/svg-block.php',
 		'wp-graphql/wp-graphql.php',
 		'wp-graphql-acf/wp-graphql-acf.php',
