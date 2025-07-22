@@ -73,10 +73,10 @@ error_reporting( E_ALL ^ E_DEPRECATED );
 /** Define appropriate location for default tmp directory on Pantheon */
 define( 'WP_TEMP_DIR', sys_get_temp_dir() );
 
-// DO WE NEED THIS: FS writes aren't permitted in test or live, so we should let WordPress know to disable relevant UI
-// if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'production', 'staging' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
-// define( 'DISALLOW_FILE_MODS', true );
-// }
+// FS writes aren't permitted in test or live, so we should let WordPress know to disable relevant UI.
+if ( in_array( $_ENV['PRX_ENVIRONMENT'], array( 'production', 'staging' ) ) && ! defined( 'DISALLOW_FILE_MODS' ) ) {
+	define( 'DISALLOW_FILE_MODS', true );
+}
 
 /**
  * Set WP_ENVIRONMENT_TYPE according to the Pantheon Environment

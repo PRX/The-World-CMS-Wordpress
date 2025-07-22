@@ -1,5 +1,4 @@
 services:
-
   wordpress:
     build: .
     restart: always
@@ -27,6 +26,7 @@ services:
       WP_REDIS_READ_TIMEOUT: 1
     volumes:
       - wordpress:/var/www/html
+      - .:/var/www/html
 
   db:
     image: mysql:8.0
@@ -35,7 +35,7 @@ services:
       MYSQL_DATABASE: exampledb
       MYSQL_USER: exampleuser
       MYSQL_PASSWORD: examplepass
-      MYSQL_RANDOM_ROOT_PASSWORD: '1'
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
     volumes:
       - db:/var/lib/mysql
       # If you'd like to have this development database initialized with data
