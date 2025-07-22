@@ -108,4 +108,8 @@ if ( isset( $_ENV['WP_REDIS_HOST'] ) ) {
 	// reasonable connection and read+write timeouts
 	define( 'WP_REDIS_TIMEOUT', $_ENV['WP_REDIS_TIMEOUT'] );
 	define( 'WP_REDIS_READ_TIMEOUT', $_ENV['WP_REDIS_READ_TIMEOUT'] );
+
+	if ( isset( $_ENV['WP_REDIS_SCHEME'] ) ) {
+		define( 'WP_REDIS_SCHEME', $_ENV['WP_REDIS_SCHEME'] );
+	}
 }
