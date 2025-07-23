@@ -24,6 +24,8 @@ services:
       WP_REDIS_DATABASE: 0
       WP_REDIS_TIMEOUT: 1
       WP_REDIS_READ_TIMEOUT: 1
+      NEW_RELIC_LICENSE_KEY:
+      NEW_RELIC_APP_NAME: The WordPress (development)
     volumes:
       - wordpress:/var/www/html
       - .:/var/www/html
