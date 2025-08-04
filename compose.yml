@@ -4,20 +4,17 @@ services:
     restart: always
     ports:
       - 8090:80
+    env_file:
+      - path: ./.env-default
+        required: true
+      - path: ./.env
+        required: false
     environment:
       PRX_ENVIRONMENT: development
       DB_HOST: db
       DB_USER: exampleuser
       DB_PASSWORD: examplepass
       DB_NAME: exampledb
-      AUTH_KEY: 1
-      SECURE_AUTH_KEY: 1
-      LOGGED_IN_KEY: 1
-      NONCE_KEY: 1
-      AUTH_SALT: 1
-      SECURE_AUTH_SALT: 1
-      LOGGED_IN_SALT: 1
-      NONCE_SALT: 1
       WP_REDIS_HOST: valkey
       WP_REDIS_PORT: 6379
       WP_REDIS_PREFIX: tw-wordpress
@@ -47,7 +44,7 @@ services:
       # This will only be run the FIRST time the container is started, when
       # it's setting up the default database. Once you've loaded the data and
       # deleted the backup file, comment this line out again.
-      # - ./db-dump/the-world_live_YYYY-MM-DDTHH-MM-SS_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
+      - ./db-dump/the-world_live_2025-07-07T18-00-00_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
 
   valkey:
     image: valkey/valkey
