@@ -2,6 +2,8 @@
 class RevisionaryAdminPosts {
     private $post_revision_count = array();
 	private $trashed_revisions;
+	private $filtering_edit_link = [];
+	private $skip_has_cap_filtering = false;
 
     function __construct() {
         if ( ! empty( $_REQUEST['revision_action'] ) ) {								//phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -13,7 +15,8 @@ class RevisionaryAdminPosts {
         add_filter('display_post_states', [$this, 'flt_display_post_states'], 50, 2);
 		add_filter('page_row_actions', [$this, 'revisions_row_action_link']);
 		add_filter('post_row_actions', [$this, 'revisions_row_action_link']);
-																						//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if (!empty($_REQUEST['post_status']) && ('trash' == sanitize_key($_REQUEST['post_status']))) {
 			add_filter('display_post_states', [$this, 'fltTrashedPostState'], 20, 2 );
 			add_filter('get_comments_number', [$this, 'fltCommentsNumber'], 20, 2);
@@ -51,7 +54,86 @@ class RevisionaryAdminPosts {
 		add_filter('query', [$this, 'fltPostCountQuery']);
 
 		add_filter('posts_where', [$this, 'fltFilterRevisions'], 10, 2);
+
+        if (empty($_REQUEST['page']) || (0 !== strpos($_REQUEST['page'], 'cms-tpv'))) {
+		  add_filter('the_title', [$this, 'fltTitle'], 10, 1);
+		  add_filter('manage_product_posts_custom_column', [$this, 'actProductsCol'], 10, 1);
+		  add_filter('get_edit_post_link', [$this, 'fltGetEditPostLink'], 50, 3);
+	    }
     }
+
+	// Ensure that the thumbnail is displayed without a PHP warning, even for Revisors who can't edit published posts
+	public function actProductsCol($column) {
+		global $post;
+
+		if ('thumb' == $column) {
+			$this->skip_has_cap_filtering = true;
+
+			if (!current_user_can('edit_post', $post->ID)) {
+				add_filter('user_has_cap', [$this, 'actUserHasCap'], 999, 3);
+
+				// Trigger javascript to remove the non-functional Edit link which this filtering will cause
+				$this->filtering_edit_link[$post->ID] = true;
+			}
+
+			$this->skip_has_cap_filtering = false;
+		}
+	}
+
+	// Ensure that the title is displayed without a PHP warning, even for Revisors who can't edit published posts
+	public function fltTitle($title) {
+		global $post;
+
+		$this->skip_has_cap_filtering = true;
+
+		if (!current_user_can('edit_post', $post->ID)) {
+			add_filter('user_has_cap', [$this, 'actUserHasCap'], 999, 3);
+
+			// Trigger javascript to remove the non-functional Edit link which this filtering will cause
+			$this->filtering_edit_link[$post->ID] = true;
+		}
+
+		$this->skip_has_cap_filtering = false;
+
+		return $title;
+	}
+
+	// Prevent PHP warnings for Revisors who can't edit published posts (but should still see the post listed with New Revision link)
+	public function actUserHasCap($wp_blogcaps, $reqd_caps, $args) {
+		if (!$this->skip_has_cap_filtering && array_diff($reqd_caps, array_keys(array_filter($wp_blogcaps)))) {
+			if (!empty($args[0]) && ('edit_post' == $args[0])) {
+				$wp_blogcaps = array_merge($wp_blogcaps, array_fill_keys($reqd_caps, true));
+				remove_filter('user_has_cap', [$this, 'actUserHasCap'], 10, 3);
+			}
+		}
+
+		return $wp_blogcaps;
+	}
+
+	public function fltGetEditPostLink($link, $post_id, $context) {
+		if (!empty($this->filtering_edit_link[$post_id])) {
+			remove_filter('user_has_cap', [$this, 'actUserHasCap'], 10, 3);
+
+			add_action(
+				'admin_print_footer_scripts',
+				function () use ($link) {
+				?>
+					<script type="text/javascript">
+					/* <![CDATA[ */
+					jQuery(document).ready( function($) {
+						if ($('#the-list').length) {
+							$('td.column-name a[href="<?php echo str_replace('&amp;', '&', $link);?>"]').attr('href', '').closest('div.row-actions').find('span.edit,span.inline,span.trash').hide();
+						}
+					});
+					/* ]]> */
+					</script>
+				<?php
+				}
+			);
+		}
+
+		return $link;
+	}
     
     function revision_action_notice() {
 		if ( ! empty($_GET['restored_post'] ) ) {										//phpcs:ignore WordPress.Security.NonceVerification.Recommended

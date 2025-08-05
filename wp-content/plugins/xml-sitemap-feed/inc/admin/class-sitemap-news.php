@@ -12,9 +12,31 @@ namespace XMLSF\Admin;
  */
 class Sitemap_News {
 	/**
-	 * Constructor.
+	 * Initialize hooks and filters.
 	 */
-	private function __construct() {}
+	public static function init() {
+		\add_action( 'admin_notices', array( '\XMLSF\Admin\Sitemap_News', 'check_advanced' ), 0 );
+
+		// META.
+		\add_action( 'add_meta_boxes', array( '\XMLSF\Admin\Sitemap_News', 'add_meta_box' ) );
+		\add_action( 'save_post', array( '\XMLSF\Admin\Sitemap_News', 'save_metadata' ) );
+	}
+
+	/**
+	 * Plugin compatibility hooks and filters.
+	 * Hooked on admin_init.
+	 */
+	public static function compat() {
+		// Yoast SEO compatibility.
+		if ( \is_plugin_active( 'wordpress-seo/wp-seo.php' ) ) {
+			\add_action( 'admin_notices', array( '\XMLSF\Compat\WP_SEO', 'news_admin_notice' ) );
+		}
+
+		// Squirrly SEO compatibility.
+		if ( \is_plugin_active( 'squirrly-seo/squirrly.php' ) ) {
+			\add_action( 'admin_notices', array( '\XMLSF\Compat\Squirrly_SEO', 'news_admin_notices' ) );
+		}
+	}
 
 	/**
 	 * Clear settings
@@ -35,14 +57,46 @@ class Sitemap_News {
 			return;
 		}
 
-		if ( isset( $_POST['xmlsf-check-conflicts-news'] ) ) {
+		if ( isset( $_POST['xmlsf-flush-rewrite-rules'] ) ) {
+			// Flush rewrite rules.
+			\flush_rewrite_rules( false );
+			\add_settings_error(
+				'flush_admin_notice',
+				'flush_admin_notice',
+				__( 'WordPress rewrite rules have been flushed.', 'xml-sitemap-feed' ),
+				'success'
+			);
+		}
+
+		if ( isset( $_POST['xmlsf-check-conflicts'] ) ) {
 			// Reset ignored warnings.
 			\delete_user_meta( \get_current_user_id(), 'xmlsf_dismissed' );
 
-			\XMLSF\Admin\Admin::check_static_file( 'sitemap-news.xml', 2 );
+			// Check static file.
+			$slug = \is_object( \xmlsf()->sitemap_news ) ? \xmlsf()->sitemap_news->slug() : 'sitemap-news';
+
+			if ( \file_exists( \trailingslashit( \get_home_path() ) . $slug . '.xml' ) ) {
+				\add_settings_error(
+					'static_files_notice',
+					'static_file_' . $slug,
+					\sprintf( /* translators: %1$s file name, %2$s is XML Sitemap (linked to options-reading.php) */
+						\esc_html__( 'A conflicting static file has been found: %1$s. Either delete it or disable the corresponding %2$s.', 'xml-sitemap-feed' ),
+						\esc_html( $slug . '.xml' ),
+						'<a href="' . \esc_url( \admin_url( 'options-reading.php' ) ) . '#xmlsf_sitemaps">' . \esc_html__( 'XML Sitemap', 'xml-sitemap-feed' ) . '</a>'
+					),
+					'warning'
+				);
+			} else {
+				\add_settings_error(
+					'static_files_notice',
+					'static_files',
+					\esc_html__( 'No conflicting static files found.', 'xml-sitemap-feed' ),
+					'success'
+				);
+			}
 		}
 
-		if ( isset( $_POST['xmlsf-clear-settings-news'] ) ) {
+		if ( isset( $_POST['xmlsf-clear-settings'] ) ) {
 			self::clear_settings();
 			\add_settings_error(
 				'notice_clear_settings',
@@ -52,10 +106,6 @@ class Sitemap_News {
 			);
 		}
 	}
-
-	/**
-	 * CHECKS
-	 */
 
 	/**
 	 * Compare versions to known compatibility.
@@ -75,72 +125,16 @@ class Sitemap_News {
 	/**
 	 * Check for conflicting themes and plugins
 	 */
-	public static function check_conflicts() {
-		if ( \wp_doing_ajax() || ! \current_user_can( 'manage_options' ) ) {
+	public static function check_advanced() {
+		if ( ! \current_user_can( 'manage_options' ) ) {
 			return;
 		}
 
 		// Google News Advanced incompatibility notice.
-		if (
-			! self::compatible_with_advanced() &&
-			! \in_array( 'xmlsf_advanced_news', (array) get_user_meta( get_current_user_id(), 'xmlsf_dismissed' ), true )
-		) {
-			\add_action(
-				'admin_notices',
-				function () {
-					include XMLSF_DIR . '/views/admin/notice-xmlsf-advanced-news.php';
-				}
-			);
-		}
-
-		// Catch Box Pro feed redirect.
-		if ( \function_exists( 'catchbox_is_feed_url_present' ) && \catchbox_is_feed_url_present( null ) ) {
-			\add_action(
-				'admin_notices',
-				function () {
-					include XMLSF_DIR . '/views/admin/notice-catchbox-feed-redirect.php';
-				}
-			);
-		}
-
-		// Slim SEO conflict notices.
-		if ( \is_plugin_active( 'squirrly-seo/squirrly.php' ) && ! \in_array( 'squirrly_seo_sitemap_news', (array) \get_user_meta( \get_current_user_id(), 'xmlsf_dismissed' ), true ) ) {
-			// check aioseop sitemap module.
-			$squirrly = json_decode( \get_option( 'sq_options', '' ) );
-
-			if ( is_object( $squirrly ) && ! empty( $squirrly->sq_sitemap->{'sitemap-news'}[1] ) ) {
-				// sitemap module on.
-				\add_action(
-					'admin_notices',
-					function () {
-						include XMLSF_DIR . '/views/admin/notice-squirrly-seo-sitemap-news.php';
-					}
-				);
-			}
-		}
-
-		// WP SEO conflict notices.
-		if ( \is_plugin_active( 'wordpress-seo/wp-seo.php' ) ) {
-			// Check Remove category feeds option. TODO move to google news.
-			$wpseo = \get_option( 'wpseo' );
-			if ( ! empty( $wpseo['remove_feed_categories'] ) && \XMLSF\sitemaps_enabled( 'sitemap-news' ) ) {
-				// check if Google News sitemap is limited to categories.
-				$news_tags = \get_option( 'xmlsf_news_tags' );
-				if ( ! empty( $news_tags['categories'] ) ) {
-					\add_action(
-						'admin_notices',
-						function () {
-							include XMLSF_DIR . '/views/admin/notice-wpseo-category-feed-redirect.php';
-						}
-					);
-				}
-			}
+		if ( ! self::compatible_with_advanced() && ! \in_array( 'xmlsf_advanced_news', (array) get_user_meta( get_current_user_id(), 'xmlsf_dismissed' ), true ) ) {
+			include XMLSF_DIR . '/views/admin/notice-xmlsf-advanced-news.php';
 		}
 	}
-
-	/**
-	 * META BOXES
-	 */
 
 	/**
 	 * Add a News Sitemap meta box to the side column
@@ -171,7 +165,7 @@ class Sitemap_News {
 		\wp_nonce_field( XMLSF_BASENAME, '_xmlsf_news_nonce' );
 
 		// Use get_post_meta to retrieve an existing value from the database and use the value for the form.
-		$exclude  = 'private' === $post->post_status || get_post_meta( $post->ID, '_xmlsf_news_exclude', true );
+		$exclude  = 'private' === $post->post_status || \get_post_meta( $post->ID, '_xmlsf_news_exclude', true );
 		$disabled = 'private' === $post->post_status;
 
 		// The actual fields for data entry.
@@ -187,7 +181,7 @@ class Sitemap_News {
 		// Verify nonce and user privileges.
 		if (
 			! isset( $_POST['_xmlsf_news_nonce'] ) ||
-			! \wp_verify_nonce( wp_unslash( sanitize_key( $_POST['_xmlsf_news_nonce'] ) ), XMLSF_BASENAME ) ||
+			! \wp_verify_nonce( \wp_unslash( \sanitize_key( $_POST['_xmlsf_news_nonce'] ) ), XMLSF_BASENAME ) ||
 			! \current_user_can( 'edit_post', $post_id )
 		) {
 			return;
@@ -202,8 +196,27 @@ class Sitemap_News {
 	}
 
 	/**
-	 * SETTINGS
+	 * Add options page
 	 */
+	public static function add_options_page() {
+		// This page will be under "Settings".
+		$screen_id = \add_options_page(
+			__( 'Google News Sitemap', 'xml-sitemap-feed' ),
+			__( 'Google News', 'xml-sitemap-feed' ),
+			'manage_options',
+			'xmlsf_news',
+			array( __CLASS__, 'settings_page' )
+		);
+
+		// Settings hooks.
+		\add_action( 'xmlsf_news_add_settings', array( __CLASS__, 'add_settings' ) );
+
+		// Tools actions.
+		\add_action( 'load-' . $screen_id, array( __CLASS__, 'tools_actions' ) );
+
+		// Help tab.
+		\add_action( 'load-' . $screen_id, array( __CLASS__, 'help_tab' ) );
+	}
 
 	/**
 	 * Options page callback
@@ -236,7 +249,6 @@ class Sitemap_News {
 	 * @param string $active_tab The active tab slug.
 	 */
 	public static function add_settings( $active_tab = '' ) {
-
 		switch ( $active_tab ) {
 			case 'advanced':
 				// ADVANCED SECTION.
@@ -343,36 +355,17 @@ class Sitemap_News {
 	 * Register settings
 	 */
 	public static function register_settings() {
-		register_setting(
+		\register_setting(
 			'xmlsf_news_general',
 			'xmlsf_news_tags',
 			array( __CLASS__, 'sanitize_news_tags' )
 		);
 
 		// Dummy register setting to prevent admin error on Save Settings from Advanced tab.
-		register_setting(
+		\register_setting(
 			'xmlsf_news_advanced',
 			''
 		);
-
-		// Maybe flush rewrite rules.
-		\add_action( 'load-settings_page_xmlsf_news', array( '\XMLSF\Admin\Admin', 'maybe_flush_rewrite_rules' ), 11 );
-
-		// Maybe check static file.
-		\add_action( 'load-settings_page_xmlsf_news', array( __CLASS__, 'maybe_check_static_file' ), 11 );
-	}
-
-	/**
-	 * Maybe check static file.
-	 *
-	 * Checks $_GET['settings-updated'] and transient 'xmlsf_check_static_file'. Hooked into settings page load actions.
-	 */
-	public static function maybe_check_static_file() {
-		if ( ! empty( $_GET['settings-updated'] ) && xmlsf()->using_permalinks() && get_transient( 'xmlsf_check_static_file' ) ) {
-			$slug = \is_object( \xmlsf()->sitemap_news ) ? \xmlsf()->sitemap_news->slug() : 'sitemap-news';
-			\XMLSF\Admin\Admin::check_static_file( $slug . '.xml' );
-			delete_transient( 'xmlsf_check_static_file' );
-		}
 	}
 
 	/**
@@ -390,7 +383,7 @@ class Sitemap_News {
 	 * Help tab
 	 */
 	public static function help_tab() {
-		$screen     = get_current_screen();
+		$screen     = \get_current_screen();
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_key( $_GET['tab'] ) : 'general'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		\ob_start();

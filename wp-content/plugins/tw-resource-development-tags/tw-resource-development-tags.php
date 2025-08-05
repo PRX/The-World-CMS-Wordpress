@@ -67,6 +67,6 @@ function tw_resource_development_tags_taxonomy() {
 		'graphql_single_name'   => 'resourceDevelopmentTag',
 		'graphql_plural_name'   => 'resourceDevelopmentTags',
 	);
-	register_taxonomy( 'resource_development', array( 'post' ), $args );
+	register_taxonomy( 'resource_development', array( 'post', 'episode', 'segment' ), $args );
 }
 add_action( 'init', 'tw_resource_development_tags_taxonomy', 0 );

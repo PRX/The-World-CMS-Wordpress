@@ -16,6 +16,7 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
         {
             add_action('admin_init', [$this, 'taxopress_pro_copy_tagcloud']);
             add_filter('taxopress_tagclouds_row_actions', [$this, 'taxopress_pro_copy_action'], 10, 2);
+            add_action('taxopress_tagcloud_ordering_method', [$this, 'taxopress_pro_tagcloud_ordering_method']);
         }
 
 
@@ -118,6 +119,28 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             }
         
             return $actions;
+        }
+
+        function taxopress_pro_tagcloud_ordering_method($current){
+            $ui = new taxopress_admin_ui();
+
+            $select = [
+                'options' => [
+                    [ 'attr' => 'name', 'text' => esc_attr__( 'Name', 'simple-tags' ) ],
+                    [ 'attr' => 'count', 'text' => esc_attr__( 'Counter', 'simple-tags') ],
+                    [ 'attr' => 'random', 'text' => esc_attr__( 'Random', 'simple-tags' ), 'default' => 'true' ],
+                    [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__( 'Term Order', 'simple-tags' ) ],
+                ],
+            ];
+            $selected = isset( $current ) ? taxopress_disp_boolean( $current['orderby'] ) : '';
+            $select['selected'] = ! empty( $selected ) ? $current['orderby'] : '';
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo $ui->get_select_checkbox_input_main( [
+                    'namearray'  => 'taxopress_tag_cloud',
+                    'name'       => 'orderby',
+                    'labeltext'  => esc_html__( 'Method for choosing terms for display', 'simple-tags' ),
+                    'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ] );
         }
 
     }

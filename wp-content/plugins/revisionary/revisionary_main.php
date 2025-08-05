@@ -20,8 +20,11 @@ class Revisionary
 	var $front = false;
 
 	var $config_loaded = false;		// configuration related to post types and statuses must be loaded late on the init action
+	
 	var $enabled_post_types = [];	// enabled_post_types property is set (keyed by post type slug) late on the init action. 
 	var $enabled_post_types_archive = [];	// enabled_post_types_archive property is set (keyed by post type slug) late on the init action.
+	var $hidden_post_types_archive = [];
+
 	var $post_edit_ui;
 
 	// minimal config retrieval to support pre-init usage by WP_Scoped_User before text domain is loaded
@@ -172,6 +175,8 @@ class Revisionary
 
 		add_action('post_updated', [$this, 'actUpdateRevision'], 10, 2);
 		add_action('post_updated', [$this, 'actUpdateRevisionFixCommentCount'], 999, 2);
+
+		add_filter('wp_revisions_to_keep', [$this, 'fltNumRevisions'], 10, 2);
 
 		add_filter('posts_clauses', [$this, 'fltPostsClauses'], 10, 2);
 
@@ -326,9 +331,18 @@ class Revisionary
 		$enabled_post_types = get_option('rvy_enabled_post_types', false);
 
 		if (false === $enabled_post_types) {
-			$enabled_post_types = array_fill_keys(
-				get_post_types(['public' => true]), true
-			);
+			$enabled_post_types = array_fill_keys(['post', 'page'], true);
+			
+			$available_post_types = get_post_types(['public' => true], 'object');
+
+			// by default, enable public post types that have type-specific capabilities defined
+			foreach($available_post_types as $post_type => $type_obj) {
+				if ((!empty($type_obj->cap) && !empty($type_obj->cap->edit_posts) && !in_array($type_obj->cap->edit_posts, ['edit_posts', 'edit_pages']))
+				|| defined('REVISIONARY_ENABLE_' . strtoupper($post_type) . '_TYPE')
+				) {
+					$enabled_post_types[$post_type] = true;
+				}
+			}
 
 			if (class_exists('WooCommerce')) {
 				$enabled_post_types['product'] = true;
@@ -345,7 +359,7 @@ class Revisionary
 					get_post_types(['public' => null], 'object')
 				);
 				
-				// by default, enable non-public post types that have type-specific capabilities defined
+				// by default, enable private post types that have type-specific capabilities defined
 				foreach($private_types as $post_type => $type_obj) {
 					if ((!empty($type_obj->cap) && !empty($type_obj->cap->edit_posts) && !in_array($type_obj->cap->edit_posts, ['edit_posts', 'edit_pages']))
 					|| defined('REVISIONARY_ENABLE_' . strtoupper($post_type) . '_TYPE')
@@ -360,9 +374,11 @@ class Revisionary
 			'revisionary_enabled_post_types', 
 			array_diff_key(
 				$enabled_post_types,
-				['attachment' => true, 'tablepress_table' => true, 'acf-field-group' => true, 'acf-field' => true, 'nav_menu_item' => true, 'custom_css' => true, 'customize_changeset' => true, 'wp_block' => true, 'wp_template' => true, 'wp_template_part' => true, 'wp_global_styles' => true, 'wp_navigation' => true]
+				['attachment' => true, 'tablepress_table' => true, 'acf-field-group' => true, 'acf-field' => true, 'acf-post-type' => true, 'acf-taxonomy' => true, 'nav_menu_item' => true, 'custom_css' => true, 'customize_changeset' => true, 'wp_block' => true, 'wp_template' => true, 'wp_template_part' => true, 'wp_global_styles' => true, 'wp_navigation' => true, 'ppma_boxes' => true, 'ppmacf_field' => true, 'psppnotif_workflow' => true, 'wpcf7_contact_form' => true]
 			)
 		);
+
+		$enabled_post_types = array_intersect_key($enabled_post_types, array_fill_keys(get_post_types([], 'names'), true));
 
 		$this->enabled_post_types = array_merge($this->enabled_post_types, $enabled_post_types);
 
@@ -370,8 +386,18 @@ class Revisionary
 		$this->enabled_post_types = array_filter($this->enabled_post_types);
 	}
 
+	function getHiddenPostTypesArchive() {
+		return $this->hidden_post_types_archive;
+	}
+
+	private function setHiddenPostTypesArchive() {
+		$this->hidden_post_types_archive = ['attachment' => true, 'tablepress_table' => true, 'acf-field-group' => true, 'acf-field' => true, 'acf-post-type' => true, 'acf-taxonomy' => true, 'nav_menu_item' => true, 'custom_css' => true, 'customize_changeset' => true, 'wp_block' => true, 'wp_template' => true, 'wp_template_part' => true, 'wp_global_styles' => true, 'wp_navigation' => true, 'ppma_boxes' => true, 'ppmacf_field' => true, 'psppnotif_workflow' => true];
+	}
+
 	public function setPostTypesArchive() {
 		global $current_user;
+
+		$this->setHiddenPostTypesArchive();
 
 	    $enabled_post_types_archive = get_option('rvy_enabled_post_types_archive', false);
 
@@ -434,21 +460,6 @@ class Revisionary
 			]
 		);
 
-		// Remove the post_types that doesn't have a valid object (null)
-		foreach( array_keys( $enabled_post_types_archive ) as $type ) :
-			$type_obj = get_post_type_object( $type );
-			if( ! $type_obj ) :
-				unset( $enabled_post_types_archive[$type] );
-			endif;
-
-			if (
-			(!empty($type_obj->cap->edit_others_posts) && empty($current_user->allcaps[$type_obj->cap->edit_others_posts]))
-			|| (!empty($type_obj->cap->edit_published_posts) && empty($current_user->allcaps[$type_obj->cap->edit_published_posts]))
-			) {
-				unset($enabled_post_types_archive[$type]);
-			}
-		endforeach;
-
 		$this->enabled_post_types_archive = array_merge(
 			$this->enabled_post_types_archive,
 			$enabled_post_types_archive
@@ -456,9 +467,23 @@ class Revisionary
 
 		$this->enabled_post_types_archive = apply_filters(
 			'revisionary_archive_post_types', 
-			array_filter($this->enabled_post_types_archive)
+			$this->enabled_post_types_archive
 		);
 	}
+
+	function fltNumRevisions ($num, $post) {
+        if (isset($this->enabled_post_types_archive[$post->post_type]) && empty($this->enabled_post_types_archive[$post->post_type])) {
+            $num = 0;
+        } else {
+            $num = rvy_get_option('num_revisions');
+
+            if (in_array($num, [true, ''], true)) {
+                $num = -1;
+            }
+        }
+
+        return $num;
+    }
 
 	function canEditPost($post, $args = []) {
 		global $current_user;
@@ -852,6 +877,10 @@ class Revisionary
 
 					$filter_args = compact('type_obj');
 				}
+			}
+
+			if (!empty($caps)) {
+				$can_copy = $can_copy && !array_diff($caps, array_keys(array_filter($current_user->allcaps)), ['copy_post']);
 			}
 
 			// allow PublishPress Permissions to apply 'copy' exceptions

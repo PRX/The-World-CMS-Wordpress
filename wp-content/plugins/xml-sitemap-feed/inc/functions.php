@@ -45,20 +45,6 @@ function sitemap_loaded() {
 }
 
 /**
- * Print XML Stylesheet
- *
- * @param string|false $sitemap Optional sitemap name.
- */
-function xml_stylesheet( $sitemap = false ) {
-
-	$url = namespace\get_stylesheet_url( $sitemap );
-
-	if ( $url ) {
-		echo '<?xml-stylesheet type="text/xsl" href="' . \esc_url( \wp_make_link_relative( $url ) ) . '?ver=' . \esc_xml( XMLSF_VERSION ) . '"?>' . PHP_EOL;
-	}
-}
-
-/**
  * Get XML Stylesheet URL
  *
  * @since 5.4
@@ -150,65 +136,6 @@ function headers( $headers ) {
 }
 
 /**
- * Load feed template
- *
- * Hooked into do_feed_{sitemap...}. First checks for a child/parent theme template file, then falls back to plugin template
- *
- * @since 5.3
- *
- * @param bool   $is_comment_feed Unused.
- * @param string $feed            Feed type.
- */
-function load_template( $is_comment_feed, $feed ) {
-	/**
-	 * GET TEMPLATE FILE
-	 *
-	 * DEVELOPERS: a custom template file in the active (parent or child) theme directory will be used when found there
-	 *
-	 * Must start with 'sitemap', optionally folowed by other designators, serperated by hyphens.
-	 * It should always end with the php extension.
-	 *
-	 * Examples:
-	 * sitemap.php
-	 * sitemap-posttype.php
-	 * * sitemap-posttype-post.php
-	 * * sitemap-posttype-page.php
-	 * * sitemap-posttype-[custom_post_type].php
-	 * sitemap-taxonomy.php
-	 * * sitemap-taxonomy-category.php
-	 * * sitemap-taxonomy-post_tag.php
-	 * * sitemap-taxonomy-[custom_taxonomy].php
-	 * sitemap-authors.php
-	 * sitemap-custom.php
-	 * sitemap-news.php
-	 */
-
-	$parts     = \explode( '-', $feed, 3 );
-	$templates = array();
-	$found     = false;
-
-	// Possible theme template file names.
-	if ( ! empty( $parts[1] ) && \in_array( $parts[1], array( 'news', 'posttype', 'taxonomy', 'author', 'custom' ), true ) ) {
-		if ( ! empty( $parts[2] ) ) {
-			$templates[] = "sitemap-{$parts[1]}-{$parts[2]}.php";
-		}
-		$templates[] = "sitemap-{$parts[1]}.php";
-	}
-	$templates[] = 'sitemap.php';
-
-	// Locate and load theme template file or use plugin template.
-	if ( ! \locate_template( $templates, true ) ) {
-		foreach ( $templates as $template ) {
-			$file = XMLSF_DIR . '/views/feed-' . $template;
-			if ( \file_exists( $file ) ) {
-				\load_template( $file );
-				break;
-			}
-		}
-	}
-}
-
-/**
  * Santize number value
  * Expects proper locale setting for calculations: setlocale( LC_NUMERIC, 'C' );
  *
@@ -239,41 +166,6 @@ function sanitize_number( $number, $min = .1, $max = 1, $decimals = 1 ) {
 }
 
 /**
- * Clear cache metadata
- *
- * @param string $type The metadata type to clear.
- */
-function clear_metacache( $type = '' ) {
-	switch ( $type ) {
-		case 'images':
-			// Clear all images meta caches...
-			\delete_metadata( 'post', 0, '_xmlsf_image_attached', '', true );
-			\delete_metadata( 'post', 0, '_xmlsf_image_featured', '', true );
-			\set_transient( 'xmlsf_images_meta_primed', array() );
-			break;
-
-		case 'comments':
-			\delete_metadata( 'post', 0, '_xmlsf_comment_date_gmt', '', true );
-			\set_transient( 'xmlsf_comments_meta_primed', array() );
-			break;
-
-		case 'terms':
-			\delete_metadata( 'term', 0, 'term_modified', '', true );
-			break;
-
-		case 'users':
-			\delete_metadata( 'user', 0, 'user_modified', '', true );
-			break;
-
-		default:
-			$all_types = array( 'images', 'comments', 'terms', 'users' );
-			foreach ( $all_types as $_type ) {
-				namespace\clear_metacache( $_type );
-			}
-	}
-}
-
-/**
  * Filter robots.txt rules
  *
  * @param string $output Default robots.txt content.
@@ -287,50 +179,6 @@ function robots_txt( $output ) {
 	}
 
 	return $output;
-}
-
-/**
- * Plugin compatibility hooks and filters.
- */
-function plugin_compat() {
-	$active_plugins = (array) get_option( 'active_plugins', array() );
-
-	// Polylang compatibility.
-	if ( in_array( 'polylang/polylang.php', $active_plugins, true ) ) {
-		\add_filter( 'xmlsf_blogpages', array( __NAMESPACE__ . '\Compat\Polylang', 'get_translations' ) );
-		\add_filter( 'xmlsf_frontpages', array( __NAMESPACE__ . '\Compat\Polylang', 'get_translations' ) );
-		\add_filter( 'xmlsf_request', array( __NAMESPACE__ . '\Compat\Polylang', 'filter_request' ) );
-		\add_filter( 'xmlsf_news_request', array( __NAMESPACE__ . '\Compat\Polylang', 'filter_request' ) );
-		\add_action( 'xmlsf_sitemap_loaded', array( __NAMESPACE__ . '\Compat\Polylang', 'request_actions' ) );
-		\add_filter( 'xmlsf_news_sitemap_loaded', array( __NAMESPACE__ . '\Compat\Polylang', 'request_actions' ) );
-		\add_filter( 'xmlsf_news_publication_name', array( __NAMESPACE__ . '\Compat\Polylang', 'news_name' ), 10, 2 );
-		\add_filter( 'xmlsf_news_language', array( __NAMESPACE__ . '\Compat\Polylang', 'post_language_filter' ), 10, 2 );
-		\add_action( 'xmlsf_register_sitemap_provider', array( __NAMESPACE__ . '\Compat\Polylang', 'remove_replace_provider' ) );
-		\add_action( 'xmlsf_register_sitemap_provider_after', array( __NAMESPACE__ . '\Compat\Polylang', 'add_replace_provider' ) );
-		\add_filter( 'xmlsf_root_data', array( __NAMESPACE__ . '\Compat\Polylang', 'root_data' ) );
-		\add_filter( 'xmlsf_url_after', array( __NAMESPACE__ . '\Compat\Polylang', 'author_archive_translations' ), 10, 3 );
-		\add_filter( 'xmlsf_sitemap_subtype', array( __NAMESPACE__ . '\Compat\Polylang', 'filter_sitemap_subtype' ) );
-	}
-
-	// WPML compatibility.
-	if ( in_array( 'sitepress-multilingual-cms/sitepress.php', $active_plugins, true ) ) {
-		// Make sure we get the correct sitemap URL in language context.
-		\add_filter( 'xmlsf_sitemap_url', array( __NAMESPACE__ . '\Compat\WPML', 'convert_url' ), 10, 2 );
-		\add_filter( 'xmlsf_sitemap_news_url', array( __NAMESPACE__ . '\Compat\WPML', 'convert_url' ) );
-		// Add sitemap in Robots TXT.
-		\add_filter( 'robots_txt', array( __NAMESPACE__ . '\Compat\WPML', 'robots_txt' ), 9 );
-	}
-
-	// bbPress compatibility.
-	if ( in_array( 'bbpress/bbpress.php', $active_plugins, true ) ) {
-		\add_filter( 'xmlsf_request', array( __NAMESPACE__ . '\Compat\BBPress', 'filter_request' ) );
-		\add_filter( 'xmlsf_news_request', array( __NAMESPACE__ . '\Compat\BBPress', 'filter_request' ) );
-	}
-
-	// XMLSM compatibility.
-	if ( in_array( 'xml-sitemaps-manager/xml-sitemaps-manager.php', $active_plugins, true ) ) {
-		\add_filter( 'plugins_loaded', array( __NAMESPACE__ . '\Compat\XMLSM', 'disable' ), 11 );
-	}
 }
 
 /**

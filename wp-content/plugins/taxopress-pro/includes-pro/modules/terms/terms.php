@@ -16,6 +16,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
         {
             add_action('admin_init', [$this, 'taxopress_pro_copy_terms']);
             add_filter('taxopress_terms_row_actions', [$this, 'taxopress_pro_copy_action'], 10, 2);
+            add_action('wp_ajax_taxopress_save_term_order', [$this, 'taxopress_save_term_order_callback']);
         }
 
         /** Singleton instance */
@@ -156,6 +157,39 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
             }
 
             return $actions;
+        }
+
+        public function taxopress_save_term_order_callback()
+        {
+    
+            if (!current_user_can('simple_tags')) {
+                wp_send_json_error(['message' => esc_html__('Permission denied.', 'simple-tags')]);
+            }
+
+            if ( !isset($_POST['nonce']) || !wp_verify_nonce(sanitize_key($_POST['nonce']), 'st-admin-js')) {
+                wp_send_json_error(['message' => esc_html__('Invalid nonce.', 'simple-tags')]);
+            }
+
+            $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : '';
+            $order    = isset($_POST['order']) && is_array($_POST['order']) ? array_map('intval', $_POST['order']) : [];
+
+            // Only allow saving if taxonomy is set and not empty
+            if (empty($taxonomy) || empty($order)) {
+                wp_send_json_error(['message' => esc_html__('Invalid taxonomy or order.', 'simple-tags')]);
+            }
+
+            // Get the current order setting for this taxonomy
+            $taxonomy_settings = taxopress_get_all_edited_taxonomy_data();
+            $order_setting = isset($taxonomy_settings[$taxonomy]['order']) ? $taxonomy_settings[$taxonomy]['order'] : 'desc';
+
+            // If order is desc, reverse the array before saving
+            if ($order_setting === 'desc') {
+                $order = array_reverse($order);
+            }
+
+            update_option('taxopress_term_order_' . $taxonomy, $order);
+
+            wp_send_json_success(['message' => esc_html__('Order saved.', 'simple-tags')]);
         }
     }
 }

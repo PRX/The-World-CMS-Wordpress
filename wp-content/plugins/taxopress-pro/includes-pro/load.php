@@ -13,6 +13,8 @@ require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autoterms/schedule.php'
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autoterms/schedule-logs-table.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/taxopress-ai/taxopress-ai.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/terms/terms.php');
+require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/taxonomies/taxonomies.php');
+require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/taxonomies/class-taxonomies-table.php');
 
 if (!class_exists('TaxoPress_Pro_Init')) {
     /**
@@ -70,6 +72,10 @@ if (!class_exists('TaxoPress_Pro_Init')) {
             }
             if (1 === (int) SimpleTags_Plugin::get_option_value('active_terms_display')){
                 TaxoPress_Pro_Tag_Clouds::get_instance();
+            }
+            if (1 === (int) SimpleTags_Plugin::get_option_value('active_taxonomies')){
+                TaxoPress_Pro_Taxonomies::get_instance();
+                TaxoPress_Pro_Taxonomies_Table::get_instance();
             }
             if (1 === (int) SimpleTags_Plugin::get_option_value('active_related_posts')){
                 TaxoPress_Pro_Related_Posts::get_instance();

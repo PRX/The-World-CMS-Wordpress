@@ -3,7 +3,7 @@ Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojop
 Tags: category, tag, taxonomy, related posts, tag cloud, terms, tagging, navigation, tag manager, tags manager, term manager, terms manager
 Requires at least: 3.3
 Tested up to: 6.8
-Stable tag: 3.36.0
+Stable tag: 3.37.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -224,6 +224,33 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 6. If you have a term called “WordPress”, the Auto Links feature will find any instances of “WordPress” in your content and add a link to the archive page for that tag.
 
 == Changelog ==
+
+v3.37.2- 2025-07-09
+* Fixed: Uncaught Error: array_merge(): Argument #1 must be of type array, string given in taxonomies-functions, #2698
+* Fixed: Auto Links new engine message is under two tabs, #2702
+* Fixed: No tags text is missing on the frontend, #2712
+* Fixed: unable to uncheck categories in post editor, #2697
+* Fixed: Term Order doesn't support nested Categories, #2695
+* Update: Hide the Custom URL column on Terms screen, #2700
+* Update: Update "Taxonomy Terms Table" name, #2699
+
+v3.37.1- 2025-07-03
+* Fixed: Allow Users to disable TaxoPress Ordering Methods, #2687
+
+v3.37.0- 2025-06-23
+* Fixed: Warning issue from Auto Links, #2663
+* Fixed: Not all design settings apply to Terms Display designs, #2658
+* Update: Move Auto Terms tab, #2661
+* Update: Update "Metabox" tab settings, #2660
+* Update: Update "Term Management" label, #2659
+* Update: New tab for "Layout", #2657
+* Update: Add a message for empty previews, #2655
+* Update: Improve default display for Related Posts, #2651
+* Update: Improve default display for Terms Display, #2650
+* Update: Allow users to disable either "Custom URLs" or "Auto Links", #2632
+* Feature: Design options for Terms for Current Post and Related Posts, #2656
+* Feature: Display options for Terms for Current Post, #2653
+* Feature: Allow users to order terms via the Terms Screen, #1794
 
 v3.36.0- 2025-06-02
 * Update: Add "Edited with TaxoPress" row in taxonomies table, #2640

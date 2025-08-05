@@ -52,6 +52,45 @@ class Sitemap_Plugin extends Sitemap {
 
 		// Add sitemap in Robots TXT.
 		add_filter( 'robots_txt', array( $this, 'robots_txt' ), 8 );
+
+		// Compatibility hooks.
+		$this->compat();
+	}
+
+	/**
+	 * Plugin compatibility hooks and filters.
+	 * Called from constructor.
+	 */
+	public function compat() {
+		$active_plugins = (array) \get_option( 'active_plugins', array() );
+
+		// Polylang compatibility.
+		if ( in_array( 'polylang/polylang.php', $active_plugins, true ) || in_array( 'polylang-pro/polylang.php', $active_plugins, true ) ) {
+			\add_filter( 'xmlsf_blogpages', array( __NAMESPACE__ . '\Compat\Polylang', 'get_translations' ) );
+			\add_filter( 'xmlsf_frontpages', array( __NAMESPACE__ . '\Compat\Polylang', 'get_translations' ) );
+			\add_filter( 'xmlsf_request', array( __NAMESPACE__ . '\Compat\Polylang', 'filter_request' ) );
+			\add_action( 'xmlsf_sitemap_loaded', array( __NAMESPACE__ . '\Compat\Polylang', 'request_actions' ) );
+			\add_filter( 'xmlsf_root_data', array( __NAMESPACE__ . '\Compat\Polylang', 'root_data' ) );
+			\add_filter( 'xmlsf_url_after', array( __NAMESPACE__ . '\Compat\Polylang', 'author_archive_translations' ), 10, 3 );
+		}
+
+		// WPML compatibility.
+		if ( in_array( 'sitepress-multilingual-cms/sitepress.php', $active_plugins, true ) ) {
+			// Make sure we get the correct sitemap URL in language context.
+			\add_filter( 'xmlsf_sitemap_url', array( __NAMESPACE__ . '\Compat\WPML', 'convert_url' ), 10, 2 );
+			// Add sitemap in Robots TXT.
+			\add_filter( 'robots_txt', array( __NAMESPACE__ . '\Compat\WPML', 'sitemap_robots' ), 9 );
+		}
+
+		// bbPress compatibility.
+		if ( in_array( 'bbpress/bbpress.php', $active_plugins, true ) ) {
+			\add_filter( 'xmlsf_request', array( __NAMESPACE__ . '\Compat\BBPress', 'filter_request' ) );
+		}
+
+		// XMLSM compatibility.
+		if ( in_array( 'xml-sitemaps-manager/xml-sitemaps-manager.php', $active_plugins, true ) ) {
+			\add_filter( 'plugins_loaded', array( __NAMESPACE__ . '\Compat\XMLSM', 'disable' ), 11 );
+		}
 	}
 
 	/**
@@ -281,13 +320,72 @@ class Sitemap_Plugin extends Sitemap {
 		/** PREPARE TO LOAD TEMPLATE */
 		\add_action(
 			'do_feed_' . $request['feed'],
-			'XMLSF\load_template',
+			array( $this, 'load_template' ),
 			10,
 			2
 		);
 
 		return $request;
 	}
+
+	/**
+	 * Load feed template
+	 *
+	 * Hooked into do_feed_{sitemap...}. First checks for a child/parent theme template file, then falls back to plugin template
+	 *
+	 * @since 5.3
+	 *
+	 * @param bool   $is_comment_feed Unused.
+	 * @param string $feed            Feed type.
+	 */
+	public function load_template( $is_comment_feed, $feed ) {
+		/**
+		 * GET TEMPLATE FILE
+		 *
+		 * DEVELOPERS: a custom template file in the active (parent or child) theme directory will be used when found there
+		 *
+		 * Must start with 'sitemap', optionally folowed by other designators, serperated by hyphens.
+		 * It should always end with the php extension.
+		 *
+		 * Examples:
+		 * sitemap.php
+		 * sitemap-posttype.php
+		 * * sitemap-posttype-post.php
+		 * * sitemap-posttype-page.php
+		 * * sitemap-posttype-[custom_post_type].php
+		 * sitemap-taxonomy.php
+		 * * sitemap-taxonomy-category.php
+		 * * sitemap-taxonomy-post_tag.php
+		 * * sitemap-taxonomy-[custom_taxonomy].php
+		 * sitemap-authors.php
+		 * sitemap-custom.php
+		 */
+
+		$parts     = \explode( '-', $feed, 3 );
+		$templates = array();
+		$found     = false;
+
+		// Possible theme template file names.
+		if ( ! empty( $parts[1] ) && \in_array( $parts[1], array( 'posttype', 'taxonomy', 'author', 'custom' ), true ) ) {
+			if ( ! empty( $parts[2] ) ) {
+				$templates[] = "sitemap-{$parts[1]}-{$parts[2]}.php";
+			}
+			$templates[] = "sitemap-{$parts[1]}.php";
+		}
+		$templates[] = 'sitemap.php';
+
+		// Locate and load theme template file or use plugin template.
+		if ( ! \locate_template( $templates, true ) ) {
+			foreach ( $templates as $template ) {
+				$file = XMLSF_DIR . '/views/feed-' . $template;
+				if ( \file_exists( $file ) ) {
+					\load_template( $file );
+					break;
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Terms arguments filter

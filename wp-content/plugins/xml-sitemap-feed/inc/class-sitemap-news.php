@@ -42,6 +42,40 @@ class Sitemap_News {
 
 		// Add sitemap in Robots TXT.
 		add_filter( 'robots_txt', array( $this, 'robots_txt' ), 9 );
+
+		// Compatibility hooks.
+		self::compat();
+	}
+
+	/**
+	 * Plugin compatibility hooks and filters.
+	 */
+	public static function compat() {
+		$active_plugins = (array) \get_option( 'active_plugins', array() );
+
+		// Polylang compatibility.
+		if ( in_array( 'polylang/polylang.php', $active_plugins, true ) || in_array( 'polylang-pro/polylang.php', $active_plugins, true ) ) {
+			\add_filter( 'xmlsf_news_request', array( __NAMESPACE__ . '\Compat\Polylang', 'filter_request' ) );
+			\add_action( 'xmlsf_sitemap_loaded', array( __NAMESPACE__ . '\Compat\Polylang', 'request_actions' ) );
+			\add_filter( 'xmlsf_news_sitemap_loaded', array( __NAMESPACE__ . '\Compat\Polylang', 'request_actions' ) );
+			\add_filter( 'xmlsf_news_publication_name', array( __NAMESPACE__ . '\Compat\Polylang', 'news_name' ), 10, 2 );
+			\add_filter( 'xmlsf_news_language', array( __NAMESPACE__ . '\Compat\Polylang', 'post_language_filter' ), 10, 2 );
+			\add_action( 'xmlsf_register_sitemap_provider', array( __NAMESPACE__ . '\Compat\Polylang', 'remove_replace_provider' ) );
+			\add_action( 'xmlsf_register_sitemap_provider_after', array( __NAMESPACE__ . '\Compat\Polylang', 'add_replace_provider' ) );
+		}
+
+		// WPML compatibility.
+		if ( in_array( 'sitepress-multilingual-cms/sitepress.php', $active_plugins, true ) ) {
+			// Make sure we get the correct sitemap URL in language context.
+			\add_filter( 'xmlsf_sitemap_news_url', array( __NAMESPACE__ . '\Compat\WPML', 'convert_url' ) );
+			// Add sitemap in Robots TXT.
+			\add_filter( 'robots_txt', array( __NAMESPACE__ . '\Compat\WPML', 'sitemap_news_robots' ), 9 );
+		}
+
+		// bbPress compatibility.
+		if ( in_array( 'bbpress/bbpress.php', $active_plugins, true ) ) {
+			\add_filter( 'xmlsf_news_request', array( __NAMESPACE__ . '\Compat\BBPress', 'filter_request' ) );
+		}
 	}
 
 	/**
@@ -174,7 +208,7 @@ class Sitemap_News {
 		/** PREPARE TO LOAD TEMPLATE */
 		\add_action(
 			'do_feed_sitemap-news',
-			'XMLSF\load_template',
+			array( $this, 'load_template' ),
 			10,
 			2
 		);
@@ -191,9 +225,9 @@ class Sitemap_News {
 		 * Add your actions that should run when a news sitemap request is found with: add_filter( 'xmlsf_news_request', 'your_filter_function' );
 		 *
 		 * Possible filters hooked here:
-		 * XMLSF\Compat/Polylang->filter_request - Polylang compatibility
+		 * XMLSF\Compat\Polylang->filter_request - Polylang compatibility
 		 * XMLSF\Compat\WPML->filter_request - WPML compatibility
-		 * XMLSF\Compat/BBPress->filter_request - bbPress compatibility
+		 * XMLSF\Compat\BBPress->filter_request - bbPress compatibility
 		 */
 		$request = \apply_filters( 'xmlsf_news_request', $request );
 
@@ -217,6 +251,33 @@ class Sitemap_News {
 
 		return $request;
 	}
+
+	/**
+	 * Load feed template
+	 *
+	 * Hooked into do_feed_{sitemap...}. First checks for a child/parent theme template file, then falls back to plugin template
+	 *
+	 * @since 5.5.5
+	 */
+	public function load_template() {
+		/**
+		 * GET TEMPLATE FILE
+		 *
+		 * DEVELOPERS: a custom template file in the active (parent or child) theme directory will be used when found there
+		 * Must be named sitemap-news.php
+		 */
+
+		$template = 'sitemap-news.php';
+
+		// Locate and load theme template file or use plugin template.
+		if ( ! \locate_template( $template, true ) ) {
+			$file = XMLSF_DIR . '/views/feed-' . $template;
+			if ( \file_exists( $file ) ) {
+				\load_template( $file );
+			}
+		}
+	}
+
 
 	/**
 	 * Response headers filter

@@ -16,6 +16,8 @@ if (!class_exists('TaxoPress_Pro_Post_Tags')) {
         {
             add_action('admin_init', [$this, 'taxopress_pro_copy_posttags']);
             add_filter('taxopress_posttags_row_actions', [$this, 'taxopress_pro_copy_action'], 10, 2);
+            add_filter('taxopress_display_formats', [$this, 'taxopress_render_display_formats_fields']);
+            add_action('taxopress_posttags_ordering_method', [$this, 'taxopress_pro_posttags_ordering_method']);
         }
 
         /** Singleton instance */
@@ -114,6 +116,51 @@ if (!class_exists('TaxoPress_Pro_Post_Tags')) {
             }
 
             return $actions;
+        }
+
+        public function taxopress_render_display_formats_fields($current){
+            $ui = new taxopress_admin_ui();
+             $select = [
+                'options' => [
+                    [ 'attr' => 'flat', 'text' => esc_attr__( 'Cloud', 'simple-tags' )],
+                    [ 'attr' => 'list', 'text' => esc_attr__( 'Unordered List (UL/LI)', 'simple-tags' ) ],
+                    [ 'attr' => 'ol', 'text' => esc_attr__( 'Ordered List (OL/LI)', 'simple-tags' ) ],
+                    [ 'attr' => 'comma', 'text' => esc_attr__( 'WordPress Default', 'simple-tags' ), 'default' => 'true'],
+                    ['attr' => 'table', 'text' => esc_attr__('Table List', 'simple-tags')],
+                    ['attr' => 'border', 'text' => esc_attr__('Border Cloud', 'simple-tags')],
+                ],
+            ];
+            $selected = (isset($current) && isset($current['format'])) ? taxopress_disp_boolean($current['format']) : '';
+            $select['selected'] = ! empty( $selected ) ? $current['format'] : '';
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo $ui->get_select_checkbox_input_main( [
+                    'namearray'  => 'taxopress_post_tags',
+                    'name'       => 'format',
+                    'labeltext'  => esc_html__( 'Display format', 'simple-tags' ),
+                    'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ] );
+        }
+
+         function taxopress_pro_posttags_ordering_method($current){
+            $ui = new taxopress_admin_ui();
+
+            $select = [
+                'options' => [
+                    [ 'attr' => 'name', 'text' => esc_attr__( 'Name', 'simple-tags' ) ],
+                    [ 'attr' => 'count', 'text' => esc_attr__( 'Counter', 'simple-tags') ],
+                    [ 'attr' => 'random', 'text' => esc_attr__( 'Random', 'simple-tags' ), 'default' => 'true' ],
+                    [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__( 'Term Order', 'simple-tags' ) ],
+                ],
+            ];
+            $selected = isset( $current['orderby'] ) ? taxopress_disp_boolean( $current['orderby'] ) : '';
+            $select['selected'] = ! empty( $selected ) ? $current['orderby'] : '';
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo $ui->get_select_checkbox_input_main( [
+                    'namearray'  => 'taxopress_post_tags',
+                    'name'       => 'orderby',
+                    'labeltext'  => esc_html__( 'Method for choosing terms for display', 'simple-tags' ),
+                    'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ] );
         }
     }
 }

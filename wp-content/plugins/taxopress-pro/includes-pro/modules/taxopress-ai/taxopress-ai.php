@@ -48,11 +48,11 @@ if (!class_exists('TaxoPress_Pro_AI_Module')) {
             // add taxonomy display option after taxopress_ai_{$post_type}_metabox_default_taxonomy
             $new_entry = array(
                 'taxopress_ai_' . $post_type . '_metabox_display_option',
-                '<div class="taxopress-ai-tab-content-sub taxopress-settings-subtab-title taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_metabox_field st-subhide-content">' . esc_html__('Metabox Taxonomy Display', 'taxopress-pro') . '</div>',
+                '<div class="taxopress-ai-tab-content-sub taxopress-settings-subtab-title taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_post_terms_tab_field st-subhide-content">' . esc_html__('Metabox Taxonomy Display', 'taxopress-pro') . '</div>',
                 'select',
                 $default_taxonomy_display_options,
                 '',
-                'taxopress-ai-tab-content-sub taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_metabox_field st-subhide-content'
+                'taxopress-ai-tab-content-sub taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_post_terms_tab_field st-subhide-content'
             );
 
             // Get the index of 'taxopress_ai_post_metabox_default_taxonomy' if it exists
@@ -78,7 +78,7 @@ if (!class_exists('TaxoPress_Pro_AI_Module')) {
          */
         public function add_legacy_ai_sources_tab($options)
         {
-            $options['legacy_ai_sources'] = array(
+            $legacy_ai_sources = array(
                 array(
                     'enable_ibm_watson_ai_source',
                     __('Enable IBM Watson integration', 'taxopress-pro'),
@@ -104,7 +104,20 @@ if (!class_exists('TaxoPress_Pro_AI_Module')) {
                     ''
                 ),
             );
-            return $options;
+
+            $keys = array_keys($options);
+            $insert_before_key = array_search('hidden_terms', $keys);
+
+            $position = ($insert_before_key !== false) ? $insert_before_key : count($options);
+
+            // Split and merge the arrays to insert at the correct position
+            $result = array_merge(
+                array_slice($options, 0, $position, true),
+                ['legacy_ai_sources' => $legacy_ai_sources],
+                array_slice($options, $position, null, true)
+            );
+
+            return $result;
         }
     }
 }
