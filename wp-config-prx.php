@@ -16,6 +16,9 @@ if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FOR
 	$_SERVER['HTTPS'] = 'on';
 }
 
+define( 'WP_DEBUG', filter_var($_ENV['WP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WP_DEBUG_LOG', filter_var($_ENV['WP_DEBUG_LOG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+
 // ** MySQL settings - included in the Pantheon Environment ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', $_ENV['DB_NAME'] );
