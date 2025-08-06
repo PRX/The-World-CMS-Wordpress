@@ -19,6 +19,20 @@ if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FOR
 define( 'WP_DEBUG', filter_var($_ENV['WP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
 define( 'WP_DEBUG_LOG', filter_var($_ENV['WP_DEBUG_LOG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
 
+define( 'WPMS_ON', true );
+define( 'WPMS_SMTP_HOST', $_ENV['WPMS_SMTP_HOST'] );
+define( 'WPMS_SMTP_PORT', $_ENV['WPMS_SMTP_PORT'] );
+define( 'WPMS_SSL', $_ENV['WPMS_SSL'] );
+define( 'WPMS_SMTP_AUTH', filter_var($_ENV['WPMS_SMTP_AUTH'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_SMTP_USER', $_ENV['WPMS_SMTP_USER'] );
+define( 'WPMS_SMTP_PASS', $_ENV['WPMS_SMTP_PASS'] );
+define( 'WPMS_SMTP_AUTOTLS', filter_var($_ENV['WPMS_SMTP_AUTOTLS'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_MAILER', $_ENV['WPMS_MAILER'] );
+define( 'WPMS_MAIL_FROM', $_ENV['WPMS_MAIL_FROM'] );
+define( 'WPMS_MAIL_FROM_FORCE', filter_var($_ENV['WPMS_MAIL_FROM_FORCE'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_MAIL_FROM_NAME', $_ENV['WPMS_MAIL_FROM_NAME'] );
+define( 'WPMS_MAIL_FROM_NAME_FORCE', filter_var($_ENV['WPMS_MAIL_FROM_NAME_FORCE'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+
 // ** MySQL settings - included in the Pantheon Environment ** //
 /** The name of the database for WordPress */
 define( 'DB_NAME', $_ENV['DB_NAME'] );

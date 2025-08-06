@@ -23,6 +23,15 @@ services:
       WP_REDIS_READ_TIMEOUT: 1
       NEW_RELIC_LICENSE_KEY:
       NEW_RELIC_APP_NAME: The WordPress (development)
+      WPMS_SMTP_PORT: 587
+      WPMS_SSL: tls
+      WPMS_SMTP_AUTH: true
+      WPMS_SMTP_AUTOTLS: false
+      WPMS_MAILER: smtp
+      WPMS_MAIL_FROM: editors@theworld.org
+      WPMS_MAIL_FROM_FORCE: true
+      WPMS_MAIL_FROM_NAME: The World from PRX
+      WPMS_MAIL_FROM_NAME_FORCE: true
     volumes:
       - wordpress:/var/www/html
       - .:/var/www/html
