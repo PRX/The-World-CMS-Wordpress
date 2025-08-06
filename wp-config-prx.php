@@ -16,8 +16,10 @@ if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FOR
 	$_SERVER['HTTPS'] = 'on';
 }
 
-define( 'WP_DEBUG', filter_var($_ENV['WP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
-define( 'WP_DEBUG_LOG', filter_var($_ENV['WP_DEBUG_LOG'] ?? false, FILTER_VALIDATE_BOOLEAN) );
+if ( isset( $_ENV['WP_DEBUG'] ) ) {
+	define( 'WP_DEBUG', filter_var( $_ENV['WP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN ) );
+	define( 'WP_DEBUG_LOG', filter_var( $_ENV['WP_DEBUG_LOG'] ?? false, FILTER_VALIDATE_BOOLEAN ) );
+}
 
 define( 'WPMS_ON', true );
 define( 'WPMS_SMTP_HOST', $_ENV['WPMS_SMTP_HOST'] );
@@ -114,15 +116,15 @@ if ( getenv( 'WP_ENVIRONMENT_TYPE' ) === false ) {
 }
 
 if ( isset( $_ENV['WP_REDIS_HOST'] ) ) {
-	// adjust Redis host and port if necessary
+	// Adjust Redis host and port if necessary.
 	define( 'WP_REDIS_HOST', $_ENV['WP_REDIS_HOST'] );
 	define( 'WP_REDIS_PORT', $_ENV['WP_REDIS_PORT'] );
 
-	// change the prefix and database for each site to avoid cache data collisions
+	// Change the prefix and database for each site to avoid cache data collisions.
 	define( 'WP_REDIS_PREFIX', $_ENV['WP_REDIS_PREFIX'] );
 	define( 'WP_REDIS_DATABASE', $_ENV['WP_REDIS_DATABASE'] ); // 0-15
 
-	// reasonable connection and read+write timeouts
+	// Reasonable connection and read+write timeouts.
 	define( 'WP_REDIS_TIMEOUT', $_ENV['WP_REDIS_TIMEOUT'] );
 	define( 'WP_REDIS_READ_TIMEOUT', $_ENV['WP_REDIS_READ_TIMEOUT'] );
 
