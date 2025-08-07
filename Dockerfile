@@ -1,4 +1,9 @@
-FROM php:8.1-apache
+FROM serversideup/php:8.1-fpm-apache
+# FROM php:8.1-fpm-bookworm
+# FROM php:8.1-apache
+# FROM dwchiang/nginx-php-fpm:8.1.32-fpm-bookworm-nginx-1.27.4
+
+USER root
 
 # persistent dependencies
 RUN set -eux; \
@@ -136,14 +141,14 @@ RUN set -eux; \
   # (replace all instances of "%h" with "%a" in LogFormat)
   find /etc/apache2 -type f -name '*.conf' -exec sed -ri 's/([[:space:]]*LogFormat[[:space:]]+"[^"]*)%h([^"]*")/\1%a\2/g' '{}' +
 
-# Install Composer and extensions
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# # Install Composer and extensions
+# COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy WordPress
-COPY . /usr/src/wordpress
+COPY . /var/www/html/public
 
 # Install PHP dependencies
-RUN cd /usr/src/wordpress ; composer install --no-dev --optimize-autoloader
+RUN cd /var/www/html/public ; composer install --no-dev --optimize-autoloader
 
 RUN set -eux; \
   # version='6.8.1'; \
@@ -157,7 +162,7 @@ RUN set -eux; \
   # rm wordpress.tar.gz; \
   # \
   # https://wordpress.org/support/article/htaccess/
-  [ ! -e /usr/src/wordpress/.htaccess ]; \
+  [ ! -e /var/www/html/public/.htaccess ]; \
   { \
   echo '# BEGIN WordPress'; \
   echo ''; \
@@ -170,13 +175,13 @@ RUN set -eux; \
   echo 'RewriteRule . /index.php [L]'; \
   echo ''; \
   echo '# END WordPress'; \
-  } > /usr/src/wordpress/.htaccess; \
+  } > /var/www/html/public/.htaccess; \
   \
-  chown -R www-data:www-data /usr/src/wordpress
-VOLUME /var/www/html
+  chown -R www-data:www-data /var/www/html/public
+VOLUME /var/www/html/public
 
 # COPY --chown=www-data:www-data wp-config-docker.php /usr/src/wordpress/
-COPY docker-entrypoint.sh /usr/local/bin/
+# COPY docker-entrypoint.sh /usr/local/bin/
 # https://github.com/docker-library/wordpress/issues/969
 RUN ln -svfT docker-entrypoint.sh /usr/local/bin/docker-ensure-installed.sh
 
@@ -184,5 +189,7 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 RUN chmod +x wp-cli.phar
 RUN mv wp-cli.phar /usr/local/bin/wp
 
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["apache2-foreground"]
+USER www-data
+
+# ENTRYPOINT ["docker-entrypoint.sh"]
+# CMD ["/init"]
