@@ -3,7 +3,7 @@ services:
     build: .
     restart: always
     ports:
-      - 8090:80
+      - 8090:8080
     env_file:
       - path: ./.env-default
         required: true
