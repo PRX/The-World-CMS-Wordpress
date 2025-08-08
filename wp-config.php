@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/wp-config-constants.php';
 
-if ( file_exists( __DIR__ . '/wp-config-' . SERVER_PLATFORM_NAME . '.php' ) && isset( $_ENV[ SERVER_PLATFORM_ENVIRONMENT_VARIABLE_NAME ] ) ) {
+if ( file_exists( __DIR__ . '/wp-config-' . SERVER_PLATFORM_NAME . '.php' ) && null !== getenv( SERVER_PLATFORM_ENVIRONMENT_VARIABLE_NAME ) ) {
 
 	/**
 	 * Server platform settings.
