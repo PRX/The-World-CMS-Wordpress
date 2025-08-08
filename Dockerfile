@@ -1,7 +1,4 @@
 FROM serversideup/php:8.1-fpm-apache
-# FROM php:8.1-fpm-bookworm
-# FROM php:8.1-apache
-# FROM dwchiang/nginx-php-fpm:8.1.32-fpm-bookworm-nginx-1.27.4
 
 USER root
 
@@ -32,7 +29,10 @@ RUN \
   # Configure the agent to use app name from NEW_RELIC_APP_NAME env var:
   && sed -ie 's/[ ;]*newrelic.appname[[:space:]]=.*/newrelic.appname=${NEW_RELIC_APP_NAME}/' $(php-config --ini-dir)/newrelic.ini \
   # Cleanup temporary files:
-  && rm newrelic-php-agent.tar.gz && rm -rf newrelic-php5-*-linux
+  && rm newrelic-php-agent.tar.gz && rm -rf newrelic-php5-*-linux \
+  # Set ownership
+  && touch /var/log/newrelic/newrelic-daemon.log \
+  && chown -R www-data:www-data /var/log/newrelic
 
 # install the PHP extensions we need (https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions)
 RUN set -ex; \
@@ -145,10 +145,10 @@ RUN set -eux; \
 # COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy WordPress
-COPY . /var/www/html/public
+COPY . /var/www/html
 
 # Install PHP dependencies
-RUN cd /var/www/html/public ; composer install --no-dev --optimize-autoloader
+RUN cd /var/www/html ; composer install --no-dev --optimize-autoloader
 
 RUN set -eux; \
   # version='6.8.1'; \
@@ -162,7 +162,7 @@ RUN set -eux; \
   # rm wordpress.tar.gz; \
   # \
   # https://wordpress.org/support/article/htaccess/
-  [ ! -e /var/www/html/public/.htaccess ]; \
+  [ ! -e /var/www/html/.htaccess ]; \
   { \
   echo '# BEGIN WordPress'; \
   echo ''; \
@@ -175,10 +175,10 @@ RUN set -eux; \
   echo 'RewriteRule . /index.php [L]'; \
   echo ''; \
   echo '# END WordPress'; \
-  } > /var/www/html/public/.htaccess; \
+  } > /var/www/html/.htaccess; \
   \
-  chown -R www-data:www-data /var/www/html/public
-VOLUME /var/www/html/public
+  chown -R www-data:www-data /var/www/html
+VOLUME /var/www/html
 
 # COPY --chown=www-data:www-data wp-config-docker.php /usr/src/wordpress/
 # COPY docker-entrypoint.sh /usr/local/bin/
