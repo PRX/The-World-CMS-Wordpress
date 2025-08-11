@@ -174,6 +174,7 @@ RUN set -eux; \
   echo 'RewriteRule ^index\.php$ - [L]'; \
   echo 'RewriteCond %{REQUEST_FILENAME} !-f'; \
   echo 'RewriteCond %{REQUEST_FILENAME} !-d'; \
+  echo 'RewriteRule ^up$ /up.html [L]'; \
   echo 'RewriteRule . /index.php [L]'; \
   echo ''; \
   echo '# END WordPress'; \
