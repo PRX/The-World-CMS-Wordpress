@@ -32,7 +32,9 @@ RUN \
   && rm newrelic-php-agent.tar.gz && rm -rf newrelic-php5-*-linux \
   # Set ownership
   && touch /var/log/newrelic/newrelic-daemon.log \
-  && chown -R www-data:www-data /var/log/newrelic
+  && chown -R www-data:www-data /var/log/newrelic \
+  && touch /var/run/newrelic-daemon.pid \
+  && chown www-data:www-data /var/run/newrelic-daemon.pid
 
 # install the PHP extensions we need (https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions)
 RUN set -ex; \
