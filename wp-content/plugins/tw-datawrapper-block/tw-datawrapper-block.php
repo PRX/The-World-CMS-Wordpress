@@ -27,14 +27,14 @@ if ( ! function_exists( 'tw_datawrapper_block_editor_assets' ) ) :
 	function tw_datawrapper_block_editor_assets() {
 		wp_enqueue_script(
 			'tw-datawrapper-embed-variation',
-			__DIR__ . '/build/index.js',
+			plugin_dir_url( __FILE__ ) . '/build/index.js',
 			array( 'wp-blocks', 'wp-dom-ready', 'wp-edit-post' ),
 			'1.0',
 			array( 'in_footer' => true )
 		);
 		wp_enqueue_style(
 			'tw-datawrapper-styles',
-			__DIR__ . '/build/index.css',
+			plugin_dir_url( __FILE__ ) . '/build/index.css',
 			array(),
 			'1.0'
 		);
