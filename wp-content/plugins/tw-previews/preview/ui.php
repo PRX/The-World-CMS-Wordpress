@@ -125,7 +125,7 @@ function tw_previews_preview_page_html() {
 		array(
 			'appContainerId' => TW_PREVIEWS_APP_CONTAINER_ID,
 			'restUrl'        => home_url( '/wp-json/wp/v2/' ),
-			'gqlUrl'         => trailingslashit( site_url() ) . 'index.php?' . \WPGraphQL\Router::$route,
+			'gqlUrl'         => trailingslashit( site_url() ) . \WPGraphQL\Router::$route,
 			'nonce'          => wp_create_nonce( 'wp_rest' ),
 			'id'             => $post_id,
 			'previewUrl'     => $preview_url,
