@@ -130,6 +130,8 @@ if ( null !== getenv( 'WP_REDIS_HOST' ) ) {
 	define( 'WP_REDIS_TIMEOUT', getenv( 'WP_REDIS_TIMEOUT' ) );
 	define( 'WP_REDIS_READ_TIMEOUT', getenv( 'WP_REDIS_READ_TIMEOUT' ) );
 
+	define( 'WP_REDIS_MAXTTL', getenv( 'WP_REDIS_MAXTTL' ) );
+
 	if ( null !== getenv( 'WP_REDIS_SCHEME' ) ) {
 		define( 'WP_REDIS_SCHEME', getenv( 'WP_REDIS_SCHEME' ) );
 	}
