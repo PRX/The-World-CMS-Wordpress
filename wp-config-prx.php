@@ -10,7 +10,7 @@
  * when attempting to apply upstream updates.
  */
 
-error_log("wp-config-prx", 0);
+error_log( 'wp-config-prx', 0 );
 
 // If we're behind a proxy server and using HTTPS, we need to alert WordPress of that fact
 // see also https://wordpress.org/support/article/administration-over-ssl/#using-a-reverse-proxy
@@ -18,24 +18,25 @@ if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && strpos( $_SERVER['HTTP_X_FOR
 	$_SERVER['HTTPS'] = 'on';
 }
 
-if ( null !== getenv( 'WP_DEBUG' ) )  {
+if ( null !== getenv( 'WP_DEBUG' ) ) {
 	define( 'WP_DEBUG', filter_var( getenv( 'WP_DEBUG' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 	define( 'WP_DEBUG_LOG', filter_var( getenv( 'WP_DEBUG_LOG' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
+	define( 'WP_DEBUG_DISPLAY', filter_var( getenv( 'WP_DEBUG_DISPLAY' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 }
 
 define( 'WPMS_ON', true );
 define( 'WPMS_SMTP_HOST', getenv( 'WPMS_SMTP_HOST' ) );
 define( 'WPMS_SMTP_PORT', getenv( 'WPMS_SMTP_PORT' ) );
 define( 'WPMS_SSL', getenv( 'WPMS_SSL' ) );
-define( 'WPMS_SMTP_AUTH', filter_var(getenv( 'WPMS_SMTP_AUTH' ) ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_SMTP_AUTH', filter_var( getenv( 'WPMS_SMTP_AUTH' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 define( 'WPMS_SMTP_USER', getenv( 'WPMS_SMTP_USER' ) );
 define( 'WPMS_SMTP_PASS', getenv( 'WPMS_SMTP_PASS' ) );
-define( 'WPMS_SMTP_AUTOTLS', filter_var(getenv( 'WPMS_SMTP_AUTOTLS' ) ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_SMTP_AUTOTLS', filter_var( getenv( 'WPMS_SMTP_AUTOTLS' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 define( 'WPMS_MAILER', getenv( 'WPMS_MAILER' ) );
 define( 'WPMS_MAIL_FROM', getenv( 'WPMS_MAIL_FROM' ) );
-define( 'WPMS_MAIL_FROM_FORCE', filter_var(getenv( 'WPMS_MAIL_FROM_FORCE' ) ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_MAIL_FROM_FORCE', filter_var( getenv( 'WPMS_MAIL_FROM_FORCE' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 define( 'WPMS_MAIL_FROM_NAME', getenv( 'WPMS_MAIL_FROM_NAME' ) );
-define( 'WPMS_MAIL_FROM_NAME_FORCE', filter_var(getenv( 'WPMS_MAIL_FROM_NAME_FORCE' ) ?? false, FILTER_VALIDATE_BOOLEAN) );
+define( 'WPMS_MAIL_FROM_NAME_FORCE', filter_var( getenv( 'WPMS_MAIL_FROM_NAME_FORCE' ) ?? false, FILTER_VALIDATE_BOOLEAN ) );
 
 // ** MySQL settings - included in the Pantheon Environment ** //
 /** The name of the database for WordPress */
