@@ -46,7 +46,9 @@ jobs:
 
       - name: Deploy Staging CloudFormation Stack
         run: |
+          aws cloudformation update-stack \
             --region us-east-1 \
             --stack-name terra-stag \
             --use-previous-template \
+            --capabilities CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
             --role-arn arn:aws:iam::838846856186:role/PRX-GHA-ServiceRoleForCloudFormation
