@@ -46,8 +46,6 @@ jobs:
 
       - name: Deploy Staging CloudFormation Stack
         run: |
-          aws cloudformation deploy \
-            --no-fail-on-empty-changeset \
             --region us-east-1 \
             --stack-name terra-stag \
             --use-previous-template \
