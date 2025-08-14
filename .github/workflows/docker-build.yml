@@ -35,3 +35,19 @@ jobs:
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Update Parameter Store for Staging
+        run: |
+          aws ssm put-parameter \
+            --region us-east-1 \
+            --name /prx/stag/Terra/The_World-WordPress/pkg/docker-image-tag \
+            --value github/prx/the-world-cms-wordpress:${{ github.sha }}
+
+      - name: Deploy Staging CloudFormation Stack
+        run: |
+          aws cloudformation deploy \
+            --no-fail-on-empty-changeset \
+            --region us-east-1 \
+            --stack-name terra-stag \
+            --use-previous-template \
+            --role-arn arn:aws:iam::838846856186:role/PRX-GHA-ServiceRoleForCloudFormation
