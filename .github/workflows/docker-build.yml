@@ -41,7 +41,8 @@ jobs:
           aws ssm put-parameter \
             --region us-east-1 \
             --name /prx/stag/Terra/The_World-WordPress/pkg/docker-image-tag \
-            --value github/prx/the-world-cms-wordpress:${{ github.sha }}
+            --value github/prx/the-world-cms-wordpress:${{ github.sha }} \
+            --overwrite
 
       - name: Deploy Staging CloudFormation Stack
         run: |
