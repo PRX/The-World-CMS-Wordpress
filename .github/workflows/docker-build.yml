@@ -51,4 +51,5 @@ jobs:
             --stack-name terra-stag \
             --use-previous-template \
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+            --parameters ParameterKey=TemplateUrlBase,UsePreviousValue=true ParameterKey=EnvironmentType,UsePreviousValue=true ParameterKey=EnvironmentTypeAbbreviation,UsePreviousValue=true \
             --role-arn arn:aws:iam::976680550710:role/PRX-GHA-ServiceRoleForCloudFormation
