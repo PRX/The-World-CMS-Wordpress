@@ -51,4 +51,4 @@ jobs:
             --stack-name terra-stag \
             --use-previous-template \
             --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
-            --role-arn arn:aws:iam::838846856186:role/PRX-GHA-ServiceRoleForCloudFormation
+            --role-arn arn:aws:iam::976680550710:role/PRX-GHA-ServiceRoleForCloudFormation
