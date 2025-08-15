@@ -1,0 +1,55 @@
+name: Build Docker image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: arn:aws:iam::976680550710:role/PRX-GHA-AccessRole
+          role-session-name: theworld-wordpress-docker-build
+
+      - name: Login to Amazon ECR
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag, and push docker image to Amazon ECR Public
+        env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REPOSITORY: github/prx/the-world-cms-wordpress
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Update Parameter Store for Staging
+        run: |
+          aws ssm put-parameter \
+            --region us-east-1 \
+            --name /prx/stag/Terra/The_World-WordPress/pkg/docker-image-tag \
+            --value github/prx/the-world-cms-wordpress:${{ github.sha }} \
+            --overwrite
+
+      - name: Deploy Staging CloudFormation Stack
+        run: |
+          aws cloudformation update-stack \
+            --region us-east-1 \
+            --stack-name terra-stag \
+            --use-previous-template \
+            --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND \
+            --parameters ParameterKey=TemplateUrlBase,UsePreviousValue=true ParameterKey=EnvironmentType,UsePreviousValue=true ParameterKey=EnvironmentTypeAbbreviation,UsePreviousValue=true \
+            --role-arn arn:aws:iam::976680550710:role/PRX-GHA-ServiceRoleForCloudFormation

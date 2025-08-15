@@ -1,0 +1,69 @@
+services:
+  wordpress:
+    build: .
+    restart: always
+    ports:
+      - 8090:8080
+    env_file:
+      - path: ./.env-default
+        required: true
+      - path: ./.env
+        required: false
+    environment:
+      PRX_ENVIRONMENT: development
+      DB_HOST: db
+      DB_USER: exampleuser
+      DB_PASSWORD: examplepass
+      DB_NAME: exampledb
+      WP_DEBUG: true
+      WP_DEBUG_LOG: true
+      WP_DEBUG_DISPLAY: false
+      WP_REDIS_HOST: valkey
+      WP_REDIS_PORT: 6379
+      WP_REDIS_PREFIX: tw-wordpress
+      WP_REDIS_DATABASE: 0
+      WP_REDIS_TIMEOUT: 1
+      WP_REDIS_READ_TIMEOUT: 1
+      NEW_RELIC_LICENSE_KEY:
+      NEW_RELIC_APP_NAME: The WordPress (development)
+      WPMS_SMTP_PORT: 587
+      WPMS_SSL: tls
+      WPMS_SMTP_AUTH: true
+      WPMS_SMTP_AUTOTLS: false
+      WPMS_MAILER: smtp
+      WPMS_MAIL_FROM: editors@theworld.org
+      WPMS_MAIL_FROM_FORCE: true
+      WPMS_MAIL_FROM_NAME: The World from PRX
+      WPMS_MAIL_FROM_NAME_FORCE: true
+      PHP_OPCACHE_ENABLE: 1
+      APACHE_DOCUMENT_ROOT: /var/www/html
+    volumes:
+      - wordpress:/var/www/html
+      - .:/var/www/html
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: exampledb
+      MYSQL_USER: exampleuser
+      MYSQL_PASSWORD: examplepass
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    volumes:
+      - db:/var/lib/mysql
+      # If you'd like to have this development database initialized with data
+      # from a backup, place the backup fule in ./db-dump, and update the path
+      # below to reflect the file you'd like to initialize with.
+      #
+      # This will only be run the FIRST time the container is started, when
+      # it's setting up the default database. Once you've loaded the data and
+      # deleted the backup file, comment this line out again.
+      # - ./db-dump/the-world_live_2025-07-07T18-00-00_UTC_database.sql:/docker-entrypoint-initdb.d/initial_load.sql
+
+  valkey:
+    image: valkey/valkey
+    restart: always
+
+volumes:
+  wordpress:
+  db:
