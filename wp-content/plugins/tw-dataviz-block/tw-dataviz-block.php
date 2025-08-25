@@ -69,7 +69,7 @@ function tw_dataviz_block_embed_handler( $matches, $attr, $url ) {
 
 	$params = wp_parse_args( wp_parse_url( $url, PHP_URL_QUERY ) );
 	$height = isset( $params['height'] ) && ! empty( $params['height'] ) ? $params['height'] : 500;
-	$embed  = sprintf( '<iframe width="%1$s" height="%2$s" src="%3$s" frameborder="0" referrerpolicy="strict-origin-when-cross-origin"></iframe>', '100%', $height, $url );
+	$embed  = sprintf( '<iframe width="%1$s" height="%2$s" src="%3$s" frameborder="0"></iframe>', '100%', $height, $url );
 
 	return $embed;
 }

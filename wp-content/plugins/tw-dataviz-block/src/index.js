@@ -70,10 +70,10 @@ registerBlockVariation("core/embed", variation);
 domReady(() => {
 	function handleMessage(event) {
 		if (event.data.type === "TwDatavizUpdateHeight" && event.data.payload) {
-			console.log(event.data);
-			const iframes = document.querySelectorAll("iframe");
 			iframes.forEach((iframe) => {
-				iframe.style.height = `${event.data.payload}px`;
+				if (iframe.contentWindow === event.source) {
+					iframe.style.height = `${event.data.payload}px`;
+				}
 			});
 		}
 	}

@@ -219,10 +219,10 @@ const variation = {
 _wordpress_dom_ready__WEBPACK_IMPORTED_MODULE_3___default()(() => {
   function handleMessage(event) {
     if (event.data.type === "TwDatavizUpdateHeight" && event.data.payload) {
-      console.log(event.data);
-      const iframes = document.querySelectorAll("iframe");
       iframes.forEach(iframe => {
-        iframe.style.height = `${event.data.payload}px`;
+        if (iframe.contentWindow === event.source) {
+          iframe.style.height = `${event.data.payload}px`;
+        }
       });
     }
   }
