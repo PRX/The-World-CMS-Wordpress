@@ -13,7 +13,7 @@ config:
   php: "7.4"
   via: apache:2.4
   database: mysql
-  ssl: true
+  ssl: false
 services:
   node:
     type: node:20

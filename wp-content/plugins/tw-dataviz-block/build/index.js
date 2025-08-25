@@ -201,14 +201,13 @@ const variation = {
   attributes: {
     providerNameSlug: "dataviz",
     className: "tw-dataviz",
-    previewable: false
+    previewable: true
   },
   isDefault: false,
   isActive: blockAttributes => {
     const {
       url
     } = blockAttributes;
-    console.log(blockAttributes);
     return /^https?:\/\/interactive\.pri\.org\/.+/i.test(url);
   }
 };
@@ -218,19 +217,16 @@ const variation = {
  * Add message event handlers that will update iframe height when iframe is resized.
  */
 _wordpress_dom_ready__WEBPACK_IMPORTED_MODULE_3___default()(() => {
-  window.addEventListener("message", function (event) {
-    if (typeof event.data.tw?.dataviz?.height !== "undefined") {
+  function handleMessage(event) {
+    if (event.data.type === "TwDatavizUpdateHeight" && event.data.payload) {
+      console.log(event.data);
       const iframes = document.querySelectorAll("iframe");
-      const {
-        dataviz: {
-          height
-        }
-      } = event.data.tw;
       iframes.forEach(iframe => {
-        iframe.style.height = `${height}px`;
+        iframe.style.height = `${event.data.payload}px`;
       });
     }
-  });
+  }
+  window.addEventListener("message", handleMessage);
 });
 }();
 /******/ })()
