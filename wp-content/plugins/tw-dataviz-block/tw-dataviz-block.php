@@ -4,7 +4,7 @@
  * Description:       Adds DataViz variation to core embed block.
  * Requires at least: 6.1
  * Requires PHP:      7.0
- * Version:           0.1.0
+ * Version:           0.1.1
  * Author:            The WordPress Contributors
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -29,14 +29,14 @@ if ( ! function_exists( 'tw_dataviz_block_editor_assets' ) ) :
 			'tw-dataviz-embed-variation',
 			plugin_dir_url( __FILE__ ) . '/build/index.js',
 			array( 'wp-blocks', 'wp-dom-ready', 'wp-edit-post' ),
-			'0.1.0',
+			'0.1.1',
 			array( 'in_footer' => true )
 		);
 		wp_enqueue_style(
 			'tw-dataviz-styles',
 			plugin_dir_url( __FILE__ ) . '/build/index.css',
 			array(),
-			'0.1.0'
+			'0.1.1'
 		);
 	}
 endif;
