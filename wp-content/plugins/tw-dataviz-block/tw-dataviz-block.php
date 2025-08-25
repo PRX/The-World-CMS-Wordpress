@@ -29,14 +29,14 @@ if ( ! function_exists( 'tw_dataviz_block_editor_assets' ) ) :
 			'tw-dataviz-embed-variation',
 			plugin_dir_url( __FILE__ ) . '/build/index.js',
 			array( 'wp-blocks', 'wp-dom-ready', 'wp-edit-post' ),
-			'1.0',
+			'0.1.0',
 			array( 'in_footer' => true )
 		);
 		wp_enqueue_style(
 			'tw-dataviz-styles',
 			plugin_dir_url( __FILE__ ) . '/build/index.css',
 			array(),
-			'1.0'
+			'0.1.0'
 		);
 	}
 endif;
