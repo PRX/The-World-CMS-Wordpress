@@ -10,7 +10,7 @@ Closes #[ISSUE_ID]
   - Delete any `.sql.gz` files from your `./reference` directory.
   - Run `terminus backup:get --element=db --to=./reference -- the-world.live`.
   - Run `npm run refresh`.
-- [ ] Go to http://the-world-wp.lndo.site/.
+- [ ] Go to http://dev-the-world.lndo.site/.
 
 > ...then...
 

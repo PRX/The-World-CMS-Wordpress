@@ -15,10 +15,6 @@
     "link"
   ],
   "attributes": {
-    "blockId": {
-      "type": "string",
-      "default": ""
-    },
     "content": {
       "type": "string",
       "__experimentalRole": "content"

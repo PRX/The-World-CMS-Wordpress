@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:       Tw Datawrapper Block
- * Description:       Example block scaffolded with Create Block tool.
+ * Description:       Adds Datawrapper variation to core embed block.
  * Requires at least: 6.1
  * Requires PHP:      7.0
  * Version:           0.1.0

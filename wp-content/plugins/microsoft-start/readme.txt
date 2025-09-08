@@ -2,7 +2,7 @@
 Tags: Microsoft, MSN, MSN Partner Hub
 Requires at least: 5.4
 Requires PHP: 7.3
-Stable tag: 2.8
+Stable tag: 2.8.5
 Tested up to: 6.5
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -48,6 +48,9 @@ Data Collection. The software may collect information about you and your use of 
 For more information be sure to check out the [MSN Partner Help Center](https://helpcenter.microsoftstart.com)
 
 == Changelog ==
+
+= 2.8.1 =
+* Improve stability of the plugin by fixing some known issues.
 
 = 2.8 =
 * Renamed to "MSN Partner Hub" for consistency. No other changes.

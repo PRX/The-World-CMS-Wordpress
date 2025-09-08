@@ -8,6 +8,8 @@
     "build:webpack": "webpack --mode=production",
     "build": "BABEL_ENV=default npm run build:webpack",
     "dev:webpack": "webpack --watch --mode=development",
+    "dev:caniuse:update-db": "npx update-browserslist-db@latest",
+    "dev:start": "npm run dev:caniuse:update-db ; npm run start",
     "start": "BABEL_ENV=default npm run dev:webpack"
   },
   "author": "PRX",

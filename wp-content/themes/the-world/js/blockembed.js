@@ -10,6 +10,7 @@ wp.domReady(function () {
     "instagram",
     "spotify",
     "tiktok",
+    "tw-dataviz",
     "twitter",
     "youtube",
     "vimeo",

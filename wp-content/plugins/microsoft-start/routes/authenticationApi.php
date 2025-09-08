@@ -28,7 +28,7 @@ class authenticationApi extends ApiController
                     'redeem_code' => $parameters['redeemCode']
                 ));
                 $response = wp_remote_post(
-                    "{$msnAccountUrl}account/RedeemCode/{$parameters['redeemCode']}?wrapodata=false",
+                    "https://api.msn.com/ugc/account/RedeemCode/{$parameters['redeemCode']}?wrapodata=false",
                     [
                         'timeout'       => 60,
                         'headers' => [
