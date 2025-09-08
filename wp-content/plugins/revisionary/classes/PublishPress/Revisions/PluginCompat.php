@@ -98,7 +98,7 @@ class PluginCompat {
 			return $clause;
 		}
 
-		if (('edit' == $required_operation) && in_array($post_type, rvy_get_manageable_types()) 
+		if (('edit' == $required_operation) && in_array($post_type, rvy_get_manageable_types()) && rvy_get_option('apply_post_exceptions') 
 		) {
 			foreach(['mod', 'src_table', 'logic', 'ids'] as $var) {
 				if (!empty($args[$var])) {
@@ -113,6 +113,7 @@ class PluginCompat {
 
 			if ('include' == $mod) {
 				$clause = "(($clause) OR ($src_table.post_status IN ('$revision_base_status_csv') AND $src_table.post_mime_type IN ('$revision_status_csv') AND $src_table.comment_count IN ('" . implode("','", array_map('intval', $ids)) . "')))";
+			
 			} elseif ('exclude' == $mod) {
 				$clause = "(($clause) AND ($src_table.post_mime_type NOT IN ('$revision_status_csv') OR $src_table.comment_count NOT IN ('" . implode("','", array_map('intval', $ids)) . "')))";
 			}

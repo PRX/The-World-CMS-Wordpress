@@ -1266,18 +1266,23 @@ function tw_episode_importer_api_route_import_permissions_check() {
  */
 function tw_episode_importer_api_route_taxonomies() {
 
-	// Get taxonomies.
+	// Get public taxonomies.
 	$taxonomies = get_taxonomies(
 		array(
-			'public'       => true,
-			'hierarchical' => false,
+			'public' => true,
 		),
 		'objects'
 	);
-	$data       = array_map(
+
+	// Get private taxonomies we want to map categories to.
+	$taxonomies['resource_development'] = get_taxonomy( 'resource_development' );
+
+	ksort( $taxonomies );
+	$data = array_map(
 		fn( $taxonomy ) => array(
-			'name'  => $taxonomy->name,
-			'label' => $taxonomy->label,
+			'name'   => $taxonomy->name,
+			'label'  => $taxonomy->label,
+			'labels' => $taxonomy->labels,
 		),
 		$taxonomies
 	);
@@ -1449,7 +1454,8 @@ function tw_episode_importer_parse_api_item( $api_item, $post_type ) {
 
 			// Get existing terms by the same name.
 			$args  = array(
-				'name' => trim( $term_name ),
+				'name'       => trim( $term_name ),
+				'hide_empty' => false,
 			);
 			$terms = array_values( get_terms( $args ) );
 
@@ -1459,7 +1465,7 @@ function tw_episode_importer_parse_api_item( $api_item, $post_type ) {
 					fn( $term ) => array_merge(
 						array( 'id' => $term->term_id ),
 						array_intersect_key( (array) $term, array_flip( array( 'name', 'taxonomy', 'count' ) ) ),
-						array( 'taxonomy' => array_intersect_key( (array) get_taxonomy( $term->taxonomy ), array_flip( array( 'name', 'label' ) ) ) )
+						array( 'taxonomy' => array_intersect_key( (array) get_taxonomy( $term->taxonomy ), array_flip( array( 'name', 'label', 'labels' ) ) ) )
 					),
 					$terms
 				);

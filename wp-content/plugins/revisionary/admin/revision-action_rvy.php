@@ -373,6 +373,12 @@ function rvy_revision_approve($revision_id = 0, $args = []) {
 
 		$published_url = get_permalink($post->ID);
 
+		$type_obj = get_post_type_object($post->post_type);
+
+		if ( empty( $_REQUEST['rvy_redirect'] ) && is_post_type_viewable($type_obj) ) {
+			$redirect = $published_url;
+		}
+
 		$db_action = false;
 		
 		// If requested publish date is in the past or now, publish the revision
@@ -622,6 +628,8 @@ function rvy_revision_approve($revision_id = 0, $args = []) {
 	
 	clean_post_cache($revision_id);
 
+	delete_metadata('post', $post->ID, '_elementor_element_cache');
+
 	if (!empty($update_next_publish_date)) {
 		rvy_update_next_publish_date(['revision_id' => $revision_id]);
 	}
@@ -691,6 +699,8 @@ function rvy_revision_restore() {
 
 		clean_post_cache($revision->ID);
 		clean_post_cache($post->ID);
+
+		delete_metadata('post', $post->ID, '_elementor_element_cache');
 
 		rvy_format_content( $revision->post_content, $revision->post_content_filtered, $post->ID );
 
@@ -930,6 +940,8 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 	}
 
 	if ($published_id != $revision_id) {
+		$num_revisions = revisionary_count_revisions($published_id);
+
 		if (!defined('REVISIONARY_NO_SCHEDULED_REVISION_ARCHIVE')) {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->update(
@@ -945,10 +957,59 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 				['ID' => $revision_id]
 			);
 
-			Revisionary::applyRevisionLimit($published);
+			$post = $published;
+
+			if (!is_object($post) || empty($post->ID)) {
+				return;
+			}
+		
+			$post_id = $post->ID;
+		
+			/*
+			* If a limit for the number of revisions to keep has been set,
+			* delete the oldest ones.
+			*/
+			$revisions_to_keep = wp_revisions_to_keep( $post );
+		
+			if ($revisions_to_keep >= 0 ) {
+				$revisions = wp_get_post_revisions( $post_id, array( 'order' => 'ASC' ) );
+			
+				/**
+				 * Filters the revisions to be considered for deletion.
+				 *
+				 * @since 6.2.0
+				 *
+				 * @param WP_Post[] $revisions Array of revisions, or an empty array if none.
+				 * @param int       $post_id   The ID of the post to save as a revision.
+				 */
+				$revisions = apply_filters(
+					'wp_save_post_revision_revisions_before_deletion',
+					$revisions,
+					$post_id
+				);
+			
+				$delete = count( $revisions ) - $revisions_to_keep;
+			
+				if ($delete >= 1) {
+					$revisions = array_slice( $revisions, 0, $delete );
+				
+					for ( $i = 0; isset( $revisions[ $i ] ); $i++ ) {
+						if ( str_contains( $revisions[ $i ]->post_name, 'autosave' ) ) {
+							continue;
+						}
+				
+						wp_delete_post_revision( $revisions[ $i ]->ID );
+					}
+				}
+			}
 		} else {
 			wp_delete_post($revision_id, true);
 		}
+
+		$num_revisions = $num_revisions - 1;
+
+		// If published revision was the last remaining pending / scheduled, clear _rvy_has_revisions postmeta flag 
+		revisionary_refresh_postmeta($published_id, compact('num_revisions'));
 
 		if (!rvy_get_option('archive_postmeta')) {
 			$approved_by = get_post_meta($revision_id, '_rvy_approved_by', true);
@@ -969,9 +1030,6 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 	} elseif (!empty($approved_by)) {
 		rvy_update_post_meta($revision_id, '_rvy_approved_by', $approved_by);
 	}
-
-	// If published revision was the last remaining pending / scheduled, clear _rvy_has_revisions postmeta flag 
-	revisionary_refresh_postmeta($post_id);
 
 	if (!empty($orig_terms) && is_array($orig_terms)) {
 		foreach($orig_terms as $taxonomy => $terms) {
@@ -1063,6 +1121,8 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 
 	clean_post_cache($revision_id);
 	clean_post_cache($published->ID);
+
+	delete_metadata('post', $published->ID, '_elementor_element_cache');
 
 	if (!defined('REVISIONARY_DISABLE_SECONDARY_CACHE_FLUSH')) {
 		wp_cache_delete( $published->ID, 'posts' );
@@ -1165,7 +1225,7 @@ function rvy_revision_delete() {
 
 	$revision_id = (int) $_GET['revision'];
 	$redirect = '';
-	
+
 	do {
 		// this function is only used for past revisions (status=inherit)
 		if ( ! $revision = wp_get_post_revision( $revision_id ) )
@@ -1210,8 +1270,6 @@ function rvy_revision_delete() {
 		}
 
 		rvy_delete_past_revisions($revision_id);
-
-		revisionary_refresh_postmeta($revision->post_parent);
 	} while (0);
 	
 	if ( ! empty( $_GET['return'] ) && ! empty( $_SERVER['HTTP_REFERER'] ) ) {
@@ -1282,10 +1340,6 @@ function rvy_revision_bulk_delete() {
 			do_action('rvy_delete_revision', $revision_id, $published_post_id);
 
 			rvy_delete_past_revisions($revision_id);
-		}
-
-		foreach($post_ids as $_post_id) {
-			revisionary_refresh_postmeta($_post_id);
 		}
 	}
 
@@ -1417,7 +1471,7 @@ function rvy_publish_scheduled_revisions($args = []) {
 		remove_action( 'wp_insert_post', 'relevanssi_insert_edit', 99, 1 );
 	}
 
-	if (!rvy_get_option('scheduled_publish_cron')) {
+	if (rvy_get_option('async_scheduled_publish') && !rvy_get_option('scheduled_publish_cron') && !rvy_get_option('wp_cron_usage_detected')) {
 		rvy_confirm_async_execution( 'publish_scheduled_revisions' );
 	
 		// Prevent this function from being triggered simultaneously by another site request

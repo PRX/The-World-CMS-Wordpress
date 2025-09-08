@@ -97,6 +97,13 @@ table.fixed {
     display: none;
   }
 
+  table.wp-list-table.posts:has(tr.no-items) tr .column-title {
+    grid-column: span 5;
+  }
+  table.wp-list-table.posts tr.no-items td {
+    grid-column: 1 / -1;
+  }
+
   table.wp-list-table.posts .row-actions {
     position: static;
     width: max-content;

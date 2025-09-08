@@ -17,4 +17,5 @@ define('MSPH_WP_LANG', (function () {
         : 'en-us';
     return $msph_lang;
 })());
-define('MSPH_SERVICE_URL', 'https://api.msn.com/ugc/');
+define('MSPH_SERVICE_URL', 'https://api.msn.com/msn/v0/pages/ugc/');
+define('MSPH_OCID_APIKEY_QSP', '&ocid=msphwp&apikey=gHQ2BwVMjFj69uWfDdkunIHHUbDtKBzEBAkG1xOQrp');

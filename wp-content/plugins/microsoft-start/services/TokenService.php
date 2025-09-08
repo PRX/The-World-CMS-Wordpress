@@ -48,8 +48,11 @@ class TokenService
                 $msnAccountUrl = MSPH_SERVICE_URL;
 
                 $response = wp_remote_post(
-                    "{$msnAccountUrl}account/accesstoken?appId=$appId&appSecret=$appSecret&wrapodata=false",
+                    "{$msnAccountUrl}thirdparty/accesstoken?appId=$appId" . MSPH_OCID_APIKEY_QSP,
                     [
+                        'headers' => [
+                            'X-MsphConnectionSecret' => $appSecret
+                        ],
                         'method'      => 'GET',
                         'data_format' => 'body'
                     ]
@@ -64,8 +67,7 @@ class TokenService
                 } else if ($response['response']['code'] == 400) {
                     $payload = json_decode($response['body']);
                     if ($payload) {
-                        $errorMsg = $payload->Message;
-                        $errorCode = json_decode($errorMsg)->errorCode ?? null;
+                        $errorCode = $payload->errorCode ?? null;
                         // clear client if there's valid error code
                         if (is_numeric($errorCode)) {
                             TokenService::clear_client();
@@ -99,7 +101,7 @@ class TokenService
         ), true);
 
         wp_remote_request(
-            "{$msnAccountUrl}account/applications?appId={$appId}&scn=3rdPartyAuth&wrapodata=false",
+            "{$msnAccountUrl}account/applications?appId={$appId}&scn=3rdPartyAuth" . MSPH_OCID_APIKEY_QSP,
             [
                 'headers' => [
                     'Authorization' => "Bearer $token"

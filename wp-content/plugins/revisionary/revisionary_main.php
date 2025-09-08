@@ -11,6 +11,7 @@ if (!empty($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_ur
  */
 class Revisionary
 {
+	var $admin;
 	var $content_roles;			// object ref - instance of RevisionaryContentRoles subclass, set by external plugin
 	var $doing_rest = false;
 	var $rest = '';				// object ref - Revisionary_REST
@@ -125,11 +126,60 @@ class Revisionary
 			add_filter( 'user_has_cap', array( $this, 'flt_user_has_cap' ), 98, 3 );
 
 			add_filter( 'map_meta_cap', array( $this, 'flt_limit_others_drafts' ), 10, 4 );
+
+			if (defined('PRESSPERMIT_VERSION') && version_compare(PRESSPERMIT_VERSION, '4.4.3-beta2', '>=')) {
+				add_filter(
+					'presspermit_exception_clause', 
+					function($clause, $required_operation, $post_type, $args) {
+						global $pagenow;
+
+						//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						if (
+							('exclude' == $args['mod'])
+							&& rvy_get_option('apply_post_exceptions')
+							&& (
+								(($pagenow == 'admin.php') && isset($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-q', 'revisionary-archive']))
+								|| (in_array($pagenow, ['post.php', 'post-new.php']) && rvy_in_revision_workflow(rvy_detect_post_id()))
+							)
+						) {
+							$revision_status_csv = rvy_revision_statuses(['return' => 'csv']);
+
+							$clause .= " AND ({$args['src_table']}.comment_count {$args['logic']} ('" . implode("','", $args['ids']) . "') OR {$args['src_table']}.post_mime_type NOT IN ($revision_status_csv))";
+						}
+
+						return $clause;
+					},
+					10, 4
+				);
+
+				add_filter(
+					'presspermit_additions_clause', 
+					function($clause, $required_operation, $post_type, $args) {
+						global $pagenow;
+
+						//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						if (
+							rvy_get_option('apply_post_exceptions')
+							&& (
+								(($pagenow == 'admin.php') && isset($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-q', 'revisionary-archive']))
+								|| (in_array($pagenow, ['post.php', 'post-new.php']) && rvy_in_revision_workflow(rvy_detect_post_id()))
+							)
+						) {
+							$revision_status_csv = rvy_revision_statuses(['return' => 'csv']);
+
+							$clause = " (($clause) OR ({$args['src_table']}.comment_count IN ('" . implode("','", $args['ids']) . "') AND {$args['src_table']}.post_mime_type IN ($revision_status_csv)))";
+						}
+
+						return $clause;
+					},
+					10, 4
+				);
+			}
 		}
 
 		if ( is_admin() ) {
 			require_once( dirname(__FILE__).'/admin/admin_rvy.php');
-			new RevisionaryAdmin();
+			$this->admin = new RevisionaryAdmin();
 		}
 		
 		add_action( 'wpmu_new_blog', array( $this, 'act_new_blog'), 10, 2 );
@@ -585,6 +635,8 @@ class Revisionary
 			return;
 		}
 
+		$num_revisions = revisionary_count_revisions($post_id);
+
 		$revision_status_csv = implode("','", array_map('sanitize_key', rvy_revision_statuses()));
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -597,18 +649,26 @@ class Revisionary
 		) : '';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$post_ids = $wpdb->get_col(
+		$results = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT ID FROM $wpdb->posts WHERE (post_mime_type IN ('$revision_status_csv') AND comment_count = %d) $trashed_clause",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT ID, post_status FROM $wpdb->posts WHERE (post_mime_type IN ('$revision_status_csv') AND comment_count = %d) $trashed_clause",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$post_id
 			)
 		);
 
-		foreach($post_ids as $revision_id) {
-			wp_delete_post($revision_id, true);
+		$post_ids = [];
+
+		foreach($results as $row) {
+			wp_delete_post($row->ID, true);
+
+			if ('trash' != $row->post_status) {
+				$num_revisions = $num_revisions - 1;
+			}
+
+			$post_ids []= $row->ID;
 		}
 
-		revisionary_refresh_revision_flags($post_id, ['ignore_revision_ids' => $post_ids]);
+		revisionary_refresh_revision_flags($post_id, ['ignore_revision_ids' => $post_ids, 'num_revisions' => $num_revisions]);
 
 		$post = get_post($post_id);
 
@@ -1035,6 +1095,7 @@ class Revisionary
 		global $current_user;
 
 		static $busy;
+        static $additional_ids;
 
 		if (!empty($busy) || !empty($this->skip_filtering)) {
 			return $caps;
@@ -1135,7 +1196,29 @@ class Revisionary
 							if (!empty($current_user->allcaps['edit_others_revisions'])) {
 								$caps[] = 'edit_others_revisions';
 							} else {
-								$caps []= 'do_not_allow';	// @todo: implement this within user_has_cap filters?
+								if (defined('PRESSPERMIT_VERSION') && version_compare(PRESSPERMIT_VERSION, '4.4.3-beta2', '>=')) {
+									if (!isset($additional_ids)) {
+										$additional_ids = [];
+									}
+
+									if (!isset($additional_ids[$post->post_type])) {
+										$user = presspermit()->getUser();
+
+										if ($ids = $user->getExceptionPosts('edit', 'additional', $post->post_type, ['status' => true])) {
+											if (isset($ids[''])) {
+												$additional_ids[$post->post_type] = $ids[''];
+											}
+										}
+									}
+
+									if (isset($additional_ids[$post->post_type]) && in_array($post->ID, $additional_ids[$post->post_type])) {
+										$bypass_edit_others_cap = true;
+									}
+								}
+
+								if (empty($bypass_edit_others_cap)) {
+									$caps []= 'do_not_allow';	// @todo: implement this within user_has_cap filters?
+								}
 							}
 						}
 					}
@@ -1177,6 +1260,8 @@ class Revisionary
 	private function filter_caps($wp_blogcaps, $reqd_caps, $args, $internal_args = array()) {
 		global $current_user;
 
+		static $additional_ids;
+
 		if (!empty($this->skip_filtering) || !rvy_get_option('pending_revisions')) {
 			return $wp_blogcaps;
 		}
@@ -1197,7 +1282,29 @@ class Revisionary
 			$object_type_obj = get_post_type_object($post->post_type);
 
 			if (('draft-revision' == $post->post_mime_type) && !rvy_is_post_author($post) && rvy_get_option('manage_unsubmitted_capability') && empty($wp_blogcaps['manage_unsubmitted_revisions'])) {
-				unset($wp_blogcaps[$object_type_obj->cap->edit_others_posts]);
+				if (defined('PRESSPERMIT_VERSION') && version_compare(PRESSPERMIT_VERSION, '4.4.3-beta2', '>=')) {
+					if (!isset($additional_ids)) {
+						$additional_ids = [];
+					}
+
+					if (!isset($additional_ids[$post->post_type])) {
+						$user = presspermit()->getUser();
+
+						if ($ids = $user->getExceptionPosts('edit', 'additional', $post->post_type, ['status' => true])) {
+							if (isset($ids[''])) {
+								$additional_ids[$post->post_type] = $ids[''];
+							}
+						}
+					}
+
+					if (isset($additional_ids[$post->post_type]) && in_array($post->ID, $additional_ids[$post->post_type])) {
+						$bypass_cap = true;
+					}
+				}
+				
+				if (empty($bypass_cap)) {
+					unset($wp_blogcaps[$object_type_obj->cap->edit_others_posts]);
+				}
 			} else {
 				//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				if (defined('DOING_AJAX') && DOING_AJAX && !empty($_REQUEST['action']) && (false !== strpos(sanitize_key($_REQUEST['action']), 'query-attachments'))) {
@@ -1371,54 +1478,4 @@ class Revisionary
 
         return $statuses;
     }
-
-	static function applyRevisionLimit($post) {
-		if (!is_object($post) || empty($post->ID)) {
-			return;
-		}
-
-		$post_id = $post->ID;
-
-		/*
-		* If a limit for the number of revisions to keep has been set,
-		* delete the oldest ones.
-		*/
-		$revisions_to_keep = wp_revisions_to_keep( $post );
-
-		if ( $revisions_to_keep < 0 ) {
-			return;
-		}
-
-		$revisions = wp_get_post_revisions( $post_id, array( 'order' => 'ASC' ) );
-
-		/**
-		 * Filters the revisions to be considered for deletion.
-		 *
-		 * @since 6.2.0
-		 *
-		 * @param WP_Post[] $revisions Array of revisions, or an empty array if none.
-		 * @param int       $post_id   The ID of the post to save as a revision.
-		 */
-		$revisions = apply_filters(
-			'wp_save_post_revision_revisions_before_deletion',
-			$revisions,
-			$post_id
-		);
-
-		$delete = count( $revisions ) - $revisions_to_keep;
-
-		if ( $delete < 1 ) {
-			return;
-		}
-
-		$revisions = array_slice( $revisions, 0, $delete );
-
-		for ( $i = 0; isset( $revisions[ $i ] ); $i++ ) {
-			if ( str_contains( $revisions[ $i ]->post_name, 'autosave' ) ) {
-				continue;
-			}
-
-			wp_delete_post_revision( $revisions[ $i ]->ID );
-		}
-	}
 } // end Revisionary class

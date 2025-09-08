@@ -13,6 +13,7 @@ elif [ ${#SQLFILE} -gt 0 ];
   # lando db-import $SQLFILE
 else
   echo "Import Pantheon Dev database"
+  lando pull --database=live --files=none --code=none
   # lando pull --database=dev --files=none --code=none
 fi
 echo "Sync ACF Groups automatically from JSON files."

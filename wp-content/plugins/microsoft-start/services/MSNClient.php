@@ -9,7 +9,7 @@ class MSNClient
 {
     static function update_post($body)
     {
-        return static::BaseRequest("thirdparty/contents/article/{$body['id']}?status=3", ['method' => 'POST', 'body' => $body]);
+        return static::BaseRequest("thirdparty/contents/article/upsert?documentId={$body['id']}&status=3", ['method' => 'POST', 'body' => $body]);
     }
 
     static function filter_empty_notification($item)
@@ -23,7 +23,7 @@ class MSNClient
         $token = TokenService::get_token();
 
         $response = wp_remote_post(
-            MSPH_SERVICE_URL . "telemetry?scn=3rdPartyAuth&wrapodata=false",
+            MSPH_SERVICE_URL . "telemetry?scn=3rdPartyAuth" . MSPH_OCID_APIKEY_QSP,
             [
                 'headers' => [
                     "accept" => "*/*",
@@ -44,13 +44,13 @@ class MSNClient
     static function upsert_feed($feedConfig)
     {
         $config = array('auth' => true, 'body' => $feedConfig, 'method' => 'POST', 'timeout' => 10);
-        return static::BaseRequest("thirdparty/feeds?handler=upsert", $config);
+        return static::BaseRequest("thirdparty/feed/upsert", $config);
     }
 
     static function suspend_feed()
     {
         $config = array('auth' => true, 'body' => (object)array(), 'method' => 'PUT', 'timeout' => 10);
-        return static::BaseRequest("thirdparty/feeds?handler=suspend", $config);
+        return static::BaseRequest("thirdparty/feed/suspend", $config);
     }
 
     static function account_settings($source)
@@ -109,7 +109,7 @@ class MSNClient
     static function get_help_faq_data()
     {
         $config = array('auth' => false, 'method' => 'GET');
-        $response = static::BaseRequest("thirdparty/helpcenter/FAQ?version=".MSPH_PLUGIN_VERSION."&locale=".MSPH_WP_LANG, $config);
+        $response = static::BaseRequest("thirdparty/helpcenter/faq?version=".MSPH_PLUGIN_VERSION."&locale=".MSPH_WP_LANG, $config);
         if (!$response || $response['response']['code'] != 200) {
             return null;
         }
@@ -146,7 +146,7 @@ class MSNClient
             $selectedIdListArray = array_slice($msn_ids, 0, $limitation);
             $selectedIdList = implode(",", $selectedIdListArray);
             $encodedSelectedIdList = urlencode($selectedIdList);
-            $url = "thirdparty/contents/article/?ids={$encodedSelectedIdList}&res=publish";
+            $url = "thirdparty/contents/article?ids={$encodedSelectedIdList}&res=publish";
             $response = static::BaseRequest($url, ['method' => 'GET']);
             if ($response && $response['response']['code'] >= 200 && $response['response']['code'] < 300) {
                 array_push($results, json_decode($response['body']));
@@ -171,7 +171,7 @@ class MSNClient
 
     static function get_msn_post_detail($msn_id)
     {
-        $response = static::BaseRequest("thirdparty/contents/article/{$msn_id}?type=1&handler=loadSnippet");
+        $response = static::BaseRequest("thirdparty/contents/article/loadSnippet?documentId={$msn_id}&type=1");
         if (!$response || $response['response']['code'] != 200) {
             return array();
         }
@@ -182,7 +182,7 @@ class MSNClient
 
     static function submit_appeal($msn_id, $body)
     {
-        $response = static::BaseRequest("thirdparty/contents/article/{$msn_id}?type=1&handler=appeal", ['method' => 'POST', 'body' => $body, 'timeout' => 10]);
+        $response = static::BaseRequest("thirdparty/contents/article/appeal?documentId={$msn_id}&type=1", ['method' => 'POST', 'body' => $body, 'timeout' => 10]);
         return ($response && $response['response']['code'] == 200);
     }
 
@@ -262,7 +262,7 @@ class MSNClient
             $profile = json_decode(Options::get_profile(), true);
             $partnerId = $profile['partnerId'];
             $response = static::BaseRequest(
-                "notification/items?accountId="
+                "notification/items?brandId="
                     . Options::get_CID() .
                     "&partnerId="
                     . $partnerId .
@@ -305,7 +305,7 @@ class MSNClient
             return null;
         }
         $response = static::BaseRequest(
-            "account/statusdashboard?accountId=" . $cid . "&partnerId="
+            "account/statusdashboard?brandId=" . $cid . "&partnerId="
                 . $partnerId,
             ['method' => 'GET']
         );
@@ -356,7 +356,7 @@ class MSNClient
 
 
         $query_string = join('&', $query);
-        $request_url = MSPH_SERVICE_URL . $path . '?' . $query_string;
+        $request_url = MSPH_SERVICE_URL . $path . '?' . $query_string . MSPH_OCID_APIKEY_QSP;
         if ($method === 'GET') {
             $response = wp_remote_get($request_url, array('headers' => $header, 'timeout' => $timeout));
         } else if ($method === 'POST') {

@@ -32,7 +32,10 @@ function parseApiEpisode(episode: ApiEpisode): ItemRow {
     guid: episode.guid,
     title: episode.title,
     terms: episode.categories?.map(({ name, existingTerms }) => {
-      const selectedTerm = existingTerms?.find((term) => term.taxonomy.name === 'country' );
+      const selectedTerm = existingTerms && ['resource_development', 'country'].reduce<ApiTerm>(
+        (a, taxomomyName) => a || existingTerms.find((term) => term.taxonomy.name === taxomomyName ),
+        null
+      );
       return {
         name,
         ...(selectedTerm && {
@@ -188,7 +191,7 @@ export function ImportItemRow({ data, rowData: rd, importAs, selectInputComponen
                 <a href={editLink} target={`edit:${databaseId}`} key={databaseId}><Badge variant='secondary' className='capitalize inline-flex gap-2 text-primary'>{type} <ExternalLink className='inline-block' size={16} /></Badge></a>
               ))}
               {terms?.filter((term) => !!term.taxonomy).map((term) => (
-                <Badge variant='secondary' className='capitalize' key={term.name}>{term.name} ({term.taxonomy.label})</Badge>
+                <Badge variant='secondary' className='capitalize' key={term.name}>{term.name} ({term.taxonomy.labels.singular_name})</Badge>
               ))}
               {!!ignoredTermsCount && (
                   <Badge variant='outline'>
@@ -256,7 +259,7 @@ export function ImportItemRow({ data, rowData: rd, importAs, selectInputComponen
                                 <TableCell>{name}</TableCell>
                                 <TableCell>
                                   <Select value={selectedTaxonomy} onValueChange={handleValueChange}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className='text-start'>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
