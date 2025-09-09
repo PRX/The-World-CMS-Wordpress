@@ -2,8 +2,8 @@
 Tags: Microsoft, MSN, MSN Partner Hub
 Requires at least: 5.4
 Requires PHP: 7.3
-Stable tag: 2.8.5
-Tested up to: 6.5
+Stable tag: 2.8.6
+Tested up to: 6.8
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Contributors: Microsoft

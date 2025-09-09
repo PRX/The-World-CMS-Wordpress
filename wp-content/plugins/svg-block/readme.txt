@@ -4,7 +4,7 @@ Tags:              block, SVG, image, icon, button
 Requires PHP:      7.1
 Requires at least: 6.5
 Tested up to:      6.8
-Stable tag:        1.2.0
+Stable tag:        1.2.1
 License:           GPL-3.0
 License URI:       https://www.gnu.org/licenses/gpl-3.0.html
 Donate link:       https://boldblocks.net?utm_source=wp.org&utm_campaign=readme&utm_medium=link&utm_content=SVG+Block+Donate
@@ -100,6 +100,11 @@ Anyone can use this plugin.
 7. Block's placeholder
 
 == Changelog ==
+
+= 1.2.1 =
+*Release Date - 27 August 2025*
+
+* Fixed - Enqueued dynamic styles for classic themes
 
 = 1.2.0 =
 *Release Date - 18 August 2025*
