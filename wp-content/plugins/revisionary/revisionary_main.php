@@ -181,7 +181,7 @@ class Revisionary
 			require_once( dirname(__FILE__).'/admin/admin_rvy.php');
 			$this->admin = new RevisionaryAdmin();
 		}
-		
+
 		add_action( 'wpmu_new_blog', array( $this, 'act_new_blog'), 10, 2 );
 
 		add_action('trashed_post', [$this, 'actTrashedPost']);
@@ -602,6 +602,12 @@ class Revisionary
 	function actSavePost($post_id, $post) {
 		global $current_user;
 		
+		static $busy;
+
+		if (!empty($busy)) {
+			return;
+		}
+
 		// Track updaters for use with Notifications, Archive
 		if ($is_revision = rvy_in_revision_workflow($post_id)) {
 			if (!$revision_updaters = get_post_meta($post_id, '_rvy_updated_by', true)) {
@@ -625,6 +631,8 @@ class Revisionary
 				rvy_update_next_publish_date();
 			}
 		}
+
+		$busy = false;
 	}
 
 	// Immediately prior to post deletion, also delete its pending revisions and future revisions (and their meta data)

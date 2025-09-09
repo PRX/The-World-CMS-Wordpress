@@ -4,7 +4,7 @@
  * Description:       Display an SVG image as a block, which can be used for displaying images, icons, dividers, buttons
  * Requires at least: 6.5
  * Requires PHP:      7.1
- * Version:           1.2.0
+ * Version:           1.2.1
  * Author:            Phi Phan
  * Author URI:        https://boldblocks.net
  * Plugin URI:        https://boldblocks.net?utm_source=SVG+Block&utm_campaign=visit+site&utm_medium=link&utm_content=Plugin+URI

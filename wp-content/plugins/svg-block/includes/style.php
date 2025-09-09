@@ -149,6 +149,19 @@ if ( ! class_exists( Style::class ) ) :
 		}
 
 		/**
+		 * Enqueue dynamic style for classic themes
+		 *
+		 * @param string $style
+		 * @return void
+		 */
+		private function enqueue_block_style_for_classic_themes( $style ) {
+			// phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
+			wp_register_style( $this->style_handle . '_classic', '' );
+			wp_add_inline_style( $this->style_handle . '_classic', $style );
+			wp_enqueue_style( $this->style_handle . '_classic' );
+		}
+
+		/**
 		 * Build responsive styles
 		 *
 		 * @return string
@@ -237,6 +250,11 @@ if ( ! class_exists( Style::class ) ) :
 
 			// Add style to the frontend.
 			wp_add_inline_style( $this->style_handle, $block_styles['style'] );
+
+			// Enqueue style for classic themes.
+			if ( ! wp_is_block_theme() ) {
+				$this->enqueue_block_style_for_classic_themes( $block_styles['style'] );
+			}
 
 			// Add classes to block wrapper element.
 			$block_content = $this->add_class_to_block( $block_content, implode( ' ', $block_styles['classes'] ?? [] ) );
