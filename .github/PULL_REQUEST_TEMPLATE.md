@@ -5,12 +5,10 @@ Closes #[ISSUE_ID]
 ## To Review
 
 - [ ] Checkout Branch.
-- [ ] Start Lando, if it is not already running: `lando start`.
-- [ ] (Optional) Update database:
-  - Delete any `.sql.gz` files from your `./reference` directory.
-  - Run `terminus backup:get --element=db --to=./reference -- the-world.live`.
-  - Run `npm run refresh`.
-- [ ] Go to http://dev-the-world.lndo.site/.
+- [ ] If you have a dev server already running, shut it down: `docker compose down`.
+- [ ] Delete the current image: `docker rmi the-world-cms-wordpress-wordpress:latest`.
+- [ ] Start up dev server: `docker compose up`.
+- [ ] Go to http://localhost:8090/wp-login.php.
 
 > ...then...
 
