@@ -182,7 +182,7 @@ function peh_route_alias( WP_REST_Request $request ) {
 					}
 				} else {
 
-					$response['status'] = 500;
+					$response['status'] = 404;
 				}
 			}
 		} else {
