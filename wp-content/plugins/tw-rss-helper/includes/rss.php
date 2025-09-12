@@ -53,7 +53,7 @@ function tw_rss_helper_audio_enclosure() {
 		'<enclosure url="%1$s" type="%2$s" length="%3$s"/>',
 		$audio_media['url'],
 		$audio_media['mime_type'],
-		$audio_metadata['filesize']
+		$audio_media['filesize']
 	);
 
 	/**
