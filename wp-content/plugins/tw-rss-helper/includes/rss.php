@@ -32,14 +32,28 @@ function tw_rss_helper_audio_enclosure() {
 		return false;
 	}
 
-	$audio_media = tw_rss_helper_get_external_audio_data( $audio_url );
+	$audio_post     = get_post( $audio_id );
+	$audio_metadata = wp_get_attachment_metadata( $audio_id );
+
+	$audio_media = array(
+		'url'       => $audio_url,
+		'mime_type' => $audio_post->post_mime_type,
+	);
+
+	if ( isset( $audio_metadata['filesize'] ) ) {
+		$audio_media['filesize'] = $audio_metadata['filesize'];
+	} else {
+		$audio_media                = tw_rss_helper_get_external_audio_data( $audio_url );
+		$audio_metadata['filesize'] = $audio_media['filesize'];
+		wp_update_attachment_metadata( $audio_id, $audio_metadata );
+	}
 
 	// Build the default enclosure HTML.
 	$enclosure_html = sprintf(
 		'<enclosure url="%1$s" type="%2$s" length="%3$s"/>',
 		$audio_media['url'],
 		$audio_media['mime_type'],
-		$audio_media['filesize']
+		$audio_metadata['filesize']
 	);
 
 	/**
