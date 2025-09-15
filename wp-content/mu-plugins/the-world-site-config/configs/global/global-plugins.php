@@ -16,6 +16,7 @@ define(
 		'PATCH-external-media-without-import/external-media-without-import.php',
 		'PATCH-s3-uploads/s3-uploads.php',
 		'microsoft-start/index.php',
+		'msm-sitemap/msm-sitemap.php',
 		'redirection/redirection.php',
 		'redis-cache/redis-cache.php',
 		'revisionary/revisionary.php',
