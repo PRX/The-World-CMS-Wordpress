@@ -4,12 +4,14 @@
  * Description: Mask the sitemap URL with configured URL.
  * Version: 1.0
  * Author: The World
+ *
+ * @package tw
  */
 
 /**
  * Mask the sitemap URL with configured URL.
  *
- * @param array $sitemap_entry
+ * @param array $sitemap_entry Entry data array.
  *
  * @return array
  */
@@ -98,3 +100,18 @@ function tw_sitemap_mask_page() {
 	<?php
 }
 
+/**
+ * Update post query args used to get posts in sitemaps.
+ *
+ * @param array $args Array of WP_Query arguments.
+ * @return array
+ */
+function tw_sitemap_mask_post_query_args( $args ) {
+
+	// Remove meta query args.
+	unset( $args['meta_query'] );
+	$args['update_post_meta_cache'] = false;
+
+	return $args;
+}
+add_filter( 'wp_sitemaps_posts_query_args', 'tw_sitemap_mask_post_query_args', 999, 1 );
