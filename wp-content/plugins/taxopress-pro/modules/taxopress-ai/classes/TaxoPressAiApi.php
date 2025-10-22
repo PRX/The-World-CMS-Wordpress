@@ -22,7 +22,7 @@ if (!class_exists('TaxoPressAiApi')) {
         public static function get_dandelion_results($args)
         {
 
-            if (empty(SimpleTags_Plugin::get_option_value('enable_dandelion_ai_source'))) {
+             if (empty(SimpleTags_Plugin::get_option_value('enable_dandelion_ai_source'))) {
                 return [
                     'status' => 'error',
                     'message' => esc_html__('The Dandelion integration is disabled in the Legacy AI Sources settings.', 'simple-tags'),
@@ -141,7 +141,7 @@ if (!class_exists('TaxoPressAiApi')) {
         public static function get_open_calais_results($args)
         {
 
-            if (empty(SimpleTags_Plugin::get_option_value('enable_lseg_ai_source'))) {
+             if (empty(SimpleTags_Plugin::get_option_value('enable_lseg_ai_source'))) {
                 return [
                     'status' => 'error',
                     'message' => esc_html__('The LSEG / Refinitiv integration is disabled in the Legacy AI Sources settings.', 'simple-tags'),
@@ -273,7 +273,7 @@ if (!class_exists('TaxoPressAiApi')) {
                     'results' => [],
                 ];
             }
-
+            
             $return['status'] = 'error';
             $return['message'] = esc_html__('No matched result from the API Server.', 'simple-tags');
             $return['results'] = [];
@@ -512,8 +512,12 @@ if (!class_exists('TaxoPressAiApi')) {
                         ];
 
                         
-                        if (!in_array($open_ai_model, ['o3-mini', 'o1-mini', 'o1'])) {
-                            $body_data['max_tokens'] = 50;
+                        if (!in_array($open_ai_model, ['o3-mini', 'o1-mini', 'o1']) && !preg_match('/^gpt-5/', $open_ai_model)) {
+                            if (preg_match('/^(gpt-5|gpt-4\.5)/', $open_ai_model)) {
+                                $body_data['max_completion_tokens'] = 50;
+                            } else{
+                                $body_data['max_tokens'] = 50;
+                            }
                             $body_data['temperature'] = 0.9;
                         }
                         

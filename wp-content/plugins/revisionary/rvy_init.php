@@ -10,10 +10,12 @@ add_filter(
 	'rank_math/excluded_post_types',
 	function ($types) {
 		if (function_exists('rvy_detect_post_id')) {
-			$post_id = rvy_detect_post_id();
+			if (!empty($_POST) || rvy_get_option('revision_edit_disable_rank_math')) {
+				$post_id = rvy_detect_post_id();
 
-			if (function_exists('rvy_in_revision_workflow') && rvy_in_revision_workflow($post_id)) {
-				$types = [];
+				if (function_exists('rvy_in_revision_workflow') && rvy_in_revision_workflow($post_id)) {
+					$types = [];
+				}
 			}
 		}
 

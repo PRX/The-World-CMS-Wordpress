@@ -159,72 +159,128 @@
       // -------------------------------------------------------------
       //   Settings TaxoPress AI checkbox changed
       // -------------------------------------------------------------
-     $(document).on('change', '.taxopress-ai-tab-content input, .taxopress-ai-tab-content-sub input', function (e) {
-            var $checkbox = $(this);
-            var field_name = $checkbox.attr('name');
-            var checked_field = $checkbox.prop("checked");
+       $(document).on('change', '.taxopress-ai-tab-content input, .taxopress-ai-tab-content-sub input', function (e) {
+              var $checkbox = $(this);
+              var field_name = $checkbox.attr('name');
+              var checked_field = $checkbox.prop("checked");
 
-            if (!field_name) return;
+              if (!field_name) return;
 
-            if (field_name.includes('_metabox')) {
-                // Handle metabox checkbox
+             var matchFilters = field_name.match(/^taxopress_ai_(\w+)_metabox_filters$/);
+              if (matchFilters) {
+                  var pt = matchFilters[1];
+
+                  var filtersContainer = $('.enable_taxopress_ai_' + pt + '_metabox_filters_field');
+                  var existingTabContainer = $('.enable_taxopress_ai_' + pt + '_existing_terms_tab_field');
+
+                  var filtersChecked = checked_field;
+                  var existingTabVisible = existingTabContainer.length && !existingTabContainer.hasClass('st-subhide-content');
+ 
+                  if (existingTabVisible && filtersChecked) {
+                    filtersContainer.removeClass('st-subhide-content');
+                  } else {
+                      filtersContainer.addClass('st-subhide-content');
+                  }
+                  return;
+              }
+
+              if (field_name.includes('_metabox')) {
+                  // Handle metabox checkbox
+                  var match = field_name.match(/enable_taxopress_ai_(\w+)_metabox/);
+                  if (!match) return;
+
+                  var postType = match[1];
+                  var $metaboxField = $('.enable_taxopress_ai_' + postType + '_metabox_field');
+                  
+                  if (checked_field) {
+                      $metaboxField.removeClass('st-subhide-content');
+                  } else {
+                      $metaboxField.addClass('st-subhide-content');
+                      $('[name^="enable_taxopress_ai_' + postType + '_"][name$="_tab"]').prop('checked', false);
+                      $('[class*="enable_taxopress_ai_' + postType + '_"][class*="_tab_field"]').addClass('st-subhide-content');
+                  }
+              } else if (field_name.includes('_tab')) {
+                  // Handle feature tab checkboxes
+                  var target_class = '.' + field_name + '_field';
+                  if (checked_field) {
+                      $(target_class).removeClass('st-subhide-content');
+                  } else {
+                      $(target_class).addClass('st-subhide-content');
+                  }
+
+                  if (field_name.match(/^enable_taxopress_ai_(\w+)_existing_terms_tab$/)) {
+                      var pt2 = field_name.match(/^enable_taxopress_ai_(\w+)_existing_terms_tab$/)[1];
+                      var filtersContainer2 = $('.enable_taxopress_ai_' + pt2 + '_metabox_filters_field');
+                      var existingTabContainer2 = $('.enable_taxopress_ai_' + pt2 + '_existing_terms_tab_field');
+                      var filtersCheckbox2 = $('[name="taxopress_ai_' + pt2 + '_metabox_filters"]');
+
+                      var filtersVisible2 = filtersContainer2.length && !filtersContainer2.hasClass('st-subhide-content');
+                      var existingTabVisible2 = existingTabContainer2.length && !existingTabContainer2.hasClass('st-subhide-content');
+                      var filtersChecked2 = filtersCheckbox2.length ? filtersCheckbox2.prop('checked') : false;
+
+                      if (filtersVisible2 && existingTabVisible2 && filtersChecked2) {
+                          filtersContainer2.removeClass('st-subhide-content');
+                      } else {
+                          filtersContainer2.addClass('st-subhide-content');
+                      }
+                  }
+              }
+        });
+
+        // Initialize visibility on page load
+        if ($('.taxopress-ai-tab-content').length > 0) {
+            $('.taxopress-ai-tab-content-sub').addClass('st-subhide-content');
+            
+            $('[name$="_metabox"]').each(function () {
+                var field_name = $(this).attr('name');
                 var match = field_name.match(/enable_taxopress_ai_(\w+)_metabox/);
                 if (!match) return;
 
                 var postType = match[1];
-                var $metaboxField = $('.enable_taxopress_ai_' + postType + '_metabox_field');
+                var isMetaboxChecked = $(this).prop('checked');
                 
-                if (checked_field) {
-                    $metaboxField.removeClass('st-subhide-content');
+                if (isMetaboxChecked) {
+                    $('.enable_taxopress_ai_' + postType + '_metabox_field').removeClass('st-subhide-content');
+
+                    $('[name^="enable_taxopress_ai_' + postType + '_"][name$="_tab"]').each(function () {
+                        var tabChecked = $(this).prop('checked');
+                        var tabClass = '.' + $(this).attr('name') + '_field';
+
+                        if (tabChecked) {
+                            $(tabClass).removeClass('st-subhide-content');
+                        } else {
+                            $(tabClass).addClass('st-subhide-content');
+                        }
+                    });
                 } else {
-                    $metaboxField.addClass('st-subhide-content');
-                    $('[name^="enable_taxopress_ai_' + postType + '_"][name$="_tab"]').prop('checked', false);
+                    $('.enable_taxopress_ai_' + postType + '_metabox_field').addClass('st-subhide-content');
                     $('[class*="enable_taxopress_ai_' + postType + '_"][class*="_tab_field"]').addClass('st-subhide-content');
                 }
-            } else if (field_name.includes('_tab')) {
-                // Handle feature tab checkboxes
-                var target_class = '.' + field_name + '_field';
-                if (checked_field) {
-                    $(target_class).removeClass('st-subhide-content');
+            });
+
+          $('[name$="_metabox_filters"]').each(function () {
+                var fname = $(this).attr('name') || '';
+                var m = fname.match(/^taxopress_ai_(\w+)_metabox_filters$/);
+                if (!m) return;
+                var pt = m[1];
+
+                var $filtersContainer = $('.enable_taxopress_ai_' + pt + '_metabox_filters_field');
+                var $existingTabContainer = $('.enable_taxopress_ai_' + pt + '_existing_terms_tab_field');
+                var $filtersCheckbox = $('[name="taxopress_ai_' + pt + '_metabox_filters"]');
+
+                var isFiltersChecked = $filtersCheckbox.length ? $filtersCheckbox.prop('checked') : false;
+                var existingTabVisible = $existingTabContainer.length && !$existingTabContainer.hasClass('st-subhide-content');
+
+                // Only show controlled fields if the Existing Terms tab (hence the checkbox) is visible AND checkbox is checked
+                if (existingTabVisible && isFiltersChecked) {
+                    $filtersContainer.removeClass('st-subhide-content');
                 } else {
-                    $(target_class).addClass('st-subhide-content');
+                    $filtersContainer.addClass('st-subhide-content');
                 }
-            }
-      });
+            });
 
-      // Initialize visibility on page load
-      if ($('.taxopress-ai-tab-content').length > 0) {
-          $('.taxopress-ai-tab-content-sub').addClass('st-subhide-content');
-          
-          $('[name$="_metabox"]').each(function () {
-              var field_name = $(this).attr('name');
-              var match = field_name.match(/enable_taxopress_ai_(\w+)_metabox/);
-              if (!match) return;
-
-              var postType = match[1];
-              var isMetaboxChecked = $(this).prop('checked');
-              
-              if (isMetaboxChecked) {
-                  $('.enable_taxopress_ai_' + postType + '_metabox_field').removeClass('st-subhide-content');
-
-                  $('[name^="enable_taxopress_ai_' + postType + '_"][name$="_tab"]').each(function () {
-                      var tabChecked = $(this).prop('checked');
-                      var tabClass = '.' + $(this).attr('name') + '_field';
-
-                      if (tabChecked) {
-                          $(tabClass).removeClass('st-subhide-content');
-                      } else {
-                          $(tabClass).addClass('st-subhide-content');
-                      }
-                  });
-              } else {
-                  $('.enable_taxopress_ai_' + postType + '_metabox_field').addClass('st-subhide-content');
-                  $('[class*="enable_taxopress_ai_' + postType + '_"][class*="_tab_field"]').addClass('st-subhide-content');
-              }
-          });
-
-          $('.st-taxopress-ai-subtab span:first').trigger('click');
-      }
+            $('.st-taxopress-ai-subtab span:first').trigger('click');
+        }
       
       // -------------------------------------------------------------
       //   Settings metabox sub tab click
@@ -2026,72 +2082,277 @@
     }
 
     // Autocomplete for the manage terms feature
-    if ($('.merge-feature-autocomplete, .add-terms-autocomplete, .remove-terms-autocomplete, .rename-terms-autocomplete').length > 0) {
-        $('.merge-feature-autocomplete, .add-terms-autocomplete, .remove-terms-autocomplete, .rename-terms-autocomplete').each(function () {
+    (function(){
+        const selector = '.merge-feature-autocomplete, .add-terms-autocomplete, .remove-terms-autocomplete, .rename-terms-autocomplete';
+        if (!jQuery(selector).length) return;
 
-            const taxonomy = $(this).closest('.auto-terms-content').find('.st-taxonomy-select').val();
-            const inputField = $(this);
-            let showSlug = false;
+        function flagEnabled(val){
+            if (val === undefined || val === null) return false;
+            const s = String(val).toLowerCase();
+            return ['1','true','yes','on','y'].includes(s);
+        }
 
-            // Determine which slug display setting to use based on the input class
-            if (inputField.hasClass('merge-feature-autocomplete')) {
-                showSlug = st_admin_localize.enable_merge_terms_slug === '1';
-            } else if (inputField.hasClass('add-terms-autocomplete')) {
-                showSlug = st_admin_localize.enable_add_terms_slug === '1';
-            } else if (inputField.hasClass('remove-terms-autocomplete')) {
-                showSlug = st_admin_localize.enable_remove_terms_slug === '1';
-            } else if (inputField.hasClass('rename-terms-autocomplete')) {
-                showSlug = st_admin_localize.enable_rename_terms_slug === '1';
+        function showSlugFor($el){
+            if ($el.hasClass('merge-feature-autocomplete'))  return flagEnabled(st_admin_localize.enable_merge_terms_slug);
+            if ($el.hasClass('add-terms-autocomplete'))      return flagEnabled(st_admin_localize.enable_add_terms_slug);
+            if ($el.hasClass('remove-terms-autocomplete'))   return flagEnabled(st_admin_localize.enable_remove_terms_slug);
+            if ($el.hasClass('rename-terms-autocomplete'))   return flagEnabled(st_admin_localize.enable_rename_terms_slug);
+            return false;
+        }
+
+        function currentTaxonomy($el){
+            return (
+                $el.closest('.auto-terms-content').find('.st-taxonomy-select').val() ||
+                jQuery('.auto-terms-content:visible .st-taxonomy-select').first().val() ||
+                $el.data('taxo') ||
+                jQuery('.st-taxonomy-select').first().val() ||
+                'post_tag'
+            ).toString().replace(/[^a-z0-9_\-]/g,'');
+        }
+
+        // Destroy any earlier generic autocomplete
+        jQuery(selector).each(function(){
+            if (jQuery(this).data('ui-autocomplete')) {
+                jQuery(this).autocomplete('destroy');
             }
+        });
 
-            inputField.autocomplete({
-                source: function (request, response) {
-                    const lastTerm = request.term.split(',').pop().trim(); // Get the last term after the comma
-                    $.ajax({
+        jQuery(selector).each(function(){
+            const $field = jQuery(this);
+            const useSlug = showSlugFor($field);
+
+            $field.autocomplete({
+                minLength: 1,
+                source: function(request, response){
+                    const fragment = request.term.split(',').pop().trim();
+                    const taxonomy = currentTaxonomy($field);
+
+                    jQuery.ajax({
                         url: st_admin_localize.ajaxurl,
-                        method: 'POST',
+                        type: 'POST',
                         dataType: 'json',
                         data: {
                             action: 'taxopress_autocomplete_terms',
-                            term: lastTerm,
+                            term: fragment,
                             taxonomy: taxonomy,
                             nonce: st_admin_localize.check_nonce
                         },
-                        success: function (data) {
-                            response($.map(data, function (item) {
-                                // Only include slug in label/value if enabled
-                                const displayText = showSlug ? item.name + ' (' + item.slug + ')' : item.name;
+                        success: function(data){
+                            if (!Array.isArray(data)) {
+                                response([]);
+                                return;
+                            }
+                            response(jQuery.map(data, function(item){
+                                const label = useSlug && item.slug ? (item.name + ' (' + item.slug + ')') : item.name;
                                 return {
-                                    label: displayText,
-                                    value: displayText
+                                    label: label,
+                                    value: label
                                 };
                             }));
-                        }
+                        },
+                        error: function(){ response([]); }
                     });
                 },
-                minLength: 1,
-                focus: function () {
-                    // Prevent value insertion on focus
-                    return false;
-                },
-                select: function (event, ui) {
-                    const currentValue = inputField.val();
-                    const terms = currentValue.split(',').map(term => term.trim());
-
-                    terms[terms.length - 1] = ui.item.value;
-
-                    inputField.val(terms.join(', ') + ', ');
-
+                focus: function(){ return false; },
+                select: function(e, ui){
+                    const parts = $field.val().split(',');
+                    parts[parts.length - 1] = ui.item.value;
+                    const cleaned = parts.map(p=>p.trim()).filter(Boolean);
+                    $field.val(cleaned.join(', ') + ', ');
                     return false;
                 }
-            }).on('keydown', function (event) {
-                // Allow autocomplete to trigger after typing a comma
-                if (event.key === ',') {
-                    $(this).autocomplete('search', '');
+            }).on('keydown', function(evt){
+                if (evt.key === ',') {
+                    const frag = jQuery(this).val().split(',').pop().trim();
+                    jQuery(this).autocomplete('search', frag);
                 }
             });
         });
+
+        jQuery(document).on('change', '.auto-terms-content .st-taxonomy-select', function(){
+            jQuery(selector).each(function(){
+                const val = jQuery(this).val().split(',').pop().trim();
+                if (val.length) {
+                    jQuery(this).autocomplete('search', val);
+                }
+            });
+        });
+    })();
+
+    // Suggest merge terms functionality
+    $(document).on('click', '#suggest-merge-terms', function(e) {
+        e.preventDefault();
+        
+        const $button = $(this);
+ 
+        $button.prop('disabled', true).addClass('button-disabled');
+
+        if (!$button.parent().find('.taxopress-button-spinner-overlay').length) {
+            
+            $button.wrap('<div class="taxopress-button-wrapper"></div>');
+            $button.after('<div class="taxopress-button-spinner-overlay"><span class="spinner is-active" style="float: none; margin: 0;"></span></div>');
+        } else {
+            $button.parent().find('.taxopress-button-spinner-overlay').show();
+        }
+        
+        const mergeType = $('input[name="mergeterm_type"]:checked').val();
+        
+        $.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            data: {
+                action: 'taxopress_merge_suggestions',
+                merge_type: mergeType,
+                nonce: $('input[name="term_nonce"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMergeSuggestions(response.data);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Request failed:', error);
+            },
+            complete: function() {
+                $button.prop('disabled', false).removeClass('button-disabled');
+                $button.parent().find('.taxopress-button-spinner-overlay').hide();
+            }
+        });
+    });
+
+    function showMergeSuggestions(data) {
+        let html = '<div id="taxopress-merge-suggestions">';
+        html += '<h4>' + st_admin_localize.suggested_terms_title + '</h4>';
+        
+        if (data.suggestions.length === 0) {
+            html += '<p class="taxopress-no-suggestions">' + st_admin_localize.no_merge_suggestions + '</p>';
+        } else {
+            html += '<div class="taxopress-select-all-suggestions">';
+            html += '<a href="#" class="ai-select-all" data-select-all="' + st_admin_localize.select_all_label + '" data-deselect-all="' + st_admin_localize.deselect_all_label + '">' + st_admin_localize.select_all_label + '</a>';
+            html += '</div>';
+
+            const initialLimit = 10;
+            const showAll = data.suggestions.length <= initialLimit;
+
+            const visibleSuggestions = data.suggestions.slice(0, showAll ? data.suggestions.length : initialLimit);
+            html += renderSuggestions(visibleSuggestions, data.type);
+
+            if (!showAll) {
+                html += '<div id="taxopress-hidden-suggestions">';
+                const hiddenSuggestions = data.suggestions.slice(initialLimit);
+                html += renderSuggestions(hiddenSuggestions, data.type);
+                html += '</div>';
+                html += '<button type="button" id="taxopress-toggle-suggestions" class="button">' + st_admin_localize.see_more_suggestions + '</button><br>';
+            }
+        }
+        
+        html += '<button type="button" id="apply-suggestions" class="button button-primary">' + st_admin_localize.apply_selected + '</button> ';
+        html += '<button type="button" id="close-suggestions" class="button">' + st_admin_localize.close_suggestions + '</button>';
+        html += '</div>';
+        
+        $('#merge-progress').html(html);
     }
+
+    function renderSuggestions(suggestions, type) {
+        let html = '';
+        suggestions.forEach(function(suggestion) {
+            html += '<div class="taxopress-suggestion-item">';
+            if (type === 'same_name') {
+                html += '<label><input type="checkbox" class="merge-suggestion" data-terms="' + suggestion.terms + '"> ';
+                html += '<strong>' + suggestion.name + '</strong> (' + suggestion.count + ' ' + st_admin_localize.duplicates_text + ')</label>';
+            } else {
+                html += '<label><input type="checkbox" class="merge-suggestion" data-term1="' + suggestion.term1 + '" data-term2="' + suggestion.term2 + '" data-suggested="' + suggestion.suggested_name + '"> ';
+                html += suggestion.term1 + ' + ' + suggestion.term2 + ' → ' + suggestion.suggested_name;
+                html += '<br><small>' + st_admin_localize.reason_text + ' ' + suggestion.reasons + '</small></label>';
+            }
+            html += '</div>';
+        });
+        return html;
+    }
+
+    $(document).on('click', '.taxopress-select-all-suggestions .ai-select-all', function(e) {
+        e.preventDefault();
+        var button = $(this);
+        
+        if (button.hasClass('all-selected')) {
+            button.removeClass('all-selected');
+            button.html(button.attr('data-select-all'));
+            $('.merge-suggestion').prop('checked', false);
+        } else {
+            button.addClass('all-selected');
+            button.html(button.attr('data-deselect-all'));
+            $('.merge-suggestion').prop('checked', true);
+        }
+    });
+
+    // Handle Apply Selected button
+    $(document).on('click', '#apply-suggestions', function(e) {
+        e.preventDefault();
+        
+        const mergeType = $('input[name="mergeterm_type"]:checked').val();
+        const selectedSuggestions = [];
+        
+        $('.merge-suggestion:checked').each(function() {
+            if (mergeType === 'same_name') {
+                selectedSuggestions.push($(this).data('terms'));
+            } else {
+                selectedSuggestions.push({
+                    terms: $(this).data('term1') + ', ' + $(this).data('term2'),
+                    suggested: $(this).data('suggested')
+                });
+            }
+        });
+        
+        if (selectedSuggestions.length === 0) {
+            alert(st_admin_localize.select_suggestion_alert);
+            return;
+        }
+        
+        if (mergeType === 'same_name') {
+            // For same name merges, process each group separately
+            const currentValue = $('#mergeterm_old').val();
+            const allTerms = selectedSuggestions.join(', ');
+            $('#mergeterm_old').val(currentValue ? currentValue + ', ' + allTerms : allTerms);
+            
+        } else {
+            // For different name merges
+            const currentOldValue = $('#mergeterm_old').val();
+            
+            // Collect ALL old terms from all selected suggestions
+            const allOldTerms = selectedSuggestions.map(s => s.terms).join(', ');
+            
+            // For new term, use only the LAST selected suggestion
+            const lastSuggestedName = selectedSuggestions[selectedSuggestions.length - 1].suggested;
+
+            $('#mergeterm_old').val(currentOldValue ? currentOldValue + ', ' + allOldTerms : allOldTerms);
+            $('#mergeterm_new').val(lastSuggestedName);
+
+        }
+        
+        $('#taxopress-merge-suggestions').remove();
+    });
+
+    $(document).on('click', '#close-suggestions', function(e) {
+        e.preventDefault();
+        $('#taxopress-merge-suggestions').remove();
+    });
+
+    $(document).on('click', '#taxopress-toggle-suggestions', function(e) {
+        e.preventDefault();
+        
+        const $hiddenSuggestions = $('#taxopress-hidden-suggestions');
+        const $button = $(this);
+        
+        if ($hiddenSuggestions.is(':visible')) {
+            $hiddenSuggestions.hide();
+            const moreText = $button.data('more-text') || st_admin_localize.see_more_suggestions;
+            $button.text(moreText);
+        } else {
+            $hiddenSuggestions.show();
+            $button.data('more-text', $button.text());
+            $button.text(st_admin_localize.see_less_suggestions);
+        }
+    });
 
     // Merge Terms Bacth Processing
     $(document).on('submit', '.merge-terms-form', function (e) {
@@ -2628,8 +2889,16 @@
                     },
                     processResults: function (data, params) {
                         params.page = params.page || 1;
+                        const decodedResults = data.results.map(function(item) {
+                            const txt = document.createElement("textarea");
+                            txt.innerHTML = item.text;
+                            return {
+                                ...item,
+                                text: txt.value
+                            };
+                        });
                         return {
-                            results: data.results,
+                            results: decodedResults,
                             pagination: {
                                 more: data.more
                             }
@@ -2638,7 +2907,15 @@
                     cache: true
                 },
                 templateSelection: function (data) {
-                    return data.text || data.id;
+                    if (data.text) {
+                        const txt = document.createElement("textarea");
+                        txt.innerHTML = data.text;
+                        return txt.value;
+                    }
+                    return data.id;
+                },
+                escapeMarkup: function(markup) {
+                    return markup; 
                 }
             });
 
@@ -2653,6 +2930,37 @@
 
     }
 
+    // Schedule Frequency toggle
+    if ($('.taxopress-autoterm-schedule').length > 0) {
+      function updateCronUI() {
+        var isDisabled = $('#autoterm_cron_disable').is(':checked');
+
+        if (isDisabled) {
+          $('.autoterm_cron_frequency').addClass('st-hide-content');
+          $('.autoterm_cron_help').removeClass('st-hide-content');
+          $('#cron_schedule_value').val('disable');
+        } else {
+          $('.autoterm_cron_frequency').removeClass('st-hide-content');
+          $('.autoterm_cron_help').addClass('st-hide-content');
+
+          var chosen = $('input[name="taxopress_autoterm_schedule[cron_schedule_choice]"]:checked').val() || '';
+          $('#cron_schedule_value').val(chosen);
+        }
+      }
+
+      $(document).on('change', '#autoterm_cron_disable', function () {
+        updateCronUI();
+      });
+
+      $(document).on('change', 'input.autoterm_cron_radio', function () {
+        $('#autoterm_cron_disable').prop('checked', false);
+        $('#cron_schedule_value').val($(this).val());
+        updateCronUI();
+      });
+
+      // Initialize on load
+      updateCronUI();
+    }
 
   });
 

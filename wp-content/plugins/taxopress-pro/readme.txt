@@ -1,9 +1,9 @@
-=== TaxoPress is the WordPress Tag, Category, and Taxonomy Manager ===
-Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojopaul
-Tags: category, tag, taxonomy, related posts, tag cloud, terms, tagging, navigation, tag manager, tags manager, term manager, terms manager
-Requires at least: 3.3
+=== Tag, Category, and Taxonomy Manager - AI Autotagger with OpenAI ===
+Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojopaul, deji98
+Tags: category, tag, taxonomy, categories, tag cloud
+Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.37.4
+Stable tag: 3.40.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -224,6 +224,35 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 6. If you have a term called “WordPress”, the Auto Links feature will find any instances of “WordPress” in your content and add a link to the archive page for that tag.
 
 == Changelog ==
+
+v3.40.0- 2025-10-16
+* Fixed: Preview dropdown doesn't show some characters correctly, #2780
+* Fixed: Issue with some GPT 5 models, #2778
+* Fixed: Auto Links not working with Elementor, #2808
+* Update: Show term slug in Mass Edit Terms, #2777
+* Update: Show term slug in the metabox, #2774
+* Update: Move Metabox Settings to Fast Update Screen, #2773
+* Update: Scan and Automatically Suggest terms to merge, #2729
+* Update: Preview for different user roles and post types, #2795
+* Update: Update to Menu links: Rename "Fast Update" to "Metaboxes" #2791
+* Update: Place License tab to the end of all tabs, #2804
+* Update: Only show the pencil edit icon on the Metaboxes screen, #2792
+* Removed: Remove Title feature from Auto Links, #2809
+
+v3.38.0- 2025-09-17
+* Fixed: Frontend css loads on all pages, #2757
+* Fixed: Autolink Feature is slowing down the admin area, #2754
+* Fixed: Some settings not apllied in suggest existing terms, #2748
+* Fixed: Schedule autoterms not running, #2747
+* Fixed: Problem with GPT 5, #2745
+* Fixed: Dropdown in the Metabox is hard to use, #2733
+* Fixed: Choose Terms screens are over-complex, #2701
+* Update: Update the readme from WordPress.org, #2746
+* Update: Improve UI for the "Schedule" feature, #2743
+* Update: Allow users to rename the metabox tabs, #2736
+* Update: Allow users to disable the filters in the Metabox, #2734
+* Update: Lock icon for "Add" buttons, #2721
+* Update: Italian Translation Update for TaxoPress FREE 3.37.4, #2744
 
 v3.37.4- 2025-09-02
 * Update: Enable "Add terms if synonyms found" by default, #2727

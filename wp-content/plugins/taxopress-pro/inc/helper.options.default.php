@@ -39,18 +39,27 @@ return array(
     'enable_remove_terms_slug' => 0,
     'enable_rename_terms_slug' => 0,
     'enable_merge_terms_slug' => 1,
+    'enable_mass-edit_terms_slug' => 0,
 
     // taxopress ai
     'enable_taxopress_ai_post_metabox' => 1,
     'enable_taxopress_ai_post_post_terms_tab' => 1,
+    'taxopress_ai_post_metabox_filters' => 1,
     'enable_taxopress_ai_post_suggest_local_terms_tab' => 1,
     'enable_taxopress_ai_post_existing_terms_tab' => 1,
     'taxopress_ai_post_metabox_default_taxonomy' => 'post_tag',
+    
+    // taxopress ai tab labels
+    'taxopress_ai_post_terms_tab_label' => __('Manage Post Terms', 'simple-tags'),
+    'taxopress_ai_existing_terms_tab_label' => __('Show All Existing Terms', 'simple-tags'),
+    'taxopress_ai_suggest_local_terms_tab_label' => __('Auto Terms', 'simple-tags'),
+    'taxopress_ai_create_terms_tab_label' => __('Create Terms', 'simple-tags'),
     
     'taxopress_ai_post_metabox_orderby' => 'count',
     'taxopress_ai_post_metabox_order' => 'desc',
     'taxopress_ai_post_metabox_maximum_terms' => 45,
     'taxopress_ai_post_metabox_show_post_count' => 0,
+    'taxopress_ai_post_metabox_show_term_slug' => 0,
 
     'taxopress_ai_post_minimum_term_length' => 2,
     'taxopress_ai_post_maximum_term_length' => 40,
@@ -79,6 +88,11 @@ return array(
     'enable_restrict_editor_metabox' => 1,
     'enable_restrict_author_metabox' => 1,
     'enable_restrict_contributor_metabox' => 1,
+
+    'enable_edit_administrator_metabox' => 1,
+    'enable_edit_editor_metabox' => 1,
+    'enable_edit_author_metabox' => 0,
+    'enable_edit_contributor_metabox' => 0,
 
     'allow_embed_tcloud'     => 1,
     // Auto link

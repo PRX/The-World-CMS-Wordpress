@@ -66,8 +66,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
         {
             $hook = add_submenu_page(
                 self::MENU_SLUG,
-                esc_html__('Schedule', 'taxopress-pro'),
-                esc_html__('Schedule', 'taxopress-pro'),
+                esc_html__('Auto Terms Schedule', 'taxopress-pro'),
+                esc_html__('Auto Terms Schedule', 'taxopress-pro'),
                 'simple_tags',
                 'st_autoterms_schedule',
                 [
@@ -256,34 +256,60 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
                                         ]);
 
                                         $cron_options = [
-                                            'disable' => __('None', 'taxopress-pro'),
+                                            'disable' => __('Do not run on a schedule', 'taxopress-pro'),
                                             'hourly' => __('Hourly', 'taxopress-pro'),
                                             'daily'  => __('Daily', 'taxopress-pro'),
                                         ];
                                         ?>
                                         <tr valign="top">
-                                            <th scope="row"><label><?php echo esc_html__('Cron Schedule', 'taxopress-pro'); ?></label></th>
+                                            <th scope="row"><label><?php echo esc_html__('Schedule Frequency', 'taxopress-pro'); ?></label></th>
                             
                                             <td>
                                                 <?php
                                                 $cron_schedule  = (!empty($autoterms_schedule['cron_schedule'])) ? $autoterms_schedule['cron_schedule'] : 'disable';
-                                                foreach ($cron_options as $option => $label) {
-                                                    $checked_status = ($option === $cron_schedule)  ? 'checked' : ''; 
-                                                    ?>
-                                                    <label> 
-                                                        <input 
-                                                            class="autoterm_cron" 
-                                                            type="radio" 
-                                                            id="autoterm_cron_<?php echo esc_attr($option); ?>" 
-                                                            name="taxopress_autoterm_schedule[cron_schedule]" 
-                                                            value="<?php echo esc_attr($option); ?>"
-                                                            <?php echo esc_html($checked_status); ?>
-                                                        /> <?php echo esc_html($label); ?>
-                                                        </label> 
-                                                        <br /><br />
-                                                <?php
-                                                }
+
                                                 ?>
+                                                <input type="hidden"
+                                                    id="cron_schedule_value"
+                                                    name="taxopress_autoterm_schedule[cron_schedule]"
+                                                    value="<?php echo esc_attr($cron_schedule); ?>" />
+
+                                                <?php
+                                                $disable_checked = $cron_schedule === 'disable' ? 'checked' : '';
+                                                ?>
+                                                <label class="autoterm_cron_disable_label">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="autoterm_cron_disable"
+                                                        class="autoterm_cron_disable"
+                                                        <?php echo esc_html($disable_checked); ?>
+                                                    />
+                                                    <?php echo esc_html($cron_options['disable']); ?>
+                                                </label>
+
+                                                <p class="description autoterm_cron_help <?php echo $cron_schedule === 'disable' ? '' : 'st-hide-content'; ?>">
+                                                    <?php echo esc_html__("Disable 'Do not run on a schedule' to select schedule frequency.", 'taxopress-pro'); ?>
+                                                </p>
+
+                                                <div class="autoterm_cron_frequency <?php echo $cron_schedule === 'disable' ? 'st-hide-content' : ''; ?>">
+                                                    <?php
+                                                    foreach (['hourly', 'daily'] as $option) {
+                                                        $checked_status = ($cron_schedule === $option) ? 'checked' : '';
+                                                        ?>
+                                                        <label>
+                                                            <input
+                                                                type="radio"
+                                                                class="autoterm_cron_radio"
+                                                                id="autoterm_cron_<?php echo esc_attr($option); ?>"
+                                                                name="taxopress_autoterm_schedule[cron_schedule_choice]"
+                                                                value="<?php echo esc_attr($option); ?>"
+                                                                <?php echo esc_html($checked_status); ?>
+                                                            />
+                                                            <?php echo esc_html($cron_options[$option]); ?>
+                                                        </label>
+                                                        <br /><br />
+                                                    <?php } ?>
+                                                </div>
                                             </td>
                                         </tr>
                                         <?php
@@ -513,61 +539,111 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
                 }
             } 
 
-            if (!empty($autoterm_data)) {
-            
-                $cron_schedule = isset($autoterms_schedule['cron_schedule']) ? $autoterms_schedule['cron_schedule'] : 'disable';
-                $post_types = isset($autoterm_data['post_types']) ? (array)$autoterm_data['post_types'] : [];
-                $post_status = isset($autoterm_data['post_status']) && is_array($autoterm_data['post_status']) ? $autoterm_data['post_status'] : ['publish'];
-                $autoterm_schedule_exclude = isset($autoterms_schedule['autoterm_schedule_exclude']) ? (int)$autoterms_schedule['autoterm_schedule_exclude'] : 0;
-    
-                // make sure some auto terms settings are overriden by schedule specific settings
-                $autoterm_data['terms_limit'] = !empty($autoterm_data['schedule_terms_limit']) ? $autoterm_data['schedule_terms_limit'] : '';
-                $autoterm_data['autoterm_target'] = !empty($autoterm_data['schedule_autoterm_target']) ? $autoterm_data['schedule_autoterm_target'] : '';
-                $autoterm_data['autoterm_word'] = !empty($autoterm_data['schedule_autoterm_word']) ? $autoterm_data['schedule_autoterm_word'] : '';
-                $autoterm_data['autoterm_hash'] = !empty($autoterm_data['schedule_autoterm_hash']) ? $autoterm_data['schedule_autoterm_hash'] : '';
-                $autoterm_data['replace_type'] = isset($autoterm_data['schedule_replace_type']) ? $autoterm_data['schedule_replace_type'] : '';
-
-                // set auto term settings from schedule settings
-                $autoterm_data['autoterm_for_schedule'] = $autoterm_data['cron_schedule'] = $cron_schedule;
-                $autoterm_data['autoterm_schedule_exclude'] = !empty($autoterms_schedule['autoterm_schedule_exclude']) ? $autoterms_schedule['autoterm_schedule_exclude'] : '';
-                $autoterm_data['schedule_terms_batches'] = !empty($autoterms_schedule['schedule_terms_batches']) ? $autoterms_schedule['schedule_terms_batches'] : '';
-                $autoterm_data['schedule_terms_sleep'] = !empty($autoterms_schedule['schedule_terms_sleep']) ? $autoterms_schedule['schedule_terms_sleep'] : '';
-                $autoterm_data['schedule_terms_limit_days'] = !empty($autoterms_schedule['schedule_terms_limit_days']) ? $autoterms_schedule['schedule_terms_limit_days'] : '';
-
-            }
-
-            if (empty($autoterm_data) || $autoterm_data['cron_schedule'] !== 'hourly' || empty($autoterm_data['post_types'])) {
+            if (empty($autoterm_data)) {
                 return;
             }
 
-            $schedule_terms_limit_days     = (int) $autoterm_data['schedule_terms_limit_days'];
+            $autoterms_to_run = [];
+            foreach ($autoterm_data as $id => $a) {
+                if (isset($a['cron_schedule'])) {
+                    if ($a['cron_schedule'] === 'hourly') {
+                        $autoterms_to_run[$id] = $a;
+                    }
+                    continue;
+                }
+
+                $global_cron = isset($autoterms_schedule['cron_schedule']) ? $autoterms_schedule['cron_schedule'] : 'disable';
+                if ($global_cron === 'hourly') {
+                    $autoterms_to_run[$id] = $a;
+                }
+            }
+
+            if (empty($autoterms_to_run)) {
+                return;
+            }
+
+            $autoterm_schedule_exclude = isset($autoterms_schedule['autoterm_schedule_exclude']) ? (int)$autoterms_schedule['autoterm_schedule_exclude'] : 0;
+            $limit = (isset($autoterms_schedule['schedule_terms_batches']) && (int)$autoterms_schedule['schedule_terms_batches'] > 0) ? (int)$autoterms_schedule['schedule_terms_batches'] : 20;
+            $sleep = (isset($autoterms_schedule['schedule_terms_sleep']) && (int)$autoterms_schedule['schedule_terms_sleep'] > 0) ? (int)$autoterms_schedule['schedule_terms_sleep'] : 0;
+            $schedule_terms_limit_days = !empty($autoterms_schedule['schedule_terms_limit_days']) ? (int)$autoterms_schedule['schedule_terms_limit_days'] : 0;
+
+            // Build union of post types & statuses from autoterms_to_run
+            $post_types = [];
+            $post_status = [];
+            foreach ($autoterms_to_run as $a) {
+                if (!empty($a['post_types']) && is_array($a['post_types'])) {
+                    $post_types = array_unique(array_merge($post_types, $a['post_types']));
+                }
+                if (!empty($a['post_status']) && is_array($a['post_status'])) {
+                    $post_status = array_unique(array_merge($post_status, $a['post_status']));
+                }
+            }
+            if (empty($post_types)) {
+                return;
+            }
+            if (empty($post_status)) {
+                $post_status = ['publish'];
+            }
+
             $schedule_terms_limit_days_sql = '';
             if ($schedule_terms_limit_days > 0) {
                 $schedule_terms_limit_days_sql = 'AND post_date > "' . date('Y-m-d H:i:s', time() - $schedule_terms_limit_days * 86400) . '"';
             }
 
-            $limit = (isset($autoterm_data['schedule_terms_batches']) && (int)$autoterm_data['schedule_terms_batches'] > 0) ? (int)$autoterm_data['schedule_terms_batches'] : 20;
-
-            $sleep = (isset($autoterm_data['schedule_terms_sleep']) && (int)$autoterm_data['schedule_terms_sleep'] > 0) ? (int)$autoterm_data['schedule_terms_sleep'] : 0;
-            
+            // Query posts once for all selected autoterms_to_run
             if ($autoterm_schedule_exclude > 0) {
-                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON ( ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = '_taxopress_autotermed' ) WHERE post_type IN ('" . implode("', '", $post_types) . "') AND {$wpdb->postmeta}.post_id IS NULL AND post_status IN ('" . implode("', '", $post_status) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}");
+                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON ( ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = '_taxopress_autotermed' ) WHERE post_type IN ('" . implode("', '", array_map('esc_sql', $post_types)) . "') AND {$wpdb->postmeta}.post_id IS NULL AND post_status IN ('" . implode("', '", array_map('esc_sql', $post_status)) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}"
+                );
             } else {
-                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE post_type IN ('" . implode("', '", $post_types) . "') AND post_status IN ('" . implode("', '", $post_status) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}");
+                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE post_type IN ('" . implode("', '", array_map('esc_sql', $post_types)) . "') AND post_status IN ('" . implode("', '", array_map('esc_sql', $post_status)) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}"
+                );
             }
 
-            if (!empty($objects)) {
-                $current_post = 0;
-                foreach ($objects as $object) {
-                    $current_post++;
-                        update_post_meta($object->ID, '_taxopress_autotermed', 1);
-                        foreach ($autoterm_data as $autoterm) {
-                            SimpleTags_Client_Autoterms::auto_terms_post($object, $autoterm['taxonomy'], $autoterm, true, 'hourly_cron_schedule', 'st_autoterms');
-                        }  
-                        unset($object);
-                    if ($sleep > 0 && $current_post % $limit == 0) {
-                        sleep($sleep);
+            if (empty($objects)) {
+                return;
+            }
+
+            $current_post = 0;
+            foreach ($objects as $object) {
+                $current_post++;
+                update_post_meta($object->ID, '_taxopress_autotermed', 1);
+
+                foreach ($autoterms_to_run as $autoterm) {
+                    if (empty($autoterm['autoterm_for_schedule'])) {
+                        continue;
                     }
+
+                    $applied = $autoterm;
+                    if (isset($autoterm['schedule_terms_limit'])) {
+                        $applied['terms_limit'] = $autoterm['schedule_terms_limit'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_target'])) {
+                        $applied['autoterm_target'] = $autoterm['schedule_autoterm_target'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_word'])) {
+                        $applied['autoterm_word'] = $autoterm['schedule_autoterm_word'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_hash'])) {
+                        $applied['autoterm_hash'] = $autoterm['schedule_autoterm_hash'];
+                    }
+                    if (isset($autoterm['schedule_replace_type'])) {
+                        $applied['replace_type'] = $autoterm['schedule_replace_type'];
+                    }
+
+                    SimpleTags_Client_Autoterms::auto_terms_post(
+                        $object,
+                        isset($applied['taxonomy']) ? $applied['taxonomy'] : '',
+                        $applied,
+                        true,
+                        'hourly_cron_schedule',
+                        'st_autoterms'
+                    );
+                }
+
+                unset($object);
+
+                if ($sleep > 0 && $current_post % $limit == 0) {
+                    sleep($sleep);
                 }
             }
         }
@@ -587,58 +663,109 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
                 }
             }
 
-            if (!empty($autoterm_data)) {
-                $cron_schedule = isset($autoterms_schedule['cron_schedule']) ? $autoterms_schedule['cron_schedule'] : 'disable';
-                $post_types = isset($autoterm_data['post_types']) ? (array)$autoterm_data['post_types'] : [];
-                $post_status = isset($autoterm_data['post_status']) && is_array($autoterm_data['post_status']) ? $autoterm_data['post_status'] : ['publish'];
-                $autoterm_schedule_exclude = isset($autoterms_schedule['autoterm_schedule_exclude']) ? (int)$autoterms_schedule['autoterm_schedule_exclude'] : 0;
-    
-                // make sure some auto terms settings are overriden by schedule specific settings
-                $autoterm_data['terms_limit'] = !empty($autoterm_data['schedule_terms_limit']) ? $autoterm_data['schedule_terms_limit'] : '';
-                $autoterm_data['autoterm_target'] = !empty($autoterm_data['schedule_autoterm_target']) ? $autoterm_data['schedule_autoterm_target'] : '';
-                $autoterm_data['autoterm_word'] = !empty($autoterm_data['schedule_autoterm_word']) ? $autoterm_data['schedule_autoterm_word'] : '';
-                $autoterm_data['autoterm_hash'] = !empty($autoterm_data['schedule_autoterm_hash']) ? $autoterm_data['schedule_autoterm_hash'] : '';
-                $autoterm_data['replace_type'] = isset($autoterm_data['schedule_replace_type']) ? $autoterm_data['schedule_replace_type'] : '';
-
-                // set auto term settings from schedule settings
-                $autoterm_data['autoterm_for_schedule'] = $autoterm_data['cron_schedule'] = $cron_schedule;
-                $autoterm_data['autoterm_schedule_exclude'] = !empty($autoterms_schedule['autoterm_schedule_exclude']) ? $autoterms_schedule['autoterm_schedule_exclude'] : '';
-                $autoterm_data['schedule_terms_batches'] = !empty($autoterms_schedule['schedule_terms_batches']) ? $autoterms_schedule['schedule_terms_batches'] : '';
-                $autoterm_data['schedule_terms_sleep'] = !empty($autoterms_schedule['schedule_terms_sleep']) ? $autoterms_schedule['schedule_terms_sleep'] : '';
-                $autoterm_data['schedule_terms_limit_days'] = !empty($autoterms_schedule['schedule_terms_limit_days']) ? $autoterms_schedule['schedule_terms_limit_days'] : '';
-
-            }
-
-            if (empty($autoterm_data) || $autoterm_data['cron_schedule'] !== 'daily' || empty($autoterm_data['post_types'])) {
+            if (empty($autoterm_data)) {
                 return;
             }
 
-            $schedule_terms_limit_days     = (int) $autoterm_data['schedule_terms_limit_days'];
+            $autoterms_to_run = [];
+            foreach ($autoterm_data as $id => $a) {
+                if (isset($a['cron_schedule'])) {
+                    if ($a['cron_schedule'] === 'daily') {
+                        $autoterms_to_run[$id] = $a;
+                    }
+                    continue;
+                }
+                $global_cron = isset($autoterms_schedule['cron_schedule']) ? $autoterms_schedule['cron_schedule'] : 'disable';
+                if ($global_cron === 'daily') {
+                    $autoterms_to_run[$id] = $a;
+                }
+            }
+
+            if (empty($autoterms_to_run)) {
+                return;
+            }
+
+            $autoterm_schedule_exclude = isset($autoterms_schedule['autoterm_schedule_exclude']) ? (int)$autoterms_schedule['autoterm_schedule_exclude'] : 0;
+            $limit = (isset($autoterms_schedule['schedule_terms_batches']) && (int)$autoterms_schedule['schedule_terms_batches'] > 0) ? (int)$autoterms_schedule['schedule_terms_batches'] : 20;
+            $sleep = (isset($autoterms_schedule['schedule_terms_sleep']) && (int)$autoterms_schedule['schedule_terms_sleep'] > 0) ? (int)$autoterms_schedule['schedule_terms_sleep'] : 0;
+            $schedule_terms_limit_days = !empty($autoterms_schedule['schedule_terms_limit_days']) ? (int)$autoterms_schedule['schedule_terms_limit_days'] : 0;
+
+            // Build union of post types & statuses from autoterms_to_run
+            $post_types = [];
+            $post_status = [];
+            foreach ($autoterms_to_run as $a) {
+                if (!empty($a['post_types']) && is_array($a['post_types'])) {
+                    $post_types = array_unique(array_merge($post_types, $a['post_types']));
+                }
+                if (!empty($a['post_status']) && is_array($a['post_status'])) {
+                    $post_status = array_unique(array_merge($post_status, $a['post_status']));
+                }
+            }
+            if (empty($post_types)) {
+                return;
+            }
+            if (empty($post_status)) {
+                $post_status = ['publish'];
+            }
+
             $schedule_terms_limit_days_sql = '';
             if ($schedule_terms_limit_days > 0) {
                 $schedule_terms_limit_days_sql = 'AND post_date > "' . date('Y-m-d H:i:s', time() - $schedule_terms_limit_days * 86400) . '"';
             }
 
-            $limit = (isset($autoterm_data['schedule_terms_batches']) && (int)$autoterm_data['schedule_terms_batches'] > 0) ? (int)$autoterm_data['schedule_terms_batches'] : 20;
-
-            $sleep = (isset($autoterm_data['schedule_terms_sleep']) && (int)$autoterm_data['schedule_terms_sleep'] > 0) ? (int)$autoterm_data['schedule_terms_sleep'] : 0;
-
             if ($autoterm_schedule_exclude > 0) {
-                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON ( ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = '_taxopress_autotermed' ) WHERE post_type IN ('" . implode("', '", $post_types) . "') AND {$wpdb->postmeta}.post_id IS NULL AND post_status IN ('" . implode("', '", $post_status) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}");
+                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} LEFT JOIN {$wpdb->postmeta} ON ( ID = {$wpdb->postmeta}.post_id AND {$wpdb->postmeta}.meta_key = '_taxopress_autotermed' ) WHERE post_type IN ('" . implode("', '", array_map('esc_sql', $post_types)) . "') AND {$wpdb->postmeta}.post_id IS NULL AND post_status IN ('" . implode("', '", array_map('esc_sql', $post_status)) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}"
+                );
             } else {
-                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE post_type IN ('" . implode("', '", $post_types) . "') AND post_status IN ('" . implode("', '", $post_status) . "') {$schedule_terms_limit_days_sql} LIMIT {$limit}");
+                $objects = (array) $wpdb->get_results("SELECT ID, post_title, post_content FROM {$wpdb->posts} WHERE post_type IN ('" . implode("', '", array_map('esc_sql', $post_types)) . "') AND post_status IN ('" . implode("', '", array_map('esc_sql', $post_status)) . "') {$schedule_terms_limit_days_sql} ORDER BY ID DESC LIMIT {$limit}"
+                );
             }
 
-                if (!empty($objects)) {
-                    $current_post = 0;
-                    foreach ($objects as $object) {
-                        $current_post++;
-                        update_post_meta($object->ID, '_taxopress_autotermed', 1);
-                        SimpleTags_Client_Autoterms::auto_terms_post($object, $autoterm_data['taxonomy'], $autoterm_data, true, 'daily_cron_schedule', 'st_autoterms');
-                        unset($object);
-                        if ($sleep > 0 && $current_post % $limit == 0) {
-                            sleep($sleep);
-                        }
+            if (empty($objects)) {
+                return;
+            }
+
+            $current_post = 0;
+            foreach ($objects as $object) {
+                $current_post++;
+                update_post_meta($object->ID, '_taxopress_autotermed', 1);
+
+                foreach ($autoterms_to_run as $autoterm) {
+                    if (empty($autoterm['autoterm_for_schedule'])) {
+                        continue;
+                    }
+
+                    $applied = $autoterm;
+                    if (isset($autoterm['schedule_terms_limit'])) {
+                        $applied['terms_limit'] = $autoterm['schedule_terms_limit'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_target'])) {
+                        $applied['autoterm_target'] = $autoterm['schedule_autoterm_target'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_word'])) {
+                        $applied['autoterm_word'] = $autoterm['schedule_autoterm_word'];
+                    }
+                    if (isset($autoterm['schedule_autoterm_hash'])) {
+                        $applied['autoterm_hash'] = $autoterm['schedule_autoterm_hash'];
+                    }
+                    if (isset($autoterm['schedule_replace_type'])) {
+                        $applied['replace_type'] = $autoterm['schedule_replace_type'];
+                    }
+
+                    SimpleTags_Client_Autoterms::auto_terms_post(
+                        $object,
+                        isset($applied['taxonomy']) ? $applied['taxonomy'] : '',
+                        $applied,
+                        true,
+                        'daily_cron_schedule',
+                        'st_autoterms'
+                    );
+                }
+
+                unset($object);
+
+                if ($sleep > 0 && $current_post % $limit == 0) {
+                    sleep($sleep);
                 }
             }
         }

@@ -96,12 +96,10 @@ class TaxoPress_License
             );
         }
 
-        $before = array_slice($options, 0, array_search('metabox', array_keys($options)) + 1);
-        $after = array_slice($options, array_search('metabox', array_keys($options)) + 1);
-
-        $newElement = array('licence' => $licence_fields);
-
-        $options = $before + $newElement + $after;
+        if (isset($options['licence'])) {
+            unset($options['licence']);
+        }
+        $options['licence'] = $licence_fields;
 
         return $options;
     }

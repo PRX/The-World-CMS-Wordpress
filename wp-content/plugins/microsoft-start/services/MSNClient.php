@@ -368,7 +368,7 @@ class MSNClient
             return null;
         }
 
-        if ($auth && $response && ($response['response']['code'] == 401 || ($response['response']['code'] == 400 && strpos($response['body'], 'Invalid access token.')))) {
+        if ($auth && $response && $response['response']['code'] == 401 && strpos($response['body'], 'Invalid access token.')) {
             TokenService::delete_token();
         }
         return $response ? $response : null;
