@@ -48,7 +48,7 @@ if (!class_exists('TaxoPress_Pro_AI_Module')) {
             // add taxonomy display option after taxopress_ai_{$post_type}_metabox_default_taxonomy
             $new_entry = array(
                 'taxopress_ai_' . $post_type . '_metabox_display_option',
-                '<div class="taxopress-ai-tab-content-sub taxopress-settings-subtab-title taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_post_terms_tab_field st-subhide-content">' . esc_html__('Metabox Taxonomy Display', 'taxopress-pro') . '</div>',
+                '<div class="taxopress-ai-tab-content-sub taxopress-settings-subtab-title taxopress-ai-'. $post_type .'-content-sub enable_taxopress_ai_' . $post_type . '_post_terms_tab_field st-subhide-content">' . esc_html__('Taxonomy Display', 'taxopress-pro') . '</div>',
                 'select',
                 $default_taxonomy_display_options,
                 '',

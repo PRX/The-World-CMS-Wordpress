@@ -5,7 +5,7 @@
  * Plugin Name:       MSN Partner Hub
  * Plugin URI:        https://www.msn.com/
  * Description:       MSN Partner Hub WordPress plugin to help WordPress content creators to share content to MSN News feed.
- * Version:           2.8.6
+ * Version:           2.8.7
  * Requires at least: 5.4
  * Requires PHP:      7.3
  * Author:            Microsoft

@@ -3,7 +3,7 @@
         'name' => 'taxopress/taxopress-pro',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '9db781709af2935d15b21a8e3fcaf991a4d2acf0',
+        'reference' => '21af5dd245fd9aac18dd8a2e39e04f8144c6ac96',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -67,7 +67,7 @@
         'taxopress/taxopress-pro' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '9db781709af2935d15b21a8e3fcaf991a4d2acf0',
+            'reference' => '21af5dd245fd9aac18dd8a2e39e04f8144c6ac96',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
