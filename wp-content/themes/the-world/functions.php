@@ -361,3 +361,54 @@ if ( ! function_exists( 'tw_oembed_dataparse_tiktok' ) ) {
 	}
 }
 add_filter( 'oembed_dataparse', 'tw_oembed_dataparse_tiktok', 20, 3 );
+
+
+/**
+ * Alter field settings for relationship fields' configuration.
+ *
+ * @param array $field Field settings array.
+ * @return array Altered field settings array.
+ */
+function tw_acf_prepare_field_relationship_taxonomy( $field ) {
+	// Do not render taxonomy select field. We have too many terms.
+	// TODO: Figure out how to render or use a more performant input for this setting.
+	if ( 'taxonomy' === $field['_name'] ) {
+		return false;
+	}
+
+	// Remove taxonomy filtering option.
+	if ( 'filters' === $field['_name'] ) {
+		unset( $field['choices']['taxonomy'] );
+	}
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', 'tw_acf_prepare_field_relationship_taxonomy', 10 );
+
+/**
+ * Alter pre-render settings for relationship fields.
+ *
+ * @param array $field Field settings array.
+ * @return array Altered field settings array.
+ */
+function tw_acf_pre_render_field_relationship_taxonomy( $field ) {
+
+	if ( 'relationship' === $field['type'] ) {
+		// Make sure published posts can be selected.
+		$field['post_status'] = array( 'publish' );
+
+		// Make sure taxonomy is not used in queries.
+		$field['taxonomy'] = null;
+
+		// Makes sure taxonomy filter input is not rendered.
+		$field['filters'] = array_filter(
+			$field['filters'],
+			static function ( $v ) {
+				return 'taxonomy' !== $v;
+			}
+		);
+	}
+
+	return $field;
+}
+add_filter( 'acf/pre_render_field', 'tw_acf_pre_render_field_relationship_taxonomy', 10 );
