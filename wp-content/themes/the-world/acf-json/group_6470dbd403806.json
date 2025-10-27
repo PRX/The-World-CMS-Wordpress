@@ -20,16 +20,19 @@
             "post_type": [
                 "post"
             ],
-            "post_status": "",
-            "taxonomy": "",
+            "post_status": [
+                "publish"
+            ],
             "filters": [
-                "search",
-                "taxonomy"
+                "search"
             ],
             "return_format": "id",
-            "min": 0,
-            "max": 0,
-            "elements": [],
+            "min": "",
+            "max": "",
+            "allow_in_bindings": 1,
+            "elements": "",
+            "bidirectional": 0,
+            "taxonomy": [],
             "bidirectional_target": []
         }
     ],
@@ -56,6 +59,7 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
     "show_in_graphql": 1,
     "graphql_field_name": "landingPage",
     "map_graphql_types_from_location_rules": 1,
@@ -72,5 +76,5 @@
         "SocialTag",
         "Tag"
     ],
-    "modified": 1692816144
+    "modified": 1761591836
 }

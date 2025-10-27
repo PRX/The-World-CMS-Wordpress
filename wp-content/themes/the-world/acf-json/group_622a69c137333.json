@@ -27,7 +27,9 @@
             "ui": 0,
             "return_format": "value",
             "ajax": 0,
-            "placeholder": ""
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0
         },
         {
             "key": "field_622a69ed0dfde",
@@ -83,15 +85,20 @@
             "post_type": [
                 "segment"
             ],
-            "post_status": "",
-            "taxonomy": "",
+            "post_status": [
+                "publish"
+            ],
             "filters": [
                 "search"
             ],
             "return_format": "id",
             "min": "",
             "max": 20,
-            "elements": ""
+            "allow_in_bindings": 1,
+            "elements": "",
+            "bidirectional": 0,
+            "taxonomy": [],
+            "bidirectional_target": []
         },
         {
             "key": "field_622a6a5bbd407",
@@ -123,7 +130,8 @@
             "return_format": "id",
             "field_type": "multi_select",
             "allow_null": 1,
-            "multiple": 0
+            "multiple": 0,
+            "bidirectional_target": []
         },
         {
             "key": "field_622a6a928a4f6",
@@ -150,7 +158,8 @@
             "show_in_graphql": 1,
             "display_format": "F j, Y",
             "return_format": "Y-m-d",
-            "first_day": 1
+            "first_day": 1,
+            "default_to_current_date": 0
         },
         {
             "key": "field_622a6ac11faf8",
@@ -177,7 +186,8 @@
             "show_in_graphql": 0,
             "display_format": "F j, Y",
             "return_format": "U",
-            "first_day": 1
+            "first_day": 1,
+            "default_to_current_date": 0
         },
         {
             "key": "field_622a6ba1511d4",
@@ -218,9 +228,10 @@
     "active": true,
     "description": "",
     "show_in_rest": 1,
+    "display_title": "",
     "show_in_graphql": 1,
     "graphql_field_name": "audioFields",
     "map_graphql_types_from_location_rules": 0,
     "graphql_types": "",
-    "modified": 1688686172
+    "modified": 1761592755
 }
