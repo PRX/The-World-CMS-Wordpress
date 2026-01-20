@@ -126,3 +126,32 @@ add_filter(
 	10,
 	5
 );
+
+/**
+ * Add `duation` metadata to MediaItem type.
+ */
+add_action(
+	'graphql_register_types',
+	function () {
+		register_graphql_field(
+			'MediaItem',
+			'duration',
+			array(
+				'type'        => 'Int',
+				'description' => __( 'Duration of audio in seconds.', 'tw' ),
+				'resolve'     => function ( $attachment ) {
+					// Get the attachment ID.
+					$attachment_id = $attachment->ID;
+					// Retrieve the meta value (replace 'my_meta_key' with your actual key).
+					$meta_data = wp_get_attachment_metadata( $attachment_id );
+
+					if ( ! isset( $meta_data['duration'] ) ) {
+						return null;
+					}
+
+					return $meta_data['duration'];
+				},
+			)
+		);
+	}
+);
