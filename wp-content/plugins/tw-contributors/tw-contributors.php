@@ -46,7 +46,7 @@ function tw_contributors_taxonomy() {
 		'public'              => true,
 		'show_ui'             => true,
 		'show_admin_column'   => true,
-		'show_in_nav_menus'   => false,
+		'show_in_nav_menus'   => true,
 		'show_tagcloud'       => false,
 		'show_in_rest'        => true,
 		'show_in_graphql'     => true,
@@ -60,7 +60,7 @@ add_action( 'init', 'tw_contributors_taxonomy', 0 );
 /**
  * Change RSS feed author name.
  *
- * @param string $author
+ * @param string $author Name of author.
  *
  * @return string
  */
