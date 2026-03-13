@@ -276,6 +276,14 @@ $options = array(
     // post tab
     'posts'       => array(
         array(
+            'post_tab_description',
+            '',
+            'helper',
+            '',
+            __('These settings control features on the Posts screen.', 'simple-tags'),
+            ''
+        ),
+        array(
             'post_terms_filter_format',
             __('Terms Filter display:', 'simple-tags'),
             'radio',
@@ -375,6 +383,34 @@ $options = array(
         )
     ),
 
+    // frontend scripts tab
+    'frontend_scripts' => array(
+        array(
+            'frontend_scripts_description',
+            '',
+            'helper',
+            '',
+            __('TaxoPress loads CSS and JavaScript files on the frontend for features like Terms Display, Related Posts, and Terms for Current Post. If you disable these scripts, those features may not display correctly.', 'simple-tags'),
+            ''
+        ),
+        array(
+            'disable_frontend_scripts',
+            __('Disable Frontend Scripts:', 'simple-tags'),
+            'checkbox',
+            '1',
+            __('Check this to prevent TaxoPress from loading CSS and JavaScript files on the frontend of your site.', 'simple-tags'),
+            ''
+        ),
+        array(
+            'disable_admin_frontend_scripts',
+            __('Disable Admin Preview Scripts:', 'simple-tags'),
+            'checkbox',
+            '1',
+            __('Check this to prevent TaxoPress from loading frontend CSS and JavaScript files in the WordPress admin area. This will break the preview functionality when editing Terms Display, Related Posts, and Terms for Current Post.', 'simple-tags'),
+            ''
+        )
+    ),
+
     'core_linked_terms' => array(
         array(
             'linked_terms_pro_notice',
@@ -399,6 +435,14 @@ $options = array(
 
     // Manage terms tab
     'manage_terms' => array(
+        array(
+            'manage_terms_description',
+            '',
+            'helper',
+            '',
+            __('These settings control features on the Manage Terms screen.', 'simple-tags'),
+            ''
+        ),
         array(
             'enable_add_terms_slug',
             __('Add Terms:', 'simple-tags'),

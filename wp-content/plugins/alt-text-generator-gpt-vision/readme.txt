@@ -3,9 +3,9 @@ Contributors: rafaucau
 Donate link: https://github.com/android-com-pl/wp-ai-alt-generator?sponsor=1
 Tags: alt text, accessibility, SEO, GPT-V, OpenAI
 Requires at least: 6.6
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 8.1
-Stable tag: 2.8.1
+Stable tag: 3.2.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Plugin URI: https://github.com/android-com-pl/wp-ai-alt-generator
@@ -14,7 +14,7 @@ A WordPress plugin that leverages OpenAI's vision models to automatically genera
 
 == Description ==
 
-Plugin that uses the OpenAI API (supporting GPT-5, and GPT-4.1 and GPT-4o model families) to automatically generate alt text for images, either during the upload process or on-demand with a button. It enhances website accessibility and SEO by providing descriptive and relevant image descriptions.
+Plugin that uses the OpenAI API (supporting GPT-5.4, GPT-5.2, GPT-5.1, GPT-5, GPT-4.1 and GPT-4o model families) to automatically generate alt text for images, either during the upload process or on-demand with a button. It enhances website accessibility and SEO by providing descriptive and relevant image descriptions.
 
 Features:
 - Bulk alt text generation for multiple images at once in media library and gallery block

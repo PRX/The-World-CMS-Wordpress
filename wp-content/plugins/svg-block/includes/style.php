@@ -618,32 +618,36 @@ if ( ! class_exists( Style::class ) ) :
 			}
 
 			$parent                = $args['parent'] ?? false;
-			$keys                  = [];
 			$style                 = '';
 			$last_responsive_style = '';
-			$fixed_classses        = $args['classes'] ?? '';
+			$fixed_classes         = $args['classes'] ?? '';
 			foreach ( $responsive_styles as $breakpoint => $style_by_breakpoint ) {
+				$keys             = [];
+				$prop_classes     = [];
 				$responsive_style = '';
 				foreach ( $style_by_breakpoint as $attr_key => $attr_value ) {
 					$responsive_style .= "{$attr_key}:{$attr_value};";
 
-					if ( ! $fixed_classses && ! in_array( $attr_key, $keys, true ) ) {
-						$keys[]        = $attr_key;
-						$prop_classses = $breakpoint . '-' . str_replace( '--svg--', 'svg-', $attr_key );
-
-						if ( $parent ) {
-							$classes[] = $prop_classses;
-						} else {
-							$inner_classes[] = $prop_classses;
-						}
+					if ( ! $fixed_classes && ! in_array( $attr_key, $keys, true ) ) {
+						$keys[]         = $attr_key;
+						$prop_classes[] = str_replace( '--svg--', 'svg-', $attr_key );
 					}
 				}
 
 				if ( $responsive_style !== $last_responsive_style ) {
 					$style_with_selector = "{$selector}{{$responsive_style}}";
-					$min_query           = $breakpoints[ $breakpoint ]['minQuery'] ?? '';
+					$min_query           = $breakpoints[ $breakpoint ]['mediaQuery'] ?? '';
 					if ( $min_query ) {
 						$style_with_selector = \str_replace( '##CONTENT##', $style_with_selector, $min_query );
+					}
+
+					// Add classes to block.
+					foreach ( $prop_classes as $prop_class ) {
+						if ( $parent ) {
+							$classes[] = $breakpoint . '-' . $prop_class;
+						} else {
+							$inner_classes[] = $breakpoint . '-' . $prop_class;
+						}
 					}
 
 					$style                .= $style_with_selector;
@@ -655,11 +659,11 @@ if ( ! class_exists( Style::class ) ) :
 			if ( $style ) {
 				$responsive_style_array[] = $style;
 
-				if ( $fixed_classses ) {
+				if ( $fixed_classes ) {
 					if ( $parent ) {
-						$classes[] = $fixed_classses;
+						$classes[] = $fixed_classes;
 					} else {
-						$inner_classes[] = $fixed_classses;
+						$inner_classes[] = $fixed_classes;
 					}
 				}
 			}
@@ -818,7 +822,20 @@ if ( ! class_exists( Style::class ) ) :
 		 */
 		private function get_breakpoints() {
 			if ( ! $this->breakpoints ) {
-				$breakpoints = [];
+				$breakpoints = [
+					'sm' => [
+						'breakpoint' => '576px',
+						'mediaQuery' => '',
+					],
+					'md' => [
+						'breakpoint' => '768px',
+						'mediaQuery' => '@media (min-width: 768px){##CONTENT##}',
+					],
+					'lg' => [
+						'breakpoint' =>  '1024px',
+						'mediaQuery' => '@media (min-width: 1024px){##CONTENT##}',
+					],
+				];
 				if ( class_exists( \BoldBlocks\ContentBlocksBuilder::class ) ) {
 					$cbb_breakpoints = get_option( 'cbb_breakpoints' );
 					if ( $cbb_breakpoints ) {

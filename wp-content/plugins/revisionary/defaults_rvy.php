@@ -42,6 +42,7 @@ function rvy_default_options_sitewide() {
 		'admin_revisions_to_own_posts' => true,
 		'require_edit_others_drafts' => true,
 		'diff_display_strip_tags' => false,
+		'compare_revisions_hide_copy_buttons' => true,
 		'scheduled_revision_update_post_date' => true,
 		'scheduled_revision_update_modified_date' => true,
 		'pending_revision_update_post_date' => true,
@@ -57,6 +58,7 @@ function rvy_default_options_sitewide() {
 		'copy_revision_comments_to_post' => true,
 		'past_revisions_order_by' => true,
 		'list_unsubmitted_revisions' => true,
+		'show_current_revision_bar' => true,
 		'rev_publication_delete_ed_comments' => true,
 		'deletion_queue' => true,
 		'revision_archive_deletion' => true,
@@ -72,8 +74,11 @@ function rvy_default_options_sitewide() {
 		'apply_post_exceptions' => true,
 		'legacy_notifications' => true,
 		'approve_button_verbose' => true,
+		'allow_post_author_revision' => true,
 		'create_revision_direct_link' => true,
 		'revision_edit_disable_rank_math' => true,
+		'enable_postmeta_revision' => true,
+		'submit_permission_enables_creation' => true,
 	);
 
 	if ( $other_options = array_diff_key( rvy_default_options(), $def ) ) {
@@ -115,6 +120,7 @@ function rvy_default_options() {
 		'admin_revisions_to_own_posts' => 1,
 		'require_edit_others_drafts' => 1,
 		'diff_display_strip_tags' => 0,
+		'compare_revisions_hide_copy_buttons' => 0,
 		'scheduled_revision_update_post_date' => 1,
 		'pending_revision_update_post_date' => 0,
 		'scheduled_revision_update_modified_date' => 1,
@@ -130,6 +136,7 @@ function rvy_default_options() {
 		'copy_revision_comments_to_post' => 0,
 		'past_revisions_order_by' => '',
 		'list_unsubmitted_revisions' => 0,
+		'show_current_revision_bar' => 0,
 		'rev_publication_delete_ed_comments' => 0,
 		'deletion_queue' => 0,
 		'revision_archive_deletion' => 0,
@@ -145,8 +152,11 @@ function rvy_default_options() {
 		'apply_post_exceptions' => 0,
 		'legacy_notifications' => 0,
 		'approve_button_verbose' => 0,
+		'allow_post_author_revision' => 1,
 		'create_revision_direct_link' => 0,
 		'revision_edit_disable_rank_math' => 1,
+		'enable_postmeta_revision' => 1,
+		'submit_permission_enables_creation' => 1,
 	);
 
 	return $def;

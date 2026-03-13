@@ -2,11 +2,12 @@
 Contributors: jasonbahl, tylerbarnes1, ryankanner, chopinbach, kidunot89, justlevine
 Tags: GraphQL, Headless, REST API, Decoupled, React
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.3.8
+Stable tag: 2.10.0
 License: GPL-3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
+Author: WPGraphQL, WordPress.org
 
 WPGraphQL adds a flexible and powerful GraphQL API to WordPress, enabling efficient querying and interaction with your site's data.
 
@@ -26,7 +27,7 @@ WPGraphQL is a free, open-source WordPress plugin that provides an extendable Gr
 - **Flexible API**: Query posts, pages, custom post types, taxonomies, users, and more.
 - **Extendable Schema**: Easily add functionality with WPGraphQL’s API, enabling custom integrations.
 - **Compatible with Modern Frameworks**: Works seamlessly with [Next.js](https://vercel.com/guides/wordpress-with-vercel), [Astro](https://docs.astro.build/en/guides/cms/wordpress/), [SvelteKit](https://www.okupter.com/blog/headless-wordpress-graphql-sveltekit), and more.
-- **Optimized Performance**: Fetch exactly the data you need in a single query. Boost performance with [WPGraphQL Smart Cache](https://github.com/wp-graphql/wp-graphql-smart-cache).
+- **Optimized Performance**: Fetch exactly the data you need in a single query. Boost performance with [WPGraphQL Smart Cache](https://github.com/wp-graphql/wp-graphql/tree/main/plugins/wp-graphql-smart-cache).
 
 WPGraphQL is becoming a [Canonical Plugin](https://wordpress.org/news/2024/10/wpgraphql/) on WordPress.org, ensuring long-term support and a growing community of users and contributors.
 
@@ -71,6 +72,22 @@ Learn more about how [Appsero collects and uses this data](https://appsero.com/p
 Learn more about how [Appsero collects and uses this data](https://appsero.com/privacy-policy/).
 
 == Upgrade Notice ==
+
+= 2.6.0 =
+
+**New Features**
+
+* feat: refactor experiment registry for better testability (https://github.com/jasonbahl/automation-tests/pull/3453)
+
+**Other Changes**
+
+* ci: optimize CI matrix with minimal/full modes (https://github.com/jasonbahl/automation-tests/pull/3465)
+* ci: evaluate Codecov alongside Coveralls for code coverage (https://github.com/jasonbahl/automation-tests/pull/3463)
+* ci: gitignore build directory and improve asset loading (https://github.com/jasonbahl/automation-tests/pull/3461)
+* test: only apply URL rewriting for Codeception tests, not Playwright e2e (https://github.com/jasonbahl/automation-tests/pull/3460)
+* test: bump Codeception to v3.7 (https://github.com/jasonbahl/automation-tests/pull/3456)
+* chore: update node, npm, and composer deps (https://github.com/jasonbahl/automation-tests/pull/3454)
+* ci: replace custom docker with wp-env (https://github.com/jasonbahl/automation-tests/pull/3451)
 
 = 2.0.0 =
 
@@ -284,13 +301,61 @@ Composer dependencies are no longer versioned in Github. Recommended install sou
 
 == Changelog ==
 
-= 2.3.8 =
+= 2.5.4 =
+
+**New Features**
+
+* feat: refactor experiment registry for better testability (https://github.com/jasonbahl/automation-tests/pull/3453)
+
+**Other Changes**
+
+* release: next version 📦 (https://github.com/jasonbahl/automation-tests/pull/3452)
+* ci: replace custom docker with wp-env (https://github.com/jasonbahl/automation-tests/pull/3451)
+
+= 2.5.3 =
+
+**Other Changes**
+
+* fix(#3438, #1999): Media item privacy inheritance and attachment status queries  (https://github.com/jasonbahl/automation-tests/pull/3444)
+* chore: cleanup orphaned files and configs (https://github.com/jasonbahl/automation-tests/pull/3442)
+
+= 2.5.2 =
 
 **Bug Fixes**
 
-* fix: post meta array on preview (https://github.com/jasonbahl/automation-tests/pull/3422)
-* fix: git updater compatibility (https://github.com/jasonbahl/automation-tests/pull/3420)
-* fix: Prevent bad string injection in plugin update message (#3318) (https://github.com/jasonbahl/automation-tests/pull/3419)
+* fix: Prevent fatal error when updating options via /wp-admin/options.php  (https://github.com/jasonbahl/automation-tests/pull/3440)
+
+= 2.5.1 =
+
+**Bug Fixes**
+
+* fix: Add fallback sizes to MediaItemSizeEnum when intermediate sizes are disabled (https://github.com/jasonbahl/automation-tests/pull/3433)
+
+= 2.5.0 =
+
+**Note:** Version 2.4.0 was skipped due to an issue with the release automation workflow where the version was bumped twice (once manually and once by the workflow). The fixes included in this release were originally intended for v2.4.0, but to maintain consistency with the WordPress.org deployment, we're releasing as v2.5.0 instead. The workflow has been updated to prevent this issue in future releases.
+
+**New Features**
+
+* feat: Implement WPGraphQL Experiments API (https://github.com/jasonbahl/automation-tests/pull/3428)
+* feat: Add namespaced get/set API to AppContext (with deprecation for dynamic properties) (https://github.com/jasonbahl/automation-tests/pull/3429)
+
+**Bug Fixes**
+
+* fix: Release Workflow Version Skipping Issue (https://github.com/jasonbahl/automation-tests/pull/3426)
+* fix: use get_query_args and merge args instead of override via set_query_arg (https://github.com/jasonbahl/automation-tests/pull/3424)
+
+= 2.3.8 =
+
+**New Features**
+
+* feat: Implement WPGraphQL Experiments API (https://github.com/jasonbahl/automation-tests/pull/3428)
+* feat: Add namespaced get/set API to AppContext (with deprecation for dynamic properties) (https://github.com/jasonbahl/automation-tests/pull/3429)
+
+**Bug Fixes**
+
+* fix: Release Workflow Version Skipping Issue (https://github.com/jasonbahl/automation-tests/pull/3426)
+* fix: use get_query_args and merge args instead of override via set_query_arg (https://github.com/jasonbahl/automation-tests/pull/3424)
 
 = 2.3.7 =
 

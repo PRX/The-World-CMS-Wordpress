@@ -10,7 +10,6 @@ require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/post-tags/post-tags.php
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autolinks/autolinks.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autoterms/autoterms.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autoterms/schedule.php');
-require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/autoterms/schedule-logs-table.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/taxopress-ai/taxopress-ai.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/terms/terms.php');
 require_once (TAXOPRESS_ABSPATH . '/includes-pro/modules/taxonomies/taxonomies.php');

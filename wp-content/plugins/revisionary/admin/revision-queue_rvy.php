@@ -17,31 +17,33 @@ if (!rvy_get_option('pending_revisions') && !rvy_get_option('scheduled_revisions
 	));
 }
 
-if (rvy_get_option('revision_queue_capability') && !is_content_administrator_rvy() && !currrent_user_can('manage_revision_queue')) {
+if (rvy_get_option('revision_queue_capability') && !is_content_administrator_rvy() && !current_user_can('manage_revision_queue')) {
 	wp_die( esc_html__( 'You are not allowed to manage revisions.', 'revisionary' ) );
 }
 
 set_current_screen( 'revisionary-q' );
 
-if (!empty($_REQUEST['post_type2'])) {
-	$_REQUEST['post_type'] = $_REQUEST['post_type2'];
+if (!empty($_REQUEST['post_type2'])) {										// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$_REQUEST['post_type'] = sanitize_key($_REQUEST['post_type2']);			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 }
 
-if (!empty($_REQUEST['post_status2'])) {
-	$_REQUEST['post_status'] = $_REQUEST['post_status2'];
+if (!empty($_REQUEST['post_status2'])) {									// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	$_REQUEST['post_status'] = sanitize_key($_REQUEST['post_status2']);		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 }
 
-if (!empty($_REQUEST['post_type'])) {
+$_post_type = !empty($_REQUEST['post_type']) ? sanitize_key($_REQUEST['post_type']) : '';	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+if ($_post_type) {
 	add_action('admin_print_footer_scripts', 
 		function() {
 			?>
 			<script type="text/javascript">
 				/* <![CDATA[ */
 				jQuery(document).ready( function($) {
-					$('a.next-page').prop('href', $('a.next-page').attr('href') + '&post_type=<?php echo sanitize_key($_REQUEST['post_type']);?>');
-					$('a.last-page').prop('href', $('a.last-page').attr('href') + '&post_type=<?php echo sanitize_key($_REQUEST['post_type']);?>');
-					$('a.prev-page').prop('href', $('a.prev-page').attr('href') + '&post_type=<?php echo sanitize_key($_REQUEST['post_type']);?>');
-					$('a.first-page').prop('href', $('a.first-page').attr('href') + '&post_type=<?php echo sanitize_key($_REQUEST['post_type']);?>');
+					$('a.next-page').prop('href', $('a.next-page').attr('href') + '&post_type=<?php echo sanitize_key($_post_type);   // phpcs:ignore WordPress.Security.NonceVerification.Recommended?>');
+					$('a.last-page').prop('href', $('a.last-page').attr('href') + '&post_type=<?php echo sanitize_key($_post_type);   // phpcs:ignore WordPress.Security.NonceVerification.Recommended?>');
+					$('a.prev-page').prop('href', $('a.prev-page').attr('href') + '&post_type=<?php echo sanitize_key($_post_type);   // phpcs:ignore WordPress.Security.NonceVerification.Recommended?>');
+					$('a.first-page').prop('href', $('a.first-page').attr('href') + '&post_type=<?php echo sanitize_key($_post_type); // phpcs:ignore WordPress.Security.NonceVerification.Recommended?>');
 				});
 				/* ]]> */
 			</script>
@@ -152,9 +154,9 @@ if (!empty($_REQUEST['post_author']) && empty($published_title)) {									//php
 $filter_csv = ($filters) ? ' (' . implode(" ", $filters) . ')' : '';
 
 if (!empty($published_title)) {
-	printf( esc_html(_x('Revision Queue for "%s"%s', 'PublishedPostName (other filter captions)', 'revisionary')), esc_html($published_title), esc_html($filter_csv) );
+	printf( esc_html(_x('New Revisions for "%s"%s', 'PublishedPostName (other filter captions)', 'revisionary')), esc_html($published_title), esc_html($filter_csv) );
 } else
-	printf( esc_html__('Revision Queue %s', 'revisionary' ), esc_html($filter_csv));
+	printf( esc_html__('New Revisions %s', 'revisionary' ), esc_html($filter_csv));
 ?></h1>
 
 <?php

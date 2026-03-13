@@ -4,17 +4,17 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf69db4d6e1843b4ba6a48dbb0621b646
+class ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17
 {
     public static $prefixLengthsPsr4 = array (
-        'A' => 
+        'A' =>
         array (
             'ACPL\\AIAltGenerator\\' => 20,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'ACPL\\AIAltGenerator\\' => 
+        'ACPL\\AIAltGenerator\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes',
         ),
@@ -26,15 +26,16 @@ class ComposerStaticInitf69db4d6e1843b4ba6a48dbb0621b646
         'ACPL\\AIAltGenerator\\AltGeneratorPlugin' => __DIR__ . '/../..' . '/includes/AltGeneratorPlugin.php',
         'ACPL\\AIAltGenerator\\ApiController' => __DIR__ . '/../..' . '/includes/ApiController.php',
         'ACPL\\AIAltGenerator\\Enum\\ErrorCodes' => __DIR__ . '/../..' . '/includes/Enum/ErrorCodes.php',
+        'ACPL\\AIAltGenerator\\Enum\\OpenAIModel' => __DIR__ . '/../..' . '/includes/Enum/OpenAIModel.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf69db4d6e1843b4ba6a48dbb0621b646::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf69db4d6e1843b4ba6a48dbb0621b646::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf69db4d6e1843b4ba6a48dbb0621b646::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -16,7 +16,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
         {
             add_action( 'taxopress_autoterms_after_autoterm_terms_to_use', [$this, 'taxopress_autoterms_after_autoterm_terms_to_use_field'] );
             add_action( 'taxopress_autoterms_after_autoterm_advanced', [$this, 'taxopress_pro_autoterm_advanced_field'] );
-            add_action( 'taxopress_autoterms_schedule_autoterm_terms_to_use', [$this, 'taxopress_autoterms_schedule_autoterm_terms_to_use_field'] );
 
             add_action('admin_init', [$this, 'taxopress_pro_copy_autoterm']);
             add_filter('taxopress_autoterm_row_actions', [$this, 'taxopress_pro_copy_action'], 10, 2);
@@ -31,118 +30,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
             }
 
             return self::$instance;
-        }
-
-        public function taxopress_autoterms_schedule_autoterm_terms_to_use_field($current)
-        {
-            $ui = new taxopress_admin_ui();
-
-            $default_select     = [
-                'options' => [
-                    [
-                        'attr'    => '0',
-                        'text'    => esc_attr__('False', 'taxopress-pro'),
-                        'default' => 'true',
-                    ],
-                    [
-                        'attr' => '1',
-                        'text' => esc_attr__('True', 'taxopress-pro'),
-                    ],
-                ],
-            ];
-
-            $selected           = (isset($current) && isset($current['autoterm_for_schedule'])) ? taxopress_disp_boolean($current['autoterm_for_schedule']) : '';
-            $default_select['selected'] = !empty($selected) ? $current['autoterm_for_schedule'] : '';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-                'namearray'  => 'taxopress_autoterm',
-                'name'       => 'autoterm_for_schedule',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule fields-control',
-                'labeltext'  => esc_html__('Schedule', 'taxopress-pro'),
-                'aftertext'  => esc_html__('Enable Auto Terms for the "Schedule" feature.', 'taxopress-pro'),
-                'selections' => $default_select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                'required'    => false,
-            ]);
-            
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_number_input([
-                'namearray' => 'taxopress_autoterm',
-                'name'      => 'schedule_terms_limit',
-                'textvalue' => isset($current['schedule_terms_limit']) ? esc_attr($current['schedule_terms_limit']) : '5',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule',
-                'labeltext' => esc_html__('Auto Terms Limit',
-                    'taxopress-pro'),
-                'helptext'  => esc_html__('Limit the number of generated Auto Terms. \'0\' for unlimited terms', 'taxopress-pro'),
-                'min'       => '0',
-                'required'  => false,
-            ]);
-
-            
-            $selected           = (isset($current) && isset($current['schedule_autoterm_target'])) ? taxopress_disp_boolean($current['schedule_autoterm_target']) : '';
-            $default_select['selected'] = !empty($selected) ? $current['schedule_autoterm_target'] : '';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-                'namearray'  => 'taxopress_autoterm',
-                'name'       => 'schedule_autoterm_target',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule',
-                'labeltext'  => esc_html__('Target content', 'taxopress-pro'),
-                'aftertext'  => esc_html__('Only use Auto Terms on schedules with no added terms.', 'taxopress-pro'),
-                'selections' => $default_select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-
-            
-            $selected           = (isset($current) && isset($current['schedule_autoterm_word'])) ? taxopress_disp_boolean($current['schedule_autoterm_word']) : '';
-            $default_select['selected'] = !empty($selected) ? $current['schedule_autoterm_word'] : '';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-                'namearray'  => 'taxopress_autoterm',
-                'name'       => 'schedule_autoterm_word',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule',
-                'labeltext'  => esc_html__('Whole words', 'taxopress-pro'),
-                'aftertext'  => esc_html__('Only add terms when the word is an exact match. Do not make matches for partial words.', 'taxopress-pro'),
-                'selections' => $default_select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-
-            
-            $selected           = (isset($current) && isset($current['schedule_autoterm_hash'])) ? taxopress_disp_boolean($current['schedule_autoterm_hash']) : '';
-            $default_select['selected'] = !empty($selected) ? $current['schedule_autoterm_hash'] : '';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-                'namearray'  => 'taxopress_autoterm',
-                'name'       => 'schedule_autoterm_hash',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule',
-                'labeltext'  => esc_html__('Hashtags', 'taxopress-pro'),
-                'aftertext'  => esc_html__('Support hashtags symbols # in Auto Terms.', 'taxopress-pro'),
-                'selections' => $default_select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-
-            $taxonomy_replace_options     = [
-                'options' => [
-                    [
-                        'attr'    => '0',
-                        'text'    => esc_attr__('False', 'taxopress-pro'),
-                        'default' => 'true',
-                    ],
-                    [
-                        'attr' => '1',
-                        'text' => esc_attr__('True', 'taxopress-pro'),
-                    ],
-                ],
-            ];
-
-            $selected   = (isset($current) && isset($current['schedule_replace_type'])) ? taxopress_disp_boolean($current['schedule_replace_type']) : '';
-            $taxonomy_replace_options['selected'] = !empty($selected) ? $current['schedule_replace_type'] : '';
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_radio_input([
-                'namearray'  => 'taxopress_autoterm',
-                'name'       => 'schedule_replace_type',
-                'class'      => 'autoterm_for_schedule autoterm-terms-when-to-field autoterm-terms-when-schedule',
-                'labeltext'  => esc_html__('Auto Terms replacement settings',
-                    'taxopress-pro'),
-                    'aftertext'  => esc_html__('This option determines what happens when adding new terms to posts.', 'taxopress-pro'),
-                'selections' => $taxonomy_replace_options,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-        
         }
 
         public function taxopress_autoterms_after_autoterm_terms_to_use_field($current)
@@ -203,7 +90,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'gpt-4o-mini'       => esc_html__('gpt-4o-mini', 'taxopress-pro'),
                 'gpt-4o'            => esc_html__('gpt-4o', 'taxopress-pro'),
                 'chatgpt-4o-latest' => esc_html__('chatgpt-4o-latest', 'taxopress-pro'),
-                'gpt-4.5-preview'            => esc_html__('gpt-4.5-preview', 'taxopress-pro'),
                 'gpt-5'             => esc_html__('gpt-5', 'taxopress-pro'),
                 'gpt-5-mini'        => esc_html__('gpt-5-mini', 'taxopress-pro'),
                 'gpt-5-nano'        => esc_html__('gpt-5-nano', 'taxopress-pro'),
@@ -309,30 +195,18 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'required'  => false,
                 ]);
 
-                $select             = [
-                    'options' => [
-                        [
-                            'attr'    => '0',
-                            'text'    => esc_attr__('False', 'taxopress-pro'),
-                            'default' => 'true',
-                        ],
-                        [
-                            'attr' => '1',
-                            'text' => esc_attr__('True', 'taxopress-pro'),
-                        ],
-                    ],
-                ];
-                $selected           = ( isset($current) && isset($current['open_ai_exclude_post_terms']) ) ? taxopress_disp_boolean($current['open_ai_exclude_post_terms']) : '';
-                $select['selected'] = !empty($selected) ? $current['open_ai_exclude_post_terms'] : '';
-                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                    echo $ui->get_select_checkbox_input([
-                        'namearray'  => 'taxopress_autoterm',
-                        'name'       => 'open_ai_exclude_post_terms',
-                        'labeltext'  => esc_html__('Use only existing terms (Beta)', 'taxopress-pro'),
-                        'aftertext'  => esc_html__('This will request that OpenAI only suggests existing terms. Check this box and include {post_terms} in the prompt.', 'taxopress-pro'),
-                        'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-openai',
-                        'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                    ]);
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                echo $ui->get_number_input([
+                    'namearray' => 'taxopress_autoterm',
+                    'name'      => 'open_ai_max_tokens',
+                    'textvalue' => isset($current['open_ai_max_tokens']) ? esc_attr($current['open_ai_max_tokens']) : '50',
+                    'class'     => 'autoterm-terms-to-use-field autoterm-terms-use-openai',
+                    'labeltext' => esc_html__('OpenAI Max Tokens', 'taxopress-pro'),
+                    'helptext'  => esc_html__('Maximum tokens for OpenAI response. You can increase this when using {site} placeholder with many terms.', 'taxopress-pro'),
+                    'min'       => '10',
+                    'max'       => '1000',
+                    'required'  => false,
+                ]);
             ?>
             
             <?php

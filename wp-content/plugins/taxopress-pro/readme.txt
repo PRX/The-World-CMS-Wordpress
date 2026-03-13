@@ -3,7 +3,7 @@ Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojop
 Tags: category, tag, taxonomy, categories, tag cloud
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 3.40.0
+Stable tag: 3.44.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -224,6 +224,44 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 6. If you have a term called “WordPress”, the Auto Links feature will find any instances of “WordPress” in your content and add a link to the archive page for that tag.
 
 == Changelog ==
+
+v3.44.0- 2026-01-22
+* Fixed: Auto Terms Existing Content and Schedule aren't adding terms correctly, #2898
+* Update: Update description for automatic terms display selection mode, #2893
+* Update: Add a description to Posts and Manage Terms tabs, #2894
+* Update: Description for Frontend Scripts, #2895
+* Update: Add AutoTerms Log link to Existing Content page, #2897
+
+v3.43.0- 2026-01-13
+* Fixed: "Post term separator string" not working, #2879
+* Fixed: Taxopress adds inline css in the head, #2877
+* Update: Allow Synonyms to be added using a separator. #2880
+* Update: Add Whole Words setting for Auto Links, #2876
+* Update: Add {site_terms} placeholder for site-wide term search in OpenAI AutoTerms, #2875
+* Update: Move "Schedule" to the Free version, #2862
+* Update: Allow users to disable frontend scripts, #2756
+* Update: Allow users to select specific terms in "Terms Display", #2609
+* Removed: Remove unavailable OpenAI models, #2874
+
+v3.42.0- 2025-12-08
+* Fixed: Terms screen is blank in wordpress 6.9, #2865
+
+v3.41.0- 2025-12-01
+* Fixed: Autocomplete doesn't handle characters correctly, #2853
+* Fixed: Mass Edit search box is unclear, #2852
+* Fixed: Auto Terms and Custom Fields not working, #2841
+* Fixed: Minimum term usage for Auto Links is not applied, #2823
+* Improved: Improve Manage Terms batch merge permissions, #2844
+* Improved: Improve AI “Existing Terms” ordering and performance, #2842
+* Improved: Improve "Suggest Terms to Merge" suggestions and UI, #2840
+* Update: Add Post Type Filters to the Taxonomy screen, #2846
+
+v3.40.1- 2025-11-03
+* Fixed: Uncaught TypeError: Cannot read properties of null (reading 'removeEditorPanel'), #2830
+* Fixed: Security improvement in Autoterm post_types/post_status parameters, #2827
+* Fixed: Can't add 2 terms with the same name, #2826
+* Fixed: Dashboard is too wide for the screen, #2820
+* Update: Translations updates for TaxoPress Pro 3.40.0, #2825
 
 v3.40.0- 2025-10-16
 * Fixed: Preview dropdown doesn't show some characters correctly, #2780

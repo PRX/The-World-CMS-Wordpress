@@ -121,8 +121,11 @@ class SimpleTags_Admin
 			require STAGS_DIR . '/inc/autoterms-logs-table.php';
 			require STAGS_DIR . '/inc/autoterms.php';
 			require STAGS_DIR . '/inc/autoterms_content.php';
+			require STAGS_DIR . '/inc/schedule.php';
+			require STAGS_DIR . '/inc/schedule-logs-table.php';
 			SimpleTags_Autoterms::get_instance();
 			SimpleTags_Autoterms_Content::get_instance();
+			SimpleTags_Autoterms_Schedule::get_instance();
 			self::$enabled_menus['st_autoterms'] = esc_html__('Auto Terms', 'simple-tags');
 		}
 
@@ -609,6 +612,14 @@ class SimpleTags_Admin
 			return;
 		}
 
+		if ( (int) SimpleTags_Plugin::get_option_value( 'disable_admin_frontend_scripts' ) === 1 ) {
+			return;
+		}
+
+		if ( ! apply_filters( 'taxopress_load_admin_frontend_scripts', true ) ) {
+			return;
+		}
+
 		// Register and enqueue assets
 		wp_register_script('taxopress-frontend-js', STAGS_URL . '/assets/frontend/js/frontend.js', array('jquery'), STAGS_VERSION);
 		wp_register_style('taxopress-frontend-css', STAGS_URL . '/assets/frontend/css/frontend.css', array(), STAGS_VERSION, 'all');
@@ -628,7 +639,7 @@ class SimpleTags_Admin
 		global $pagenow;
 
     $select_2_page = false;
-		if ((isset($_GET['page']) && in_array($_GET['page'], ['st_posts', 'st_autolinks', 'st_autoterms', 'st_autoterms_schedule', 'st_terms_display', 'st_related_posts', 'st_post_tags'])) || in_array($pagenow, ['post.php', 'edit.php', 'post-new.php'])) {
+		if ((isset($_GET['page']) && in_array($_GET['page'], ['st_posts', 'st_autolinks', 'st_autoterms', 'st_autoterms_schedule', 'st_terms_display', 'st_related_posts', 'st_post_tags', 'st_mass_terms'])) || in_array($pagenow, ['post.php', 'edit.php', 'post-new.php'])) {
 			$select_2_page = true;
 		}
 
@@ -756,12 +767,16 @@ class SimpleTags_Admin
             'apply_selected' => esc_html__('Apply Selected', 'simple-tags'),
             'close_suggestions' => esc_html__('Close', 'simple-tags'),
             'select_suggestion_alert' => esc_html__('Please select at least one suggestion to apply.', 'simple-tags'),
+			'multiple_merge_warning' => esc_html__('You have selected multiple merge suggestions. All selected terms will be merged into a single new term. Do you want to continue?', 'simple-tags'),
             'no_merge_suggestions' => esc_html__('No merge suggestions found for this taxonomy.', 'simple-tags'),
             'suggested_terms_title' => esc_html__('Suggested Terms to Merge:', 'simple-tags'),
             'duplicates_text' => esc_html__('duplicates', 'simple-tags'),
             'reason_text' => esc_html__('Reason:', 'simple-tags'),
             'select_all_label' => esc_html__('Select All', 'simple-tags'),
             'deselect_all_label' => esc_html__('Deselect All', 'simple-tags'),
+            'terms_to_merge_text' => esc_html__('Terms to Merge', 'simple-tags'),
+            'new_term_text' => esc_html__('New Term', 'simple-tags'),
+            'reasons_text' => esc_html__('Reasons', 'simple-tags'),
 		]);
 
 
@@ -971,13 +986,40 @@ class SimpleTags_Admin
 			return '';
 		}
 
-		$terms = wp_get_post_terms($post_id, $taxonomy, array('fields' => 'names'));
-		if (empty($terms) || is_wp_error($terms)) {
-			return '';
-		}
+		$is_mass_edit_page = isset($_GET['page']) && $_GET['page'] === 'st_mass_terms';
+		$show_slug = SimpleTags_Plugin::get_option_value('enable_mass-edit_terms_slug');
+		
+		if ($is_mass_edit_page) {
+			$term_objects = wp_get_post_terms($post_id, $taxonomy);
+			if (empty($term_objects) || is_wp_error($term_objects)) {
+				return '';
+			}
+			
+			$terms = array();
+			foreach ($term_objects as $term) {
+				if ($show_slug) {
+					if (!empty($term->slug)) {
+						$terms[] = $term->name . ' (' . $term->slug . ')';
+					} else {
+						$terms[] = $term->name;
+					}
+				} else {
+					$terms[] = $term->name;
+				}
+			}
+			
+			$terms = join(', ', $terms);
+		} else {
 
-		$terms = array_unique($terms); // Remove duplicate
-		$terms = join(', ', $terms);
+            $terms = wp_get_post_terms($post_id, $taxonomy, array('fields' => 'names'));
+            if (empty($terms) || is_wp_error($terms)) {
+                return '';
+            }
+            
+            $terms = array_unique($terms);
+            $terms = join(', ', $terms);
+		}
+		
 		$terms = esc_attr($terms);
 		$terms = apply_filters('tags_to_edit', $terms);
 
@@ -1241,14 +1283,14 @@ class SimpleTags_Admin
 				$extra_suffix = '';
 				if (!empty($option[4])) {
 					if ($option[2] == 'sub_multiple_checkbox') {
-						$extra_prefix = '<' . $desc_html_tag . ' class="stpexplan">' . __($option[4]) . '</' . $desc_html_tag . '>' . PHP_EOL;
+						$extra_prefix = '<' . $desc_html_tag . ' class="stpexplan">' . $option[4] . '</' . $desc_html_tag . '>' . PHP_EOL;
 					} else {
-						$extra_suffix = '<' . $desc_html_tag . ' class="stpexplan">' . __($option[4]) . '</' . $desc_html_tag . '>' . PHP_EOL;
+						$extra_suffix = '<' . $desc_html_tag . ' class="stpexplan">' . $option[4] . '</' . $desc_html_tag . '>' . PHP_EOL;
 					}
 				}
 
 				// Output
-				$output .= '<tr style="vertical-align: top;" class="' . $class . '"><th scope="row"><label for="' . $option[0] . '">' . __($option[1]) . '</label></th><td>'. $extra_prefix .' ' . $input_type . ' ' . $extra_suffix . '</td></tr>' . PHP_EOL;
+				$output .= '<tr style="vertical-align: top;" class="' . $class . '"><th scope="row"><label for="' . $option[0] . '">' . $option[1] . '</label></th><td>'. $extra_prefix .' ' . $input_type . ' ' . $extra_suffix . '</td></tr>' . PHP_EOL;
 			}
 			$output .= '</table>' . PHP_EOL;
 			$output .= '</fieldset>' . PHP_EOL;
@@ -1296,6 +1338,8 @@ class SimpleTags_Admin
 				return esc_html__('License', 'simple-tags');
 			case 'hidden_terms':
 				return esc_html__('Hidden Terms', 'simple-tags');
+			case 'frontend_scripts':
+				return esc_html__('Frontend Scripts', 'simple-tags');
 			case 'manage_terms':
 				return esc_html__('Manage Terms', 'simple-tags');
             case 'mass_edit_terms':
@@ -1358,13 +1402,33 @@ class SimpleTags_Admin
 	 * @return array
 	 * @author WebFactory Ltd
 	 */
-	public static function getTermsForAjax($taxonomy = 'post_tag', $search = '', $order_by = 'name', $order = 'ASC', $limit = '')
+	public static function getTermsForAjax($taxonomy = 'post_tag', $search = '', $order_by = 'name', $order = 'ASC', $limit = 0)
 	{
 		global $wpdb;
 
-		if ($order_by === 'random') {
-			$order_by = 'RAND()';
+		$order = strtoupper($order);
+		if (!in_array($order, ['ASC', 'DESC'], true)) {
+			$order = 'ASC';
 		}
+
+		$allowed_orderby = [
+			'name'   => 't.name',
+			'count'  => 'tt.count',
+			'random' => 'RAND()',
+		];
+
+		if (isset($allowed_orderby[$order_by])) {
+			$order_by_sql = $allowed_orderby[$order_by];
+		} else {
+			$order_by_sql = $allowed_orderby['name'];
+		}
+
+		$limit_sql = '';
+		$limit = (int) $limit;
+		if ($limit > 0) {
+			$limit_sql = $wpdb->prepare('LIMIT 0, %d', $limit);
+		}
+
 		if ($taxonomy == 'linked_term_taxonomies') {
 			$taxonomies = SimpleTags_Plugin::get_option_value('linked_terms_taxonomies');
 			if (empty($taxonomies) || !is_array($taxonomies)) {
@@ -1382,7 +1446,7 @@ class SimpleTags_Admin
 					INNER JOIN {$wpdb->term_taxonomy} AS tt ON t.term_id = tt.term_id
 					WHERE tt.taxonomy IN ($taxonomies_list)
 					AND t.name LIKE %s
-					ORDER BY $order_by $order $limit
+					ORDER BY $order_by_sql $order $limit_sql
 					", '%' . $wpdb->esc_like($search) . '%'
 				);
 			} else {
@@ -1392,7 +1456,7 @@ class SimpleTags_Admin
 					INNER JOIN {$wpdb->term_taxonomy} AS tt ON t.term_id = tt.term_id
 					WHERE tt.taxonomy = %s
 					AND t.name LIKE %s
-					ORDER BY $order_by $order $limit
+					ORDER BY $order_by_sql $order $limit_sql
 				", $taxonomy, '%' . $wpdb->esc_like($search) . '%'
 				);
 			}
@@ -1404,7 +1468,7 @@ class SimpleTags_Admin
 					FROM {$wpdb->terms} AS t
 					INNER JOIN {$wpdb->term_taxonomy} AS tt ON t.term_id = tt.term_id
 					WHERE tt.taxonomy IN ($taxonomies_list)
-					ORDER BY $order_by $order $limit
+					ORDER BY $order_by_sql $order $limit_sql
 				";
 
 			} else {
@@ -1413,7 +1477,7 @@ class SimpleTags_Admin
 					FROM {$wpdb->terms} AS t
 					INNER JOIN {$wpdb->term_taxonomy} AS tt ON t.term_id = tt.term_id
 					WHERE tt.taxonomy = %s
-					ORDER BY $order_by $order $limit
+					ORDER BY $order_by_sql $order $limit_sql
 				", $taxonomy);
 			}
 

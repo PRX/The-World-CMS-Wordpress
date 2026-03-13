@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'acpl/ai-alt-generator',
-        'pretty_version' => 'v2.8.1',
-        'version' => '2.8.1.0',
-        'reference' => 'd4a32a665ee74edcd33699f86c3c19df26f7150a',
+        'pretty_version' => 'v3.2.1',
+        'version' => '3.2.1.0',
+        'reference' => 'add0ff5f1beace72449b9c75b029a9e1c1951899',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'acpl/ai-alt-generator' => array(
-            'pretty_version' => 'v2.8.1',
-            'version' => '2.8.1.0',
-            'reference' => 'd4a32a665ee74edcd33699f86c3c19df26f7150a',
+            'pretty_version' => 'v3.2.1',
+            'version' => '3.2.1.0',
+            'reference' => 'add0ff5f1beace72449b9c75b029a9e1c1951899',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

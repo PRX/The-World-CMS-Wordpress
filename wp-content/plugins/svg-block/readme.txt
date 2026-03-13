@@ -3,8 +3,8 @@ Contributors:      Mr2P
 Tags:              block, SVG, image, icon, button
 Requires PHP:      7.1
 Requires at least: 6.5
-Tested up to:      6.8
-Stable tag:        1.2.1
+Tested up to:      6.9
+Stable tag:        1.2.3
 License:           GPL-3.0
 License URI:       https://www.gnu.org/licenses/gpl-3.0.html
 Donate link:       https://boldblocks.net?utm_source=wp.org&utm_campaign=readme&utm_medium=link&utm_content=SVG+Block+Donate
@@ -58,7 +58,7 @@ The plugin is developed using @wordpress/create-block.
 
 == Installation ==
 
-1. Upload the plugin files to the `/wp-content/plugins/svg-block` directory, or install the plugin through the WordPress plugins screen directly.
+1. Upload the plugin files to the `/wp-content/plugins` directory, or install the plugin through the WordPress plugins screen directly.
 1. Activate the plugin through the 'Plugins' screen in WordPress
 
 
@@ -100,6 +100,17 @@ Anyone can use this plugin.
 7. Block's placeholder
 
 == Changelog ==
+
+= 1.2.3 =
+*Release Date - 19 November 2025*
+
+* Fixed - Missing default breakpoint values that caused responsive height styles to stop working.
+
+= 1.2.2 =
+*Release Date - 15 November 2025*
+
+* Fixed - Responsive height style was not working
+* Added - A new hook `apply_filters( 'boldblocks_svg_block_limit_svgs', 500 )` allows users to load more SVGs icons from the media library
 
 = 1.2.1 =
 *Release Date - 27 August 2025*

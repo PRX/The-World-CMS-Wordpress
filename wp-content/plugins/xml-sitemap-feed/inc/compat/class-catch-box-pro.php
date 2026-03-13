@@ -29,7 +29,7 @@ class Catch_Box_Pro {
 						'<strong>' . \esc_html__( 'Feed Redirect URL', 'catch-box' ) . '</strong>',
 						\esc_html__( 'XML Sitemap & Google News', 'xml-sitemap-feed' ),
 						'<strong>' . \esc_html__( 'Theme Options', 'catch-box' ) . '</strong>',
-						'<a href="' . \esc_url( \admin_url( 'customize.php' ) ) . '" target="_blank">' . \esc_html( \translate( 'Customizer' ) ) . '</a>'
+						'<a href="' . \esc_url( \admin_url( 'customize.php' ) ) . '" target="_blank">' . \esc_html( \translate( 'Customizer' ) ) . '</a>' // phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction
 					);
 					?>
 				</p>

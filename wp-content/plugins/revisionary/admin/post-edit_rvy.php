@@ -39,7 +39,7 @@ class RvyPostEdit {
                     }
 
                     ?>
-                    rvyDeleteURL[<?php echo $revision->ID;?>] = '<?php echo esc_url(wp_nonce_url(admin_url("admin.php?page=rvy-revisions&amp;action=delete&amp;revision={$revision->ID}"), 'delete-revision_' . $revision->ID ));?>'; 
+                    rvyDeleteURL[<?php echo esc_attr($revision->ID);?>] = '<?php echo esc_url(wp_nonce_url(admin_url("admin.php?page=rvy-revisions&amp;action=delete&amp;revision={$revision->ID}"), 'delete-revision_' . $revision->ID ));?>'; 
                     <?php
                 }
             ?>
@@ -172,7 +172,9 @@ class RvyPostEdit {
     function actPostSubmitboxActions($post) {
         global $revisionary;
 
-        if ((rvy_in_revision_workflow($post) && empty($revisionary->enabled_post_types[$post->post_type]))
+        if (
+        !empty($_REQUEST['rvy_new'])                                                        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        || (rvy_in_revision_workflow($post) && empty($revisionary->enabled_post_types[$post->post_type]))
         || (!rvy_in_revision_workflow($post) && empty($revisionary->enabled_post_types_archive[$post->post_type]))
         ) {
             return;
@@ -202,7 +204,7 @@ class RvyPostEdit {
             return;
         }
 
-        if (!rvy_in_revision_workflow($post->ID)) {
+        if (!empty($_REQUEST['rvy_new']) || !rvy_in_revision_workflow($post->ID)) {         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             return;
         }
 
@@ -300,11 +302,15 @@ class RvyPostEdit {
         global $post;
 
         if (defined('PUBLISHPRESS_MULTIPLE_AUTHORS_VERSION')) {
-            return [];
+            return;
         }
 
         if (!$type_obj = get_post_type_object($post->post_type)) {
-            return [];
+            return;
+        }
+
+        if (!rvy_get_option('allow_post_author_revision')) {
+            return;
         }
 
         $published_post_id = rvy_post_id($post->ID);
@@ -340,7 +346,7 @@ class RvyPostEdit {
             //});
 
             $(document).on('change', 'div.rvy-author-selection select', function(e) {
-                var data = {'rvy_ajax_field': 'author_select', 'rvy_ajax_value': <?php echo esc_attr($post->ID);?>, 'rvy_selection': $('div.rvy-author-selection select').val(), 'nc': Math.floor(Math.random() * 99999999)};
+                var data = {'rvy_ajax_field': 'author_select', 'rvy_ajax_value': <?php echo esc_attr($post->ID);?>, 'rvy_selection': $('div.rvy-author-selection select').val(), '_rvynonce': '<?php echo esc_attr(wp_create_nonce('author_select'));?>'};
 
                 $('div.rvy-author-selection select').attr('disabled', 'disabled');
 

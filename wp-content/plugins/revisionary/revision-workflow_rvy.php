@@ -179,12 +179,12 @@ class Rvy_Revision_Workflow_UI {
             if ( $revision_id ) {
                 $revision = get_post($revision_id);
 
-                if (rvy_get_option('revision_preview_links') || current_user_can('administrator') || is_super_admin()) {
+                if (rvy_get_option('revision_preview_links') || is_content_administrator_rvy()) {
                     $preview_link = rvy_preview_url($revision);
                     $message .= esc_html__( 'Preview and Approval: ', 'revisionary' ) . $preview_link . "\r\n\r\n";
                 }
 
-                $message .= esc_html__( 'Revision Queue: ', 'revisionary' ) . rvy_admin_url("admin.php?page=revisionary-q&published_post={$published_post->ID}&all=1") . "\r\n\r\n";
+                $message .= esc_html__( 'New Revisions: ', 'revisionary' ) . rvy_admin_url("admin.php?page=revisionary-q&published_post={$published_post->ID}&all=1") . "\r\n\r\n";
                 
                 $message .= sprintf(esc_html__( 'Edit %s: ', 'revisionary' ), pp_revisions_status_label('pending-revision', 'name')) . rvy_admin_url("post.php?action=edit&post={$revision_id}") . "\r\n";
             }

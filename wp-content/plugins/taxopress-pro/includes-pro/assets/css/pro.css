@@ -44,6 +44,12 @@
     grid-template-columns: repeat(4, 1fr);
 }
 
+.taxopress-block-wrap {
+    overflow-x: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 .html-exclusions-customs-row .delete {
     color: #f54d4d;
     cursor: pointer;
