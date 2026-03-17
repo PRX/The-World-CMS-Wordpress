@@ -33,7 +33,7 @@ class RevisionaryAdmin
 		if ( ! defined('XMLRPC_REQUEST') && ! strpos($script_name, 'p-admin/async-upload.php' ) ) {
 			if ( RVY_NETWORK && ( is_main_site() ) ) {
 				require_once( dirname(__FILE__).'/admin_lib-mu_rvy.php' );
-				add_action('admin_menu', 'rvy_mu_site_menu', 15 );
+				add_action('revisionary_menu', 'rvy_mu_site_menu');
 			}
 
 			add_action('admin_menu', [$this, 'build_menu']);
@@ -125,7 +125,7 @@ class RevisionaryAdmin
 			) {
 				global $wp_version;
 
-				if (defined('DISABLE_WP_CRON') && DISABLE_WP_CRON && rvy_get_option('scheduled_revisions', -1, false, ['bypass_condition_check' => true]) 
+				if (defined('DISABLE_WP_CRON') && DISABLE_WP_CRON && rvy_get_option('scheduled_revisions') 
 				&& rvy_get_option('scheduled_publish_cron') && !rvy_get_option('wp_cron_usage_detected') && apply_filters('revisionary_wp_cron_disabled', true)
 				) {
 					rvy_notice(
@@ -181,7 +181,7 @@ class RevisionaryAdmin
 				$clauses['where'] .= " AND $wpdb->posts.post_name NOT IN ('revision-scheduled-publication', 'scheduled-revision-published', 'scheduled-revision-is-published', 'revision-scheduled', 'revision-is-scheduled', 'revision-declined', 'revision-deferred-or-rejected', 'revision-submission', 'revision-is-submitted', 'new-revision', 'new-revision-created')";
 			}
 
-			if (!defined('PUBLISHPRESS_STATUSES_VERSION')) {
+			if (!defined('PUBLISHPRESS_STATUSES_PRO_VERSION')) {
 				$clauses['where'] .= " AND $wpdb->posts.post_name NOT IN ('post-status-changed', 'post-deferred-or-rejected')";
 			}
 		}
@@ -228,10 +228,11 @@ class RevisionaryAdmin
 
 	 function fltAdminBodyClass($classes) {
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		if (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive'])) {
 			$classes .= ' revisionary';
 			
-			switch ($_REQUEST['page']) {
+			switch ($_REQUEST['page']) {	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				case 'revisionary-archive':
 					$classes .= ' revisionary-archive';
 					break;
@@ -318,7 +319,7 @@ class RevisionaryAdmin
 
 		$types = rvy_get_manageable_types();
 
-		$revision_archive = true || current_user_can('administrator') || current_user_can('restore_revisions') || current_user_can('view_revision_archive');
+		$revision_archive = is_content_administrator_rvy() || current_user_can('restore_revisions') || current_user_can('view_revision_archive');
 
 		$can_edit_any = false;
 
@@ -362,7 +363,7 @@ class RevisionaryAdmin
 			add_menu_page( esc_html__($_menu_caption, 'pp'), esc_html__($_menu_caption, 'pp'), 'read', $menu_slug, $menu_func, 'dashicons-backup', 29 );
 
 			if ($can_edit_any && array_filter($revisionary->enabled_post_types)) {
-				add_submenu_page('revisionary-q', esc_html__('Revision Queue', 'revisionary'), esc_html__('Revision Queue', 'revisionary'), 'read', 'revisionary-q', [$this, 'moderation_queue']);
+				add_submenu_page('revisionary-q', esc_html__('New Revisions', 'revisionary'), esc_html__('New Revisions', 'revisionary'), 'read', 'revisionary-q', [$this, 'moderation_queue']);
 			}
 
 			do_action('revisionary_admin_menu');
@@ -371,8 +372,8 @@ class RevisionaryAdmin
 				// Revision Archive page
 				add_submenu_page(
 					$menu_slug,
-					esc_html__( 'Revision Archive', 'revisionary' ),
-					esc_html__( 'Revision Archive', 'revisionary' ),
+					esc_html__( 'Past Revisions', 'revisionary' ),
+					esc_html__( 'Past Revisions', 'revisionary' ),
 					'read',
 					'revisionary-archive',
 					[$this, 'revision_archive']
@@ -392,6 +393,8 @@ class RevisionaryAdmin
 			add_submenu_page( $menu_slug, esc_html__('PublishPress Revisions Settings', 'revisionary'), esc_html__('Settings', 'revisionary'), 'read', 'revisionary-settings', 'rvy_omit_site_options');
 			add_action('revisionary_page_revisionary-settings', 'rvy_omit_site_options' );
 		}
+
+		do_action('revisionary_menu');
 
 		if (!defined('PUBLISHPRESS_REVISIONS_PRO_VERSION')) {
 			add_submenu_page(
@@ -430,8 +433,8 @@ class RevisionaryAdmin
 		if (defined('REVISIONARY_FILE') && ($file == plugin_basename(REVISIONARY_FILE))
 		|| defined('REVISIONARY_PRO_FILE') && ($file == plugin_basename(REVISIONARY_PRO_FILE))
 		) {
-			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-q')) .'">' . esc_html__('Revision Queue', 'revisionary') . '</a>';
-			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-archive')) .'">' . esc_html__('Revision Archive', 'revisionary') . '</a>';
+			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-q')) .'">' . esc_html__('New Revisions', 'revisionary') . '</a>';
+			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-archive')) .'">' . esc_html__('Past Revisions', 'revisionary') . '</a>';
 
 			$page = ( defined('RVY_NETWORK') && RVY_NETWORK ) ? 'rvy-net_options' : 'revisionary-settings';
 			$links[] = '<a href="'. esc_url(admin_url("admin.php?page=$page")) .'">' . esc_html__('Settings', 'revisionary') . '</a>';
@@ -480,12 +483,12 @@ class RevisionaryAdmin
 	{
 		$cap_descripts['edit_others_drafts'] = esc_html__('Can edit draft Posts from other users.', 'revisionary');
 		$cap_descripts['edit_others_revisions'] = esc_html__('Can edit Revisions from other users.', 'revisionary');
-		$cap_descripts['list_others_revisions'] = esc_html__('Can see Revisions from other users in Revision Queue.', 'revisionary');
-		$cap_descripts['manage_revision_queue'] = esc_html__('Can access Revision Queue.', 'revisionary');
+		$cap_descripts['list_others_revisions'] = esc_html__('Can see New Revisions from other users.', 'revisionary');
+		$cap_descripts['manage_revision_queue'] = esc_html__('Can access New Revisions.', 'revisionary');
 		$cap_descripts['manage_unsubmitted_revisions'] = esc_html__('Can manage Unsubmitted Revisions.', 'revisionary');
 		$cap_descripts['preview_others_revisions'] = esc_html__('Preview other user\'s Revisions (without needing editing access).', 'revisionary');
 		$cap_descripts['restore_revisions'] = esc_html__('Restore an archived Revision as the current revision.', 'revisionary');
-		$cap_descripts['view_revision_archive'] = esc_html__('View the Revision Archive, a list of past Revisions.', 'revisionary');
+		$cap_descripts['view_revision_archive'] = esc_html__('View Past Revisions.', 'revisionary');
 
 		return $cap_descripts;
 	}

@@ -61,9 +61,15 @@ class NodeResolver {
 			return $post;
 		}
 
-		// if the uri doesn't have the post's urlencoded name or ID in it, we must've found something we didn't expect
-		// so we will return null
-		if ( false === strpos( $this->wp->query_vars['uri'], (string) $post->ID ) && false === strpos( $this->wp->query_vars['uri'], urldecode( sanitize_title( $post->post_name ) ) ) ) {
+		// If the uri doesn't have the post's urlencoded name or ID in it, we must've found something we didn't expect
+		// so we will return null. Check decoded form, sanitize_title form, and raw post_name so both decoded and
+		// percent-encoded client input are accepted (issue #3582).
+		$uri         = $this->wp->query_vars['uri'];
+		$name_in_uri = strpos( $uri, (string) $post->ID ) !== false
+			|| strpos( $uri, urldecode( sanitize_title( $post->post_name ) ) ) !== false
+			|| strpos( $uri, urldecode( $post->post_name ) ) !== false
+			|| strpos( $uri, $post->post_name ) !== false;
+		if ( ! $name_in_uri ) {
 			return null;
 		}
 
@@ -185,6 +191,31 @@ class NodeResolver {
 			$queried_object = $query->posts[0];
 		} else {
 			$queried_object = $query->get_queried_object();
+		}
+
+		// When no post was found but we have a slug, retry with alternate encoding so we can find
+		// posts whose post_name is stored in percent-encoded form (non-ASCII slugs). See issue #3582.
+		if ( ! $queried_object instanceof WP_Post
+			&& isset( $query_vars['name'] )
+			&& is_string( $query_vars['name'] )
+			&& '' !== $query_vars['name'] ) {
+			$retry_name               = strpos( $query_vars['name'], '%' ) !== false
+				? urldecode( $query_vars['name'] )
+				: rawurlencode( $query_vars['name'] );
+			$retry_query_vars         = $query_vars;
+			$retry_query_vars['name'] = $retry_name;
+			/** @var \WP_Query $retry_query */
+			$retry_query          = new $query_class( $retry_query_vars );
+			$retry_queried_object = null;
+			if ( isset( $retry_query->posts[0] ) && $retry_query->posts[0] instanceof WP_Post && ! $retry_query->is_archive() ) {
+				$retry_queried_object = $retry_query->posts[0];
+			} else {
+				$retry_queried_object = $retry_query->get_queried_object();
+			}
+			if ( $retry_queried_object instanceof WP_Post ) {
+				$query          = $retry_query;
+				$queried_object = $retry_queried_object;
+			}
 		}
 
 		/**
@@ -372,8 +403,13 @@ class NodeResolver {
 		$this->wp->query_vars = [];
 		$post_type_query_vars = [];
 
+		// Save explicit slug when resolving by slug (idType: SLUG) so we can restore it after rewrite parsing.
+		$saved_name = null;
 		if ( is_array( $extra_query_vars ) ) {
 			$this->wp->query_vars = &$extra_query_vars;
+			if ( isset( $extra_query_vars['name'] ) ) {
+				$saved_name = $extra_query_vars['name'];
+			}
 		} elseif ( ! empty( $extra_query_vars ) ) {
 			parse_str( $extra_query_vars, $this->wp->extra_query_vars );
 		}
@@ -554,6 +590,12 @@ class NodeResolver {
 			}
 		}
 
+		// Restore explicit slug when resolving by slug (e.g. idType: SLUG), so percent-encoded slugs
+		// from the client are not overwritten by decoded values from rewrite rules (issue #3582).
+		if ( null !== $saved_name ) {
+			$this->wp->query_vars['name'] = $saved_name;
+		}
+
 		// Convert urldecoded spaces back into '+'.
 		foreach ( get_taxonomies( [ 'show_in_graphql' => true ], 'objects' ) as $t ) {
 			if ( $t->query_var && isset( $this->wp->query_vars[ $t->query_var ] ) ) {
@@ -602,6 +644,27 @@ class NodeResolver {
 
 		// We don't need the GraphQL args anymore.
 		unset( $this->wp->query_vars['graphql'] );
+
+		// CRITICAL FIX: Prevent REST API from processing requests during GraphQL execution
+		//
+		// If we're processing a GraphQL request and WordPress has identified this URI as a
+		// REST API route (rest_route is set in query_vars), we must prevent REST API from
+		// processing it. REST API hooks into parse_request and will output JSON and exit,
+		// breaking the GraphQL response.
+		//
+		// IMPORTANT: This fix is critical and was confirmed in production. Removing this
+		// code will cause REST API JSON responses to be returned instead of GraphQL responses
+		// when nodeByUri queries use REST API endpoint URIs.
+		//
+		// We use is_graphql_request() instead of Router::get_request() to ensure the fix
+		// applies to all GraphQL requests, including internal calls via graphql() function,
+		// not just HTTP-routed requests.
+		//
+		// Regression test: testRestRouteIsRemovedFromQueryVarsDuringGraphQLRequest()
+		// See: https://github.com/wp-graphql/wp-graphql/issues/3513
+		if ( is_graphql_request() && isset( $this->wp->query_vars['rest_route'] ) ) {
+			unset( $this->wp->query_vars['rest_route'] );
+		}
 
 		do_action_ref_array( 'parse_request', [ &$this->wp ] );
 

@@ -78,7 +78,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
 ?>
             <div class="form-field">
                 <label for="text"><?php esc_html_e('Term Synonyms', 'taxopress-pro'); ?></label>
-                <input type="text" class="taxopress-synonyms-input term-synonyms" name="taxopress_term_synonyms[]" placeholder="<?php esc_attr_e('Type the synonym name and then click Enter or Return.', 'taxopress-pro'); ?>" />
+                <input type="text" class="taxopress-synonyms-input term-synonyms" name="taxopress_term_synonyms[]" placeholder="<?php esc_attr_e('Type the synonym name (comma-separated) and then click Enter or Return.', 'taxopress-pro'); ?>" />
                 <p><?php esc_html_e('If TaxoPress scans your content and finds a synonym, it will act as if it has found the main term.', 'taxopress-pro'); ?></p>
                 <ul class="taxopress-term-synonyms wrapper"></ul>
             </div>
@@ -98,7 +98,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                     <label for="text"><?php esc_html_e('Term Synonyms', 'taxopress-pro'); ?></label>
                 </th>
                 <td>
-                    <input type="text" class="taxopress-synonyms-input term-synonyms" name="taxopress_term_synonyms[]" placeholder="<?php esc_attr_e('Type the synonym name and then click Enter or Return.', 'taxopress-pro'); ?>" />
+                    <input type="text" class="taxopress-synonyms-input term-synonyms" name="taxopress_term_synonyms[]" placeholder="<?php esc_attr_e('Type the synonym name (comma-separated) and then click Enter or Return.', 'taxopress-pro'); ?>" />
                     <p><?php esc_html_e('If TaxoPress scans your content and finds a synonym, it will act as if it has found the main term.', 'taxopress-pro'); ?></p>
                     <ul class="taxopress-term-synonyms wrapper">
                         <?php if (!empty($term_synonyms)) : ?>

@@ -2,8 +2,8 @@
 Tags: Microsoft, MSN, MSN Partner Hub
 Requires at least: 5.4
 Requires PHP: 7.3
-Stable tag: 2.8.7
-Tested up to: 6.8
+Stable tag: 2.9
+Tested up to: 6.9
 License: GPL v2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Contributors: Microsoft
@@ -14,8 +14,7 @@ MSN Partner Hub WordPress plugin is developed by Microsoft. It helps WordPress c
 ### Tell your stories with MSN
 Microsoft operates the world’s largest cross-platform service covering news, entertainment and lifestyle content. Our audience is growing, and we want to help you share your stories. Our personalized content feed is used by millions of active users each day through Windows, Bing, Edge, and MSN.
 
-**Invite Code**: Participation is limited right now while this pilot program is in the early stages. Please apply to the program by filling out our application, and we’ll notify you if your content is a good fit.
-[Apply here.](https://aka.ms/startcreating)
+**MSN Partner Hub is invitation-only.** To sign up as an MSN Partner, you will need the unique **Invite code** that was emailed to you by Microsoft.
 
 ### How It Works
 Let us do the hard work. Automatically sync your content to our feed and benefit from our reach to attract new followers, expand your business, and get paid.
@@ -48,6 +47,9 @@ Data Collection. The software may collect information about you and your use of 
 For more information be sure to check out the [MSN Partner Help Center](https://helpcenter.microsoftstart.com)
 
 == Changelog ==
+
+= 2.9 =
+* Stability improvements and minor bug fixes. Test and verify compatibility with WordPress 6.9.
 
 = 2.8.1 =
 * Improve stability of the plugin by fixing some known issues.

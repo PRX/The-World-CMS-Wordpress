@@ -144,7 +144,7 @@ class XMLSitemapFeed {
 		// Upgrade/install, maybe...
 		$db_version = \get_option( 'xmlsf_version', 0 );
 		if ( ! \version_compare( XMLSF_VERSION, $db_version, '=' ) ) {
-			require_once \XMLSF_DIR . '/upgrade.php';
+			require_once XMLSF_DIR . '/upgrade.php';
 		}
 
 		// Load sitemap servers.
@@ -152,7 +152,7 @@ class XMLSitemapFeed {
 
 		// XML Sitemap?
 		if ( ! empty( $sitemaps['sitemap'] ) ) {
-				$this->get_server( 'sitemap' );
+			$this->get_server( 'sitemap' );
 		} else {
 			// Disable core sitemap.
 			\add_filter( 'wp_sitemaps_enabled', '__return_false' );
@@ -163,11 +163,45 @@ class XMLSitemapFeed {
 			$this->get_server( 'sitemap-news' );
 		}
 
+		// Prepare GSC Connector.
+		\add_action( 'init', array( $this, 'gsc_connect' ) );
+
+		// Prepare BWT Connector.
+		\add_action( 'init', array( $this, 'bwt_connect' ) );
+
 		// Register rewrites.
 		\add_action( 'init', array( $this, 'register_rewrites' ) );
 
 		// Sitemap generator msg output.
 		\add_action( 'xmlsf_generator', array( $this, 'generator' ) );
+	}
+
+	/**
+	 * Prepare GSC Connector.
+	 */
+	public function gsc_connect() {
+		// Prepare for OAuth callback.
+		\add_filter( 'query_vars', array( __NAMESPACE__ . '\GSC_Connect', 'query_vars' ) );
+		\add_action( 'parse_request', array( __NAMESPACE__ . '\GSC_Connect', 'parse_request' ) );
+
+		// Prepare onboarding admin pages.
+		\add_action( 'admin_menu', array( __NAMESPACE__ . '\Admin\GSC_Connect', 'add_settings_page' ) );
+		\add_action( 'admin_init', array( __NAMESPACE__ . '\Admin\GSC_Connect', 'register_settings' ) );
+
+		// Schedule periodic token refresh.
+		\add_action( 'xmlsf_gsc_keep_alive', array( __NAMESPACE__ . '\GSC_Oauth_Handler', 'refresh_access_token' ) );
+		if ( ! \wp_next_scheduled( 'xmlsf_gsc_keep_alive' ) ) {
+			\wp_schedule_event( time(), 'weekly', 'xmlsf_gsc_keep_alive' );
+		}
+	}
+
+	/**
+	 * Prepare BWT Connector.
+	 */
+	public function bwt_connect() {
+		// Prepare onboarding admin pages.
+		\add_action( 'admin_menu', array( __NAMESPACE__ . '\Admin\BWT_Connect', 'add_settings_page' ) );
+		\add_action( 'admin_init', array( __NAMESPACE__ . '\Admin\BWT_Connect', 'register_settings' ) );
 	}
 
 	/**
@@ -201,7 +235,7 @@ class XMLSitemapFeed {
 		if ( null === $this->using_permalinks ) {
 			global $wp_rewrite;
 
-			$index_php              = 0 === strpos( get_option( 'permalink_structure' ), '/index.php' ) ? 'index.php' : '';
+			$index_php              = 0 === strpos( \get_option( 'permalink_structure' ), '/index.php' ) ? 'index.php' : '';
 			$this->using_permalinks = $wp_rewrite->using_permalinks() && ! $index_php;
 		}
 
@@ -228,17 +262,13 @@ class XMLSitemapFeed {
 				'post_types'         => array(),
 				'post_type_settings' => array(
 					'post'  => array(
-						'archive'          => 'yearly',
-						'priority'         => '',
-						'dynamic_priority' => '',
-						'tags'             => array(
+						'archive' => 'yearly',
+						'tags'    => array(
 							'image' => 'attached',
 						),
 					),
 					'page'  => array(
-						'priority'         => '',
-						'dynamic_priority' => '',
-						'tags'             => array(
+						'tags' => array(
 							'image' => 'attached',
 						),
 					),
@@ -246,15 +276,12 @@ class XMLSitemapFeed {
 				),
 				'taxonomies'         => '',
 				'taxonomy_settings'  => array(
-					'priority'         => '',
-					'dynamic_priority' => '',
-					'include_empty'    => '',
-					'limit'            => '',
+					'include_empty' => '',
+					'limit'         => '',
 				),
 				'authors'            => '',
 				'author_settings'    => array(
-					'priority' => '',
-					'limit'    => '',
+					'limit' => '',
 				),
 				'robots'             => '',
 				'urls'               => '',
@@ -346,7 +373,7 @@ class XMLSitemapFeed {
 	 * Generator info
 	 */
 	public function generator() {
-		echo '<!-- generated-on="' . \esc_xml( \gmdate( 'c' ) ) . '" -->' . PHP_EOL;
+		echo '<!-- generated-on="' . \esc_xml( gmdate( 'c' ) ) . '" -->' . PHP_EOL;
 		echo '<!-- generator="XML Sitemap & Google News for WordPress" -->' . PHP_EOL;
 		echo '<!-- generator-url="https://status301.net/wordpress-plugins/xml-sitemap-feed/" -->' . PHP_EOL;
 		echo '<!-- generator-version="' . \esc_xml( XMLSF_VERSION ) . '" -->' . PHP_EOL;

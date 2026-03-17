@@ -228,18 +228,6 @@ class Sitemap_Plugin extends Sitemap {
 				// Try to raise memory limit, context added for filters.
 				\wp_raise_memory_limit( 'sitemap-posttype-' . $feed[2] );
 
-				// Prepare priority calculation.
-				if ( ! empty( $this->post_type_settings[ $feed[2] ] ) && ! empty( $this->post_type_settings[ $feed[2] ]['priority'] ) && ! empty( $this->post_type_settings[ $feed[2] ]['dynamic_priority'] ) ) {
-					// Last of this post type modified date in Unix seconds.
-					\xmlsf()->lastmodified = \get_date_from_gmt( \get_lastpostmodified( 'GMT', $feed[2] ), 'U' );
-					// Calculate time span, uses get_firstpostdate() function defined in xml-sitemap/inc/functions.php!
-					\xmlsf()->timespan = \xmlsf()->lastmodified - \get_date_from_gmt( get_firstpostdate( 'GMT', $feed[2] ), 'U' );
-					// Total post type comment count.
-					\xmlsf()->comment_count = \wp_count_comments()->approved;
-					// TODO count comments per post type https://wordpress.stackexchange.com/questions/134338/count-all-comments-of-a-custom-post-type
-					// TODO cache this more persistently than wp_cache_set does in https://developer.wordpress.org/reference/functions/wp_count_comments/.
-				}
-
 				// Setup filters.
 				\add_filter(
 					'post_limits',
@@ -259,7 +247,6 @@ class Sitemap_Plugin extends Sitemap {
 				// Make sure to update meta cache for:
 				// 1. excluded posts.
 				// 2. image data (if activated).
-				// 3. lasmod on comments (if activated).
 				$request['update_post_meta_cache'] = true;
 				break;
 
@@ -363,7 +350,6 @@ class Sitemap_Plugin extends Sitemap {
 
 		$parts     = \explode( '-', $feed, 3 );
 		$templates = array();
-		$found     = false;
 
 		// Possible theme template file names.
 		if ( ! empty( $parts[1] ) && \in_array( $parts[1], array( 'posttype', 'taxonomy', 'author', 'custom' ), true ) ) {
@@ -514,10 +500,12 @@ class Sitemap_Plugin extends Sitemap {
 
 		$return = array();
 
+		$where = $wpdb->prepare( "WHERE post_type = %s AND post_status = 'publish'", $post_type );
+
 		if ( 'weekly' === $archive_type ) :
 
 			$week       = \_wp_mysql_week( '`post_date`' );
-			$query      = $wpdb->prepare( "SELECT DISTINCT LPAD(%d,2,'0') AS `week`, YEAR(`post_date`) AS `year`, COUNT(`ID`) AS `posts` FROM %s WHERE `post_type` = %s AND `post_status` = 'publish' GROUP BY YEAR(`post_date`), LPAD(%d,2,'0') ORDER BY `year` DESC, `week` DESC", array( $week, $wpdb->posts, $post_type, $week ) );
+			$query      = "SELECT DISTINCT $week AS `week`, YEAR( `post_date` ) AS `year`, count( `ID` ) AS `posts` FROM `$wpdb->posts` $where GROUP BY $week, YEAR( `post_date` ) ORDER BY `year` DESC, `week` DESC";
 			$arcresults = $this->cache_get_archives( $query );
 
 			foreach ( (array) $arcresults as $arcresult ) {
@@ -534,7 +522,7 @@ class Sitemap_Plugin extends Sitemap {
 
 		elseif ( 'monthly' === $archive_type ) :
 
-			$query      = $wpdb->prepare( "SELECT YEAR(`post_date`) AS `year`, LPAD(MONTH(`post_date`),2,'0') AS `month`, COUNT(`ID`) AS `posts` FROM $wpdb->posts WHERE `post_type` = %s AND `post_status` = 'publish' GROUP BY YEAR(`post_date`), LPAD(MONTH(`post_date`),2,'0') ORDER BY `year` DESC, `month` DESC", $post_type );
+			$query      = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as `posts` FROM `$wpdb->posts` $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY `year` DESC, `month` DESC";
 			$arcresults = $this->cache_get_archives( $query );
 
 			foreach ( (array) $arcresults as $arcresult ) {
@@ -550,7 +538,7 @@ class Sitemap_Plugin extends Sitemap {
 
 		elseif ( 'yearly' === $archive_type ) :
 
-			$query      = $wpdb->prepare( "SELECT YEAR(`post_date`) AS `year`, COUNT(`ID`) AS `posts` FROM $wpdb->posts WHERE `post_type` = %s AND `post_status` = 'publish' GROUP BY YEAR(`post_date`) ORDER BY `year` DESC", $post_type );
+			$query      = "SELECT YEAR(post_date) AS `year`, count(ID) as `posts` FROM `$wpdb->posts` $where GROUP BY YEAR(post_date) ORDER BY  `year` DESC";
 			$arcresults = $this->cache_get_archives( $query );
 
 			foreach ( (array) $arcresults as $arcresult ) {
@@ -566,7 +554,7 @@ class Sitemap_Plugin extends Sitemap {
 
 		else :
 
-			$query      = $wpdb->prepare( "SELECT COUNT(ID) AS `posts` FROM $wpdb->posts WHERE `post_type` = %s AND `post_status` = 'publish' ORDER BY `post_date` DESC", $post_type );
+			$query      = "SELECT COUNT(ID) AS `posts` FROM `$wpdb->posts` $where ORDER BY `post_date` DESC";
 			$arcresults = $this->cache_get_archives( $query );
 
 			if ( is_object( $arcresults[0] ) && $arcresults[0]->posts > 0 ) {
@@ -622,7 +610,7 @@ class Sitemap_Plugin extends Sitemap {
 			! empty( $settings['tags']['image'] ) &&
 			\is_string( $settings['tags']['image'] )
 		) {
-			$images = \get_post_meta( $post->ID, '_xmlsf_image_' . $settings['tags']['image'] );
+			$images = \get_post_meta( $post->ID, '_xmlsf_image_' . $settings['tags']['image'], false );
 			foreach ( $images as $img ) {
 				if ( empty( $img['loc'] ) ) {
 					continue;

@@ -59,8 +59,6 @@ function xmlsf_install() {
  * @since 5.1
  */
 function xmlsf_upgrade( $db_version ) {
-	global $wpdb;
-
 	if ( version_compare( '4.4', $db_version, '>' ) ) {
 		// Remove robots.txt rules blocking stylesheets.
 		$robot_rules = get_option( 'xmlsf_robots' );
@@ -122,7 +120,7 @@ function xmlsf_upgrade( $db_version ) {
 				$taxonomies = get_object_taxonomies( $post_type, 'objects' );
 				// Check each tax public flag and term count and append name to array.
 				foreach ( $taxonomies as $taxonomy ) {
-					if ( ! empty( $taxonomy->public ) && ! in_array( $taxonomy->name, xmlsf()->disabled_taxonomies() ) ) {
+					if ( ! empty( $taxonomy->public ) && ! in_array( $taxonomy->name, xmlsf()->disabled_taxonomies(), true ) ) {
 						++$available;
 					}
 				}
@@ -212,7 +210,18 @@ function xmlsf_upgrade( $db_version ) {
 		update_option( 'xmlsf_post_types', $post_types );
 	}
 
-	// Add missing new defaults.
+	if ( version_compare( '5.7', $db_version, '>' ) ) {
+		// Drop priority meta data.
+		delete_metadata( 'post', 0, '_xmlsf_priority', '', true );
+		delete_transient( 'sitemap_notifier_access_token' );
+		delete_transient( 'sitemap_notifier_submission' );
+	} elseif ( version_compare( '5.7.2', $db_version, '>' ) ) {
+		// Fix 5.7 and 5.7.1 broken transients upgrade routine.
+		delete_transient( 'sitemap_notifier_google_access_token' );
+		delete_transient( 'sitemap_notifier_google_submission' );
+	}
+
+	// Add possible missing new defaults.
 	xmlsf_update_from_defaults( false );
 
 	do_action( 'xmlsf_upgrade', $db_version );

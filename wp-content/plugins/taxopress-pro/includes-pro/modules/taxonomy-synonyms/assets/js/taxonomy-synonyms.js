@@ -41,22 +41,29 @@
           $("input.term-synonyms").each(function () {
             previous_values.push($(this).val().toLowerCase());
           });
-          if (!previous_values.includes(input_value.toLowerCase())) {
-            var synonym_list = $(".taxopress-term-synonyms.wrapper");
-            var new_synonym = "";
-            new_synonym += "<li>";
-            new_synonym +=
-              '<span class="display-text">' + input_value + "</span>";
-            new_synonym +=
-              '<span class="remove-synonym"><span class="dashicons dashicons-no-alt"></span></span>';
-            new_synonym +=
-              '<input type="hidden" class="term-synonyms" name="taxopress_term_synonyms[]" value="' +
-              input_value +
-              '">';
-            new_synonym += "</li>";
-            synonym_list.append(new_synonym);
-            sortedSynonymsList(synonym_list);
-          }
+          
+          var synonyms = input_value.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s !== ''; });
+          var synonym_list = $(".taxopress-term-synonyms.wrapper");
+          
+          synonyms.forEach(function(synonym) {
+            if (!previous_values.includes(synonym.toLowerCase())) {
+              var new_synonym = "";
+              new_synonym += "<li>";
+              new_synonym +=
+                '<span class="display-text">' + synonym + "</span>";
+              new_synonym +=
+                '<span class="remove-synonym"><span class="dashicons dashicons-no-alt"></span></span>';
+              new_synonym +=
+                '<input type="hidden" class="term-synonyms" name="taxopress_term_synonyms[]" value="' +
+                synonym +
+                '">';
+              new_synonym += "</li>";
+              synonym_list.append(new_synonym);
+              previous_values.push(synonym.toLowerCase());
+            }
+          });
+          
+          sortedSynonymsList(synonym_list);
         }
 
         return false;

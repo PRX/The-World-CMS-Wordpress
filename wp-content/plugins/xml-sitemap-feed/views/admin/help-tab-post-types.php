@@ -12,27 +12,15 @@
 	<?php esc_html_e( 'Activate this to include the post type in the sitemap index.', 'xml-sitemap-feed' ); ?>
 </p>
 <?php
-if ( 'plugin' === \xmlsf()->sitemap->server_type ) :
+if ( 'plugin' === xmlsf()->sitemap->server_type ) :
 	?>
 <p>
 	<strong><?php esc_html_e( 'Split by', 'xml-sitemap-feed' ); ?> [&hellip;]</strong>
 	<br />
 	<?php esc_html_e( 'Choose Split by Month if you experience errors or slow sitemaps.', 'xml-sitemap-feed' ); ?>
-	<?php echo apply_filters( 'xmlsf_posttype_archive_field_description', sprintf( /* Translators: XML Sitemap Advanced */ esc_html__( 'More options available in %s.', 'xml-sitemap-feed' ), '<a href="https://premium.status301.com/downloads/xml-sitemap-advanced/" target="_blank">' . esc_html__( 'XML Sitemap Advanced', 'xml-sitemap-feed' ) . '</a>' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+	<?php apply_filters( 'xmlsf_advanced_enabled', false ) || printf( /* Translators: XML Sitemap Advanced */ esc_html__( 'More options available in %s.', 'xml-sitemap-feed' ), '<a href="https://premium.status301.com/downloads/xml-sitemap-advanced/" target="_blank">' . esc_html__( 'XML Sitemap Advanced', 'xml-sitemap-feed' ) . '</a>' ); ?>
 </p>
 <?php endif; ?>
-<p>
-	<strong><?php esc_html_e( 'Priority', 'xml-sitemap-feed' ); ?> [&hellip;]</strong>
-	<br />
-	<?php esc_html_e( 'Priority can be used to signal the relative importance of post types in general and individual posts in particular.', 'xml-sitemap-feed' ); ?>
-	<?php esc_html_e( 'Priority can be overridden on individual posts.', 'xml-sitemap-feed' ); ?>
-</p>
-<p>
-	<strong>[] <?php esc_html_e( 'Automatic Priority calculation.', 'xml-sitemap-feed' ); ?></strong>
-	<br />
-	<?php esc_html_e( 'Adjusts the Priority based on factors like age, comments, sticky post or blog page.', 'xml-sitemap-feed' ); ?>
-	<?php esc_html_e( 'Please note: this option can make sitemap generation slower and more resource intensive.', 'xml-sitemap-feed' ); ?>
-</p>
 <p>
 	<strong>[] <?php esc_html_e( 'Update the Last Modified date on each new comment.', 'xml-sitemap-feed' ); ?></strong>
 	<br />
@@ -40,7 +28,7 @@ if ( 'plugin' === \xmlsf()->sitemap->server_type ) :
 	<?php esc_html_e( 'Please note: this option will make sitemap generation slower and more resource intensive.', 'xml-sitemap-feed' ); ?>
 </p>
 <?php
-if ( 'plugin' === \xmlsf()->sitemap->server_type ) :
+if ( 'plugin' === xmlsf()->sitemap->server_type ) :
 	?>
 <p>
 	<strong><?php esc_html_e( 'Add image tags for', 'xml-sitemap-feed' ); ?> [&hellip;]</strong>

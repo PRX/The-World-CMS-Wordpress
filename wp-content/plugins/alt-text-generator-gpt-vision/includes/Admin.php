@@ -2,6 +2,8 @@
 
 namespace ACPL\AIAltGenerator;
 
+use ACPL\AIAltGenerator\Enum\OpenAIModel;
+
 class Admin {
 	const SETTINGS_SECTION_ID = 'acpl_ai_alt_generator_section';
 
@@ -16,25 +18,26 @@ class Admin {
 			AltGeneratorPlugin::OPTION_NAME,
 			[
 				'type'              => 'array',
-				'sanitize_callback' => function ( $input ) {
+				'sanitize_callback' => static function ( array $input ): array {
 					if ( ! defined( 'ACPL_ALT_GENERATOR_OPENAI_API_KEY' ) ) {
 						$input['api_key'] = isset( $input['api_key'] ) ? sanitize_text_field( $input['api_key'] ) : null;
 					}
-					$input['auto_generate'] = isset( $input['auto_generate'] ) && $input['auto_generate'];
-					$input['detail']        = isset( $input['detail'] ) ? sanitize_text_field( $input['detail'] ) : 'low';
+					$input['auto_generate']       = isset( $input['auto_generate'] ) && $input['auto_generate'];
+					$input['detail']              = isset( $input['detail'] ) ? sanitize_text_field( $input['detail'] ) : 'auto';
+					$input['default_user_prompt'] = isset( $input['default_user_prompt'] ) ? sanitize_textarea_field( $input['default_user_prompt'] ) : '';
 
 					// Sanitize and validate the model.
-					if ( isset( $input['model'] ) && in_array( $input['model'], AltGeneratorPlugin::SUPPORTED_MODELS, true ) ) {
-						$input['model'] = sanitize_text_field( $input['model'] );
+					if ( isset( $input['model'] ) && OpenAIModel::tryFrom( $input['model'] ) !== null ) {
+						$input['model'] = OpenAIModel::from( $input['model'] )->value;
 					} else {
-						$input['model'] = AltGeneratorPlugin::DEFAULT_MODEL;
+						$input['model'] = OpenAIModel::default()->value;
 						add_settings_error(
 							AltGeneratorPlugin::OPTION_NAME,
 							'invalid_model',
 							sprintf(
 								// translators: %s is for model name.
 								__( 'Invalid model selected. Default model (%s) has been set.', 'alt-text-generator-gpt-vision' ),
-								AltGeneratorPlugin::DEFAULT_MODEL
+								OpenAIModel::default()->value
 							)
 						);
 					}
@@ -42,10 +45,11 @@ class Admin {
 					return $input;
 				},
 				'default'           => [
-					'api_key'       => null,
-					'model'         => AltGeneratorPlugin::DEFAULT_MODEL,
-					'auto_generate' => false,
-					'detail'        => 'low',
+					'api_key'             => null,
+					'model'               => OpenAIModel::default()->value,
+					'auto_generate'       => false,
+					'detail'              => 'auto',
+					'default_user_prompt' => '',
 				],
 				'show_in_rest'      => false,
 			]
@@ -57,8 +61,8 @@ class Admin {
 
 		add_settings_section(
 			self::SETTINGS_SECTION_ID,
-			__( 'GPT Vision Alt Generator', 'alt-text-generator-gpt-vision' ),
-			function () {
+			__( 'AI image alt text generator', 'alt-text-generator-gpt-vision' ),
+			static function (): void {
 				echo '<p>' .
 					esc_html__( 'This plugin uses the OpenAI API to generate alt text for images.', 'alt-text-generator-gpt-vision' )
 					. '</p>';
@@ -73,7 +77,7 @@ class Admin {
 		add_settings_field(
 			'acpl_ai_alt_generator_api_key',
 			__( 'OpenAI API Key', 'alt-text-generator-gpt-vision' ),
-			function () use ( $options ) {
+			static function () use ( $options ): void {
 				printf(
 					'<input type="password" id="openai_api_key" name="%1$s[api_key]" value="%2$s" class="regular-text" placeholder="sk-..." autocomplete="off" %3$s/>',
 					esc_attr( AltGeneratorPlugin::OPTION_NAME ),
@@ -121,14 +125,14 @@ class Admin {
 		add_settings_field(
 			'acpl_ai_alt_generator_model',
 			__( 'Model', 'alt-text-generator-gpt-vision' ),
-			function () use ( $options ) {
+			static function () use ( $options ): void {
 				printf( '<select id="model" name="%s[model]">', esc_attr( AltGeneratorPlugin::OPTION_NAME ) );
-				foreach ( AltGeneratorPlugin::SUPPORTED_MODELS as $model ) {
+				foreach ( OpenAIModel::cases() as $model ) {
 					printf(
 						'<option value="%s" %s>%s</option>',
-						esc_attr( $model ),
-						selected( $options['model'] ?? AltGeneratorPlugin::DEFAULT_MODEL, $model, false ),
-						esc_html( $model )
+						esc_attr( $model->value ),
+						selected( $options['model'] ?? OpenAIModel::default()->value, $model->value, false ),
+						esc_html( $model->value )
 					);
 				}
 				echo '</select>';
@@ -147,7 +151,7 @@ class Admin {
 		add_settings_field(
 			'acpl_ai_alt_generator_auto_generate',
 			__( 'Auto generate alt text on image upload', 'alt-text-generator-gpt-vision' ),
-			function () use ( $options ) {
+			static function () use ( $options ): void {
 				printf(
 					'<input type="checkbox" id="auto_generate_alt" name="%1$s[auto_generate]" %2$s/>',
 					esc_attr( AltGeneratorPlugin::OPTION_NAME ),
@@ -156,7 +160,7 @@ class Admin {
 
 				echo '<p class="description">' .
 					esc_html__(
-						'Enable this option to automatically generate alt text when images are uploaded. Please review generated alt texts as GPT can sometimes produce inaccurate descriptions.',
+						'Enable this option to automatically generate alt text when images are uploaded. Please review generated alt texts as AI can sometimes produce inaccurate descriptions.',
 						'alt-text-generator-gpt-vision'
 					)
 				. '</p>';
@@ -171,10 +175,11 @@ class Admin {
 		add_settings_field(
 			'acpl_ai_alt_generator_img_size',
 			__( 'Detail level', 'alt-text-generator-gpt-vision' ),
-			function () use ( $options ) {
+			static function () use ( $options ): void {
 				$detail_levels = [
 					'high' => _x( 'High', 'Detail level', 'alt-text-generator-gpt-vision' ),
 					'low'  => _x( 'Low', 'Detail level', 'alt-text-generator-gpt-vision' ),
+					'auto' => _x( 'Auto', 'Detail level', 'alt-text-generator-gpt-vision' ),
 				];
 
 				printf( '<select id="detail_level" name="%s[detail]">', esc_attr( AltGeneratorPlugin::OPTION_NAME ) );
@@ -193,7 +198,7 @@ class Admin {
 						sprintf(
 							// translators: %s is for link attributes.
 							__(
-								'Choose "Low" detail to minimize token usage and costs for image processing, which should be sufficient for most use cases and is significantly cheaper. "High" detail will use more tokens but provides finer detail. For precise token calculations and cost implications, refer to the <a href="https://platform.openai.com/docs/guides/images?api-mode=responses#calculating-costs" %s>OpenAI documentation on calculating costs</a>.',
+								'Choose "Low" detail to minimize token usage and costs for image processing, which should be enough for most use cases and is significantly cheaper. "High" detail will use more tokens but provides finer detail. For precise token calculations and cost implications, refer to the <a href="https://platform.openai.com/docs/guides/images-vision?api-mode=responses#calculating-costs" %s>OpenAI documentation on calculating costs</a>.',
 								'alt-text-generator-gpt-vision'
 							),
 							'target="_blank" rel="noopener noreferrer"'
@@ -212,6 +217,30 @@ class Admin {
 			self::SETTINGS_SECTION_ID,
 			[
 				'label_for' => 'detail_level',
+			]
+		);
+
+		add_settings_field(
+			'acpl_ai_alt_generator_default_user_prompt',
+			__( 'Default user prompt', 'alt-text-generator-gpt-vision' ),
+			static function () use ( $options ): void {
+				printf(
+					'<textarea id="default_user_prompt" name="%1$s[default_user_prompt]" class="large-text" style="field-sizing:content;max-block-size:6rlh">%2$s</textarea>',
+					esc_attr( AltGeneratorPlugin::OPTION_NAME ),
+					esc_textarea( $options['default_user_prompt'] ?? '' ),
+				);
+
+				echo '<p class="description">' .
+					esc_html__(
+						'Used as the default prompt for alt text generation when the user does not provide custom instructions. Can be left empty.',
+						'alt-text-generator-gpt-vision'
+					) .
+					'</p>';
+			},
+			'media',
+			self::SETTINGS_SECTION_ID,
+			[
+				'label_for' => 'default_user_prompt',
 			]
 		);
 	}

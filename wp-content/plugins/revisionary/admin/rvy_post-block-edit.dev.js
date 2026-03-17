@@ -219,7 +219,7 @@ jQuery(document).ready( function($) {
 			$('div.rvy-creation-ui').html(rvyObjEdit.errorCaption);
 		}
 
-		var data = {'rvy_ajax_field': 'create_revision', 'rvy_ajax_value': wp.data.select('core/editor').getCurrentPostId(), 'rvy_date_selection': RvyTimeSelection, 'nc': RvyGetRandomInt(99999999)};
+		var data = {'rvy_ajax_field': 'create_revision', 'rvy_ajax_value': wp.data.select('core/editor').getCurrentPostId(), 'rvy_date_selection': RvyTimeSelection, '_rvynonce': rvyObjEdit.createRevisionNonce};
 
 		$.ajax({
 			url: rvyObjEdit.ajaxurl,
@@ -251,7 +251,7 @@ jQuery(document).ready( function($) {
 			$('div.rvy-creation-ui').html(rvyObjEdit.errorCaption);
 		}
 
-		var data = {'rvy_ajax_field': 'create_scheduled_revision', 'rvy_ajax_value': wp.data.select('core/editor').getCurrentPostId(), 'rvy_date_selection': RvyTimeSelection, 'nc': RvyGetRandomInt(99999999)};
+		var data = {'rvy_ajax_field': 'create_scheduled_revision', 'rvy_ajax_value': wp.data.select('core/editor').getCurrentPostId(), 'rvy_date_selection': RvyTimeSelection, '_rvynonce': rvyObjEdit.createScheduledRevisionNonce};
 
 		$.ajax({
 			url: rvyObjEdit.ajaxurl,
@@ -294,7 +294,7 @@ jQuery(document).ready( function($) {
 
 		var currentDate = new Date();
 
-		RvyTimeSelection = selectedDate.getTime();
+		RvyTimeSelection = selectedDate.getTime() - ((currentDate.getTimezoneOffset() * 60 - rvyObjEdit.timezoneOffset) * 1000);
 
 		var tdiff = RvyTimeSelection - currentDate.getTime();
 

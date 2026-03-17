@@ -22,7 +22,7 @@ class RevisionaryAdminPosts {
 			add_filter('get_comments_number', [$this, 'fltCommentsNumber'], 20, 2);
 		}
 
-		// If a revision was just deleted from within post editor, redirect to Revision Queue
+		// If a revision was just deleted from within post editor, redirect to New Revisions
 																						//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		if (!empty($_REQUEST['trashed']) && !empty($_REQUEST['post_type']) && !empty($_REQUEST['ids']) && is_scalar($_REQUEST['ids'])) {
 		
@@ -55,9 +55,9 @@ class RevisionaryAdminPosts {
 
 		add_filter('posts_where', [$this, 'fltFilterRevisions'], 10, 2);
 
-		if (empty($_REQUEST['page']) || (0 !== strpos($_REQUEST['page'], 'cms-tpv'))) {
+		if (empty($_REQUEST['page']) || (0 !== strpos($_REQUEST['page'], 'cms-tpv'))) {		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Recommended
 			add_filter('posts_results', [$this, 'fltPostsResults'], 10, 1);
-			add_filter('manage_product_posts_custom_column', [$this, 'actProductsCol'], 10, 1);
+			add_action('manage_product_posts_custom_column', [$this, 'actProductsCol'], 10, 1);
 			add_filter('get_edit_post_link', [$this, 'fltGetEditPostLink'], 50, 3);
 		}
     }
@@ -111,7 +111,9 @@ class RevisionaryAdminPosts {
 
 	// Prevent PHP warnings for Revisors who can't edit published posts (but should still see the post listed with New Revision link)
 	public function actUserHasCap($wp_blogcaps, $reqd_caps, $args) {
-		if (!defined('REVISIONARY_NO_REVISOR_POSTS_CAPS_WORKAROUND') && !$this->skip_has_cap_filtering && !empty($args[2]) && array_diff($reqd_caps, array_keys(array_filter($wp_blogcaps)))) {
+		global $revisionary;
+
+		if (!defined('REVISIONARY_NO_REVISOR_POSTS_CAPS_WORKAROUND') && empty($revisionary->skip_revisor_post_caps_workaround) && !$this->skip_has_cap_filtering && !empty($args[2]) && array_diff($reqd_caps, array_keys(array_filter($wp_blogcaps)))) {
 			if (!empty($args[0]) && in_array($args[0], ['edit_post', 'edit_page'])) {
 				$this->filtering_edit_link[$args[2]] = true;
 				$wp_blogcaps = array_merge($wp_blogcaps, array_fill_keys($reqd_caps, true));
@@ -140,8 +142,8 @@ class RevisionaryAdminPosts {
 					/* <![CDATA[ */
 					jQuery(document).ready( function($) {
 						if ($('#the-list').length) {
-							$('td.column-name a[href*="<?php echo $link;?>"]').contents().unwrap().closest('div.row-actions').find('span.edit,span.inline,span.trash').hide().closest('tr').find('.check-column input[type="checkbox"]').hide();
-							$('td.column-title a[href*="<?php echo $link;?>"]').contents().unwrap().closest('div.row-actions').find('span.edit,span.inline,span.trash').hide().closest('tr').find('.check-column input[type="checkbox"]').hide();
+							$('td.column-name a[href*="<?php echo esc_url($link);?>"]').contents().unwrap().closest('div.row-actions').find('span.edit,span.inline,span.trash').hide().closest('tr').find('.check-column input[type="checkbox"]').hide();
+							$('td.column-title a[href*="<?php echo esc_url($link);?>"]').contents().unwrap().closest('div.row-actions').find('span.edit,span.inline,span.trash').hide().closest('tr').find('.check-column input[type="checkbox"]').hide();
 						}
 					});
 					/* ]]> */
@@ -291,7 +293,7 @@ class RevisionaryAdminPosts {
 
 		if (!empty($this->post_revision_count[$post->ID])) {
 			if ( 'trash' != $post->post_status && wp_check_post_lock( $post->ID ) === false ) {
-				$actions['revision_queue'] = "<a href='admin.php?page=revisionary-q&published_post={$post->ID}&all=1'>" . esc_html__('Revision Queue', 'revisionary') . '</a>';
+				$actions['revision_queue'] = "<a href='admin.php?page=revisionary-q&published_post={$post->ID}&all=1'>" . esc_html__('New Revisions', 'revisionary') . '</a>';
 			}
 		}
 		
@@ -349,8 +351,9 @@ class RevisionaryAdminPosts {
         
         // todo: use 'wp_count_posts' filter instead?
 
-        if ((strpos($query, "ELECT post_status, COUNT( * ) AS num_posts ") || (strpos($query, "ELECT COUNT( 1 )") && $pos_from && (!$pos_where || ($pos_from < $pos_where)))) 
-        && preg_match("/FROM\s*{$posts}\s*WHERE post_type\s*=\s*'([^ ]+)'/", $query, $matches)
+		if ((preg_match("/ELECT post_status, COUNT\(\s*\*\s*\) AS num_posts/", $query) || (strpos($query, "ELECT COUNT( 1 )") 
+			&& $pos_from && (!$pos_where || ($pos_from < $pos_where))))                                                 
+	   		&& preg_match("/FROM\s+{$posts}\s+WHERE post_type\s*=\s*'([^ ]+)'/", $query, $matches) 
         ) {
             $_post_type = (!empty($matches[1])) ? $matches[1] : PWP::findPostType();
 

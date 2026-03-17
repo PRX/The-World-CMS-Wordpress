@@ -47,7 +47,7 @@ class Fields {
 		$post_types = \apply_filters( 'xmlsf_author_has_published_posts', $post_types );
 
 		$disabled   = (array) \get_option( 'xmlsf_disabled_providers', \XMLSF\get_default_settings( 'disabled_providers' ) );
-		$public_tax = \get_taxonomies( array( 'public' => true ) );
+		$public_tax = \get_taxonomies( array( 'publicly_queryable' => true ) );
 		$users_args = array(
 			'fields'              => 'ID',
 			'has_published_posts' => $post_types,
@@ -79,7 +79,7 @@ class Fields {
 	public static function post_type_fields( $post_type ) {
 		// post type slug passed as section name.
 		$obj     = \get_post_type_object( $post_type );
-		$count   = \wp_count_posts( $obj->name );
+		$count   = wp_count_posts( $obj->name );
 		$options = (array) \get_option( 'xmlsf_post_type_settings', array() );
 
 		// The actual fields for data entry.
@@ -101,7 +101,7 @@ class Fields {
 	 */
 	public static function taxonomies_field() {
 		$taxonomies = (array) \get_option( 'xmlsf_taxonomies', array() );
-		$public_tax = (array) \get_taxonomies( array( 'public' => true ) );
+		$public_tax = (array) \get_taxonomies( array( 'publicly_queryable' => true ), 'objects' );
 
 		// The actual fields for data entry.
 		include XMLSF_DIR . '/views/admin/field-sitemap-taxonomies.php';
@@ -179,10 +179,8 @@ class Fields {
 		$lines = array();
 
 		if ( \is_array( $urls ) && ! empty( $urls ) ) {
-			foreach ( $urls as $arr ) {
-				if ( \is_array( $arr ) ) {
-					$lines[] = \implode( ' ', $arr );
-				}
+			foreach ( $urls as $url ) {
+				$lines[] = ( \is_array( $url ) ) ? \implode( ' ', $url ) : $url;
 			}
 		}
 
@@ -195,7 +193,7 @@ class Fields {
 	 */
 	public static function advanced_archive_field_options() {
 		?>
-		<option value=""<?php echo \disabled( true ); ?>>
+		<option value="" disabled="disabled">
 			<?php \esc_html_e( 'Week', 'xml-sitemap-feed' ); ?>
 		</option>
 		<?php
@@ -204,7 +202,7 @@ class Fields {
 	/**
 	 * Quick edit fields allows to add HTML in Quick Edit.
 	 *
-	 * @since 5.7
+	 * @since 5.5
 	 *
 	 * @param string $column_name Column name.
 	 */
@@ -218,15 +216,25 @@ class Fields {
 	/**
 	 * Bulk edit fields allows to add HTML in Quick Edit.
 	 *
-	 * @since 5.7
+	 * @since 5.5
 	 *
 	 * @param string $column_name Column name.
 	 */
 	public static function bulk_edit_fields( $column_name ) {
 		if ( 'xmlsf_exclude' === $column_name ) {
-			$disabled = ! apply_filters( 'xmlsf_advanced_enabled', false );
+			$disabled = ! \apply_filters( 'xmlsf_advanced_enabled', false );
 			// The actual fields for data entry.
 			include XMLSF_DIR . '/views/admin/field-bulk-edit.php';
 		}
+	}
+
+	/**
+	 * Sitemap notifier field.
+	 *
+	 * @since 5.6
+	 */
+	public static function sitemap_notifier_field() {
+		// The actual fields for data entry.
+		include XMLSF_DIR . '/views/admin/field-sitemap-notifier.php';
 	}
 }

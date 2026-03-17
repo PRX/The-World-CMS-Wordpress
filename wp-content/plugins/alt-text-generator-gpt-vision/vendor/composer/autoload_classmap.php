@@ -11,5 +11,6 @@ return array(
     'ACPL\\AIAltGenerator\\AltGeneratorPlugin' => $baseDir . '/includes/AltGeneratorPlugin.php',
     'ACPL\\AIAltGenerator\\ApiController' => $baseDir . '/includes/ApiController.php',
     'ACPL\\AIAltGenerator\\Enum\\ErrorCodes' => $baseDir . '/includes/Enum/ErrorCodes.php',
+    'ACPL\\AIAltGenerator\\Enum\\OpenAIModel' => $baseDir . '/includes/Enum/OpenAIModel.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

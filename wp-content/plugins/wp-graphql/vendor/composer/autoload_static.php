@@ -4,33 +4,33 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit716023593395f61e373fc24f6ad29892
+class ComposerStaticInit0abc4410b78531a50076455a91c46c8f
 {
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
             'WPGraphQL\\' => 10,
         ),
-        'G' => 
+        'G' =>
         array (
             'GraphQL\\' => 8,
         ),
-        'A' => 
+        'A' =>
         array (
             'Appsero\\' => 8,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'WPGraphQL\\' => 
+        'WPGraphQL\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
-        'GraphQL\\' => 
+        'GraphQL\\' =>
         array (
             0 => __DIR__ . '/..' . '/webonyx/graphql-php/src',
         ),
-        'Appsero\\' => 
+        'Appsero\\' =>
         array (
             0 => __DIR__ . '/..' . '/appsero/client/src',
         ),
@@ -63,10 +63,12 @@ class ComposerStaticInit716023593395f61e373fc24f6ad29892
         'GraphQL\\Executor\\ExecutionResult' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutionResult.php',
         'GraphQL\\Executor\\Executor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Executor.php',
         'GraphQL\\Executor\\ExecutorImplementation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutorImplementation.php',
+        'GraphQL\\Executor\\PromiseExecutor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/PromiseExecutor.php',
         'GraphQL\\Executor\\Promise\\Adapter\\AmpPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/AmpPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/ReactPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\SyncPromise' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromise.php',
         'GraphQL\\Executor\\Promise\\Adapter\\SyncPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromiseAdapter.php',
+        'GraphQL\\Executor\\Promise\\Adapter\\SyncPromiseQueue' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromiseQueue.php',
         'GraphQL\\Executor\\Promise\\Promise' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Promise.php',
         'GraphQL\\Executor\\Promise\\PromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/PromiseAdapter.php',
         'GraphQL\\Executor\\ReferenceExecutor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ReferenceExecutor.php',
@@ -286,6 +288,7 @@ class ComposerStaticInit716023593395f61e373fc24f6ad29892
         'WPGraphQL\\Admin\\Updates\\Updates' => __DIR__ . '/../..' . '/src/Admin/Updates/Updates.php',
         'WPGraphQL\\Admin\\Updates\\UpdatesScreenLoader' => __DIR__ . '/../..' . '/src/Admin/Updates/UpdatesScreenLoader.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
+        'WPGraphQL\\CLI\\Commands' => __DIR__ . '/../..' . '/src/CLI/Commands.php',
         'WPGraphQL\\Connection\\Comments' => __DIR__ . '/../..' . '/deprecated/Comments.php',
         'WPGraphQL\\Connection\\MenuItems' => __DIR__ . '/../..' . '/deprecated/MenuItems.php',
         'WPGraphQL\\Connection\\PostObjects' => __DIR__ . '/../..' . '/deprecated/PostObjects.php',
@@ -334,6 +337,17 @@ class ComposerStaticInit716023593395f61e373fc24f6ad29892
         'WPGraphQL\\Data\\TermObjectMutation' => __DIR__ . '/../..' . '/src/Data/TermObjectMutation.php',
         'WPGraphQL\\Data\\UserMutation' => __DIR__ . '/../..' . '/src/Data/UserMutation.php',
         'WPGraphQL\\Deprecated' => __DIR__ . '/../..' . '/src/Deprecated.php',
+        'WPGraphQL\\Experimental\\Admin' => __DIR__ . '/../..' . '/src/Experimental/Admin.php',
+        'WPGraphQL\\Experimental\\ExperimentRegistry' => __DIR__ . '/../..' . '/src/Experimental/ExperimentRegistry.php',
+        'WPGraphQL\\Experimental\\Experiment\\AbstractExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/AbstractExperiment.php',
+        'WPGraphQL\\Experimental\\Experiment\\EmailAddressScalarExperiment\\EmailAddress' => __DIR__ . '/../..' . '/src/Experimental/Experiment/EmailAddressScalarExperiment/EmailAddress.php',
+        'WPGraphQL\\Experimental\\Experiment\\EmailAddressScalarExperiment\\EmailAddressScalarExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/EmailAddressScalarExperiment/EmailAddressScalarExperiment.php',
+        'WPGraphQL\\Experimental\\Experiment\\EmailAddressScalarFieldsExperiment\\EmailAddressScalarFieldsExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/EmailAddressScalarFieldsExperiment/EmailAddressScalarFieldsExperiment.php',
+        'WPGraphQL\\Experimental\\Experiment\\TestDependantExperiment\\TestDependantExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/TestDependantExperiment/TestDependantExperiment.php',
+        'WPGraphQL\\Experimental\\Experiment\\TestExperiment\\TestExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/TestExperiment/TestExperiment.php',
+        'WPGraphQL\\Experimental\\Experiment\\TestOptionalDependencyExperiment\\TestOptionalDependencyExperiment' => __DIR__ . '/../..' . '/src/Experimental/Experiment/TestOptionalDependencyExperiment/TestOptionalDependencyExperiment.php',
+        'WPGraphQL\\Experimental\\Experimental' => __DIR__ . '/../..' . '/src/Experimental/Experimental.php',
+        'WPGraphQL\\Experimental\\Extensions' => __DIR__ . '/../..' . '/src/Experimental/Extensions.php',
         'WPGraphQL\\Model\\Avatar' => __DIR__ . '/../..' . '/src/Model/Avatar.php',
         'WPGraphQL\\Model\\Comment' => __DIR__ . '/../..' . '/src/Model/Comment.php',
         'WPGraphQL\\Model\\CommentAuthor' => __DIR__ . '/../..' . '/src/Model/CommentAuthor.php',
@@ -490,14 +504,15 @@ class ComposerStaticInit716023593395f61e373fc24f6ad29892
         'WPGraphQL\\Utils\\Tracing' => __DIR__ . '/../..' . '/src/Utils/Tracing.php',
         'WPGraphQL\\Utils\\Utils' => __DIR__ . '/../..' . '/src/Utils/Utils.php',
         'WPGraphQL\\WPSchema' => __DIR__ . '/../..' . '/src/WPSchema.php',
+        'WPGraphQL_CLI_Command' => __DIR__ . '/../..' . '/deprecated/wp-cli.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit716023593395f61e373fc24f6ad29892::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit716023593395f61e373fc24f6ad29892::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit716023593395f61e373fc24f6ad29892::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit0abc4410b78531a50076455a91c46c8f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit0abc4410b78531a50076455a91c46c8f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit0abc4410b78531a50076455a91c46c8f::$classMap;
 
         }, null, ClassLoader::class);
     }

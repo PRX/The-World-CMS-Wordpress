@@ -181,7 +181,7 @@ class MediaItemCreate {
 			 * Then set the url for the uploaded file
 			 */
 			$file_name           = basename( $input['filePath'] );
-			$uploaded_file_url   = $input['filePath'];
+			$uploaded_file_url   = (string) $input['filePath'];
 			$sanitized_file_path = sanitize_file_name( $input['filePath'] );
 
 			// Check that the filetype is allowed
@@ -225,8 +225,6 @@ class MediaItemCreate {
 			/**
 			 * Require the file.php file from wp-admin. This file includes the
 			 * download_url and wp_handle_sideload methods.
-			 *
-			 * @phpstan-ignore requireOnce.fileNotFound
 			 */
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 
@@ -241,11 +239,19 @@ class MediaItemCreate {
 			}
 
 			/**
+			 * Ensure we have a valid URL before attempting download
+			 */
+			if ( empty( $uploaded_file_url ) ) {
+				throw new UserError( esc_html__( 'Sorry, the file could not be uploaded', 'wp-graphql' ) );
+			}
+
+			/**
 			 * URL data for the mediaItem, timeout value is the default, see:
 			 * https://developer.wordpress.org/reference/functions/download_url/
 			 */
 			$timeout_seconds = 300;
-			$temp_file       = download_url( $uploaded_file_url, $timeout_seconds );
+
+			$temp_file = download_url( $uploaded_file_url, $timeout_seconds );
 
 			/**
 			 * Handle the error from download_url if it occurs
@@ -336,8 +342,6 @@ class MediaItemCreate {
 
 			/**
 			 * Check if the wp_generate_attachment_metadata method exists and include it if not.
-			 *
-			 * @phpstan-ignore requireOnce.fileNotFound
 			 */
 			require_once ABSPATH . 'wp-admin/includes/image.php';
 

@@ -57,7 +57,7 @@ class RevisionaryHistory
                 $parent_post = get_post($_post->post_parent);
 
                 if (($parent_post && !$revisionary->canEditPost($parent_post))
-                || (rvy_get_option('revision_restore_require_cap') && !current_user_can('administrator') && !is_super_admin() && !current_user_can('restore_revisions'))
+                || (rvy_get_option('revision_restore_require_cap') && !is_content_administrator_rvy() && !current_user_can('restore_revisions'))
                 ) :
         ?>
                     <style type='text/css'>
@@ -73,6 +73,10 @@ class RevisionaryHistory
     function actCopyButtons() {
         global $revisionary;
 
+        if (rvy_get_option('compare_revisions_hide_copy_buttons')) {
+            return;
+        }
+
         ?>
         <script type="text/javascript">
         /* <![CDATA[ */
@@ -80,20 +84,20 @@ class RevisionaryHistory
             setTimeout(() => {
                 $('div.revisions-diff div.diff h2:nth(1)').css('display', 'inline-block').css('margin-right', '10px').after(
                     '<div style="display:inline-block;width:45%"><button id="rvy_copy_new_content_top" class="rvy-copy">'
-                    + '<?php echo $revisionary->admin->tooltipText(__('Copy', 'revisionary'), __('Copy content to the clipboard.', 'revisionary'), false);?>'
+                    + '<?php echo $revisionary->admin->tooltipText(esc_html__('Copy', 'revisionary'), esc_html__('Copy content to the clipboard.', 'revisionary'), false);  //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>'
                     + '</button></div>'
                 ).after(
                     '<div style="display:inline-block;width:45%"><button id="rvy_copy_old_content_top" class="rvy-copy">'
-                    + '<?php echo $revisionary->admin->tooltipText(__('Copy', 'revisionary'), __('Copy content to the clipboard.', 'revisionary'), false);?>'
+                    + '<?php echo $revisionary->admin->tooltipText(esc_html__('Copy', 'revisionary'), esc_html__('Copy content to the clipboard.', 'revisionary'), false);  //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped?>'
                     + '</button></div>'
                 );
 
                 $('div.revisions-diff div.diff').find('table.diff').siblings('table.diff:nth(0)').after(
                     '<div class="rvy-copy"><button id="rvy_copy_old_content" class="rvy-copy">'
-                    + '<?php echo $revisionary->admin->tooltipText(__('Copy', 'revisionary'), __('Copy the above content to the clipboard.', 'revisionary'), false);?>'
+                    + '<?php echo $revisionary->admin->tooltipText(esc_html__('Copy', 'revisionary'), esc_html__('Copy the above content to the clipboard.', 'revisionary'), false);  //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped?>'
                     + '</button></div>'
                     + '<div class="rvy-copy"><button id="rvy_copy_new_content" class="rvy-copy">'
-                    + '<?php echo $revisionary->admin->tooltipText(__('Copy', 'revisionary'), __('Copy the above content to the clipboard.', 'revisionary'), false);?>'
+                    + '<?php echo $revisionary->admin->tooltipText(esc_html__('Copy', 'revisionary'), esc_html__('Copy the above content to the clipboard.', 'revisionary'), false);  //phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped?>'
                     + '</button></div>'
                 );
             }, 500);
@@ -290,10 +294,14 @@ class RevisionaryHistory
             if (!empty($do_h1)) {
                 $status_plural = (!empty($status_obj->labels->plural)) ? $status_obj->labels->plural : __('Revisions');
 
+                if (!$url = get_edit_post_link($published_post)) {
+                    $url = '';
+                }
+
                 printf( 
                     esc_html__( 'Compare %s of "%s"', 'revisionary' ), 
                     esc_html($status_plural), 
-                    '<a href="' . esc_url(get_edit_post_link($published_post)) . '">' . esc_html(_draft_or_post_title($published_post)) . '</a>'
+                    '<a href="' . esc_url($url) . '">' . esc_html(_draft_or_post_title($published_post)) . '</a>'
                 );
             }
             ?>
@@ -1297,7 +1305,7 @@ class RevisionaryHistory
             $can_edit = current_user_can($edit_published_cap);
         }
 
-        $show_preview_link = rvy_get_option('revision_preview_links') || current_user_can('administrator') || is_super_admin();
+        $show_preview_link = rvy_get_option('revision_preview_links') || is_content_administrator_rvy();
 
         if ($show_preview_link) {
             $preview_label = (empty($type_obj) || $can_edit)

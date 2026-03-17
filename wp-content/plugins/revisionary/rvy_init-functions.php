@@ -150,6 +150,8 @@ function rvy_ajax_handler() {
 
 			switch ($_REQUEST['rvy_ajax_field']) {										// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 				case 'create_revision':
+					check_ajax_referer('create_revision', '_rvynonce');
+					
 					if (current_user_can('copy_post', $post_id)) {
 						$time_gmt = (!empty($_REQUEST['rvy_date_selection'])) ? intval($_REQUEST['rvy_date_selection']) : '';  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
@@ -162,6 +164,8 @@ function rvy_ajax_handler() {
 					exit;
 
 				case 'submit_revision':
+					check_ajax_referer('submit_revision', '_rvynonce');
+					
 					// capability check is applied within function to support batch execution without redundant checks
 					require_once( dirname(__FILE__).'/admin/revision-action_rvy.php');	
 					rvy_revision_submit($post_id);
@@ -171,6 +175,8 @@ function rvy_ajax_handler() {
 
 				case 'create_scheduled_revision':
 					if (!empty($_REQUEST['rvy_date_selection'])) {						// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+						check_ajax_referer('create_scheduled_revision', '_rvynonce');
+						
 						$time_gmt = intval($_REQUEST['rvy_date_selection']);			// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 
 						if (current_user_can('edit_post', $post_id)) {
@@ -184,6 +190,8 @@ function rvy_ajax_handler() {
 
 				case 'author_select':
 					if (!empty($_REQUEST['rvy_selection'])) {							// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+						check_ajax_referer('author_select', '_rvynonce');
+						
 						if (current_user_can('edit_post', $post_id)) {
 							update_post_meta($post_id, '_rvy_author_selection', (int) $_REQUEST['rvy_selection']);  // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 						}
@@ -192,6 +200,7 @@ function rvy_ajax_handler() {
 					break;
 
 				default:
+					exit;
 			}
 																						// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
 			if (('submit_revision' != $_REQUEST['rvy_ajax_field']) && !empty($check_autosave) && !defined('REVISIONARY_IGNORE_REVISION_AUTOSAVE')) {
@@ -320,8 +329,8 @@ function rvy_status_registrations() {
 		[
 			'draft-revision' => [
 				'name' => esc_html__('Unsubmitted Revision', 'revisionary'),
-				'submit' => esc_html__('New Revision', 'revisionary'), 
-				'submit_short' => esc_html__('New Revision', 'revisionary'), 
+				'submit' => esc_html__('Create Revision', 'revisionary'), 
+				'submit_short' => esc_html__('Create Revision', 'revisionary'), 
 				'submitting' => esc_html__('Creating Revision...', 'revisionary'),
 				'submitted' => ($block_editor) ? esc_html__('The Revision is ready to edit.', 'revisionary') : esc_html__('Revision ready to edit.', 'revisionary'),
 				'approve' => esc_html__('Approve Revision', 'revisionary'),
@@ -444,9 +453,12 @@ function rvy_status_registrations() {
 function pp_revisions_status_label($status_name, $label_property) {
 	global $wp_post_statuses;
 
-	if (!empty($wp_post_statuses[$status_name]) && !empty($wp_post_statuses[$status_name]->labels->$label_property)) {
-		return $wp_post_statuses[$status_name]->labels->$label_property;
+	if (('future-revision' == $status_name) && ('publish' == $label_property)) {
+		return __('Publish Now', 'revisionary');
 	
+	} elseif (!empty($wp_post_statuses[$status_name]) && !empty($wp_post_statuses[$status_name]->labels->$label_property)) {
+		return $wp_post_statuses[$status_name]->labels->$label_property;
+
 	} elseif (!empty($wp_post_statuses[$status_name]) && !empty($wp_post_statuses[$status_name]->label)) {
 		return $wp_post_statuses[$status_name]->label;
 	
@@ -1007,7 +1019,7 @@ function rvy_get_option($option_basename, $sitewide = -1, $get_default = false, 
 		return false;
 	}
 
-	if (('scheduled_revisions' == $option_basename) && empty($args['bypass_condition_check']) 
+	if (('scheduled_revisions' == $option_basename) && !empty($args['condition_check']) 
 	&& defined('DISABLE_WP_CRON') && DISABLE_WP_CRON && rvy_get_option('scheduled_publish_cron') && !rvy_get_option('wp_cron_usage_detected') && apply_filters('revisionary_wp_cron_disabled', true)
 	) {
 		return false;
@@ -1091,7 +1103,7 @@ function rvy_confirm_async_execution($action) {
 
 function is_content_administrator_rvy() {
 	$cap_name = defined( 'SCOPER_CONTENT_ADMIN_CAP' ) ? SCOPER_CONTENT_ADMIN_CAP : 'activate_plugins';
-	return current_user_can( $cap_name );
+	return (is_multisite() && is_super_admin()) || current_user_can($cap_name);
 }
 
 function rvy_notice( $message, $class = 'error fade' ) {
@@ -1349,7 +1361,7 @@ function rvy_init() {
 	}
 	
 	if (empty($_GET['action']) || (isset($_GET['action']) && ('publish_scheduled_revisions' != $_GET['action']))) {
-		if (isset($_SERVER['REQUEST_URI']) && ! strpos( esc_url_raw($_SERVER['REQUEST_URI']), 'login.php' ) && rvy_get_option( 'scheduled_revisions' ) 
+		if (isset($_SERVER['REQUEST_URI']) && ! strpos( esc_url_raw($_SERVER['REQUEST_URI']), 'login.php' ) && rvy_get_option( 'scheduled_revisions', -1, false, ['condition_check' => true] ) 
 		&& !rvy_get_option('scheduled_publish_cron')) {
 		
 			// If a previously requested asynchronous request was ineffective, perform the actions now
@@ -1429,7 +1441,11 @@ function rvy_is_full_editor($post, $args = []) {
 			return false;
 		}
 
-		return $revisionary->canEditPost($post, ['simple_cap_check' => true]);
+		if (in_array($post->post_status, ['draft', 'pending', 'publish', 'private'])) {
+			return $revisionary->canEditPost($post, ['simple_cap_check' => true]);
+		} else {
+			return current_user_can('edit_post', $post->ID);
+		}
 	}
 
 	return true;

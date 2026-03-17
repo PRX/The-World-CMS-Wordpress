@@ -24,8 +24,19 @@ class Main {
 		\add_filter( 'plugin_row_meta', array( __CLASS__, 'plugin_meta_links' ), 10, 2 );
 
 		// Shared Admin pages sidebar actions.
-		\add_action( 'xmlsf_admin_sidebar', array( __CLASS__, 'admin_sidebar_help' ) );
-		\add_action( 'xmlsf_admin_sidebar', array( __CLASS__, 'admin_sidebar_contribute' ), 20 );
+		\add_action(
+			'xmlsf_admin_sidebar',
+			function () {
+				include XMLSF_DIR . '/views/admin/sidebar-help.php';
+			}
+		);
+		\add_action(
+			'xmlsf_admin_sidebar',
+			function () {
+				include XMLSF_DIR . '/views/admin/sidebar-contribute.php';
+			},
+			20
+		);
 
 		if ( \XMLSF\sitemaps_enabled( 'sitemap' ) ) {
 			namespace\Sitemap::init();
@@ -41,16 +52,16 @@ class Main {
 	 */
 	public static function compat() {
 		// Catch Box Pro compatibility.
-		if ( \function_exists( 'catchbox_is_feed_url_present' ) ) {
+		if ( function_exists( 'catchbox_is_feed_url_present' ) ) {
 			\add_action( 'admin_notices', array( '\XMLSF\Compat\Catch_Box_Pro', 'admin_notices' ) );
 		}
 
 		if ( \XMLSF\sitemaps_enabled( 'sitemap' ) ) {
-			namespace\Sitemap::compat();
+			Sitemap::compat();
 		}
 
 		if ( \XMLSF\sitemaps_enabled( 'news' ) ) {
-			namespace\Sitemap_News::compat();
+			Sitemap_News::compat();
 		}
 	}
 
@@ -59,11 +70,11 @@ class Main {
 	 */
 	public static function add_options_pages() {
 		if ( \XMLSF\sitemaps_enabled( 'sitemap' ) ) {
-			namespace\Sitemap::add_options_page();
+			Sitemap::add_options_page();
 		}
 
 		if ( \XMLSF\sitemaps_enabled( 'news' ) ) {
-			namespace\Sitemap_News::add_options_page();
+			Sitemap_News::add_options_page();
 		}
 	}
 
@@ -75,12 +86,12 @@ class Main {
 	 * Update actions for Sitemaps
 	 */
 	public static function update_sitemaps() {
-		if ( ! xmlsf()->using_permalinks() ) {
+		if ( ! \xmlsf()->using_permalinks() ) {
 			return;
 		}
 
 		// Set transients for flushing.
-		set_transient( 'xmlsf_sitemaps_updated', true );
+		\set_transient( 'xmlsf_sitemaps_updated', true );
 	}
 
 	/**
@@ -89,7 +100,7 @@ class Main {
 	 * Checks $_GET['settings-updated'] and transient 'xmlsf_sitemaps_updated'. Hooked into settings page load actions.
 	 */
 	public static function maybe_sitemaps_updated() {
-		if ( ! empty( $_GET['settings-updated'] ) && \delete_transient( 'xmlsf_sitemaps_updated' ) ) {
+		if ( ! empty( $_GET['settings-updated'] ) && delete_transient( 'xmlsf_sitemaps_updated' ) ) {
 			// Flush rewrite rules.
 			\flush_rewrite_rules( false );
 
@@ -106,7 +117,7 @@ class Main {
 						\sprintf( /* translators: %1$s file name, %2$s is XML Sitemap (linked to options-reading.php) */
 							\esc_html__( 'A conflicting static file has been found: %1$s. Either delete it or disable the corresponding %2$s.', 'xml-sitemap-feed' ),
 							\esc_html( $slug . '.xml' ),
-							'<a href="' . \esc_url( \admin_url( 'options-reading.php' ) ) . '#xmlsf_sitemaps">' . \esc_html__( 'XML Sitemap', 'xml-sitemap-feed' ) . '</a>'
+							'<a href="' . \esc_url( admin_url( 'options-reading.php' ) ) . '#xmlsf_sitemaps">' . \esc_html__( 'XML Sitemap', 'xml-sitemap-feed' ) . '</a>'
 						),
 						'warning'
 					);
@@ -114,7 +125,7 @@ class Main {
 			}
 
 			if ( ! empty( $sitemaps['sitemap-news'] ) ) {
-				$slug = \is_object( \xmlsf()->sitemap_news ) ? \xmlsf()->sitemap_news->slug() : 'sitemap-news';
+				$slug = is_object( \xmlsf()->sitemap_news ) ? \xmlsf()->sitemap_news->slug() : 'sitemap-news';
 
 				if ( \file_exists( \trailingslashit( \get_home_path() ) . $slug . '.xml' ) ) {
 					\add_settings_error(
@@ -123,7 +134,7 @@ class Main {
 						\sprintf( /* translators: %1$s file name, %2$s is XML Sitemap (linked to options-reading.php) */
 							\esc_html__( 'A conflicting static file has been found: %1$s. Either delete it or disable the corresponding %2$s.', 'xml-sitemap-feed' ),
 							\esc_html( $slug . '.xml' ),
-							'<a href="' . \esc_url( \admin_url( 'options-reading.php' ) ) . '#xmlsf_sitemaps">' . \esc_html__( 'XML Sitemap', 'xml-sitemap-feed' ) . '</a>'
+							'<a href="' . \esc_url( admin_url( 'options-reading.php' ) ) . '#xmlsf_sitemaps">' . \esc_html__( 'XML Sitemap', 'xml-sitemap-feed' ) . '</a>'
 						),
 						'warning'
 					);
@@ -236,34 +247,6 @@ class Main {
 	}
 
 	/**
-	 * Clear settings
-	 */
-	public static function clear_settings() {
-		// TODO reset Settings > Reading options here...
-
-		\add_settings_error(
-			'notice_clear_settings',
-			'notice_clear_settings',
-			__( 'Settings reset to the plugin defaults.', 'xml-sitemap-feed' ),
-			'updated'
-		);
-	}
-
-	/**
-	 * Admin sidbar help section
-	 */
-	public static function admin_sidebar_help() {
-		include XMLSF_DIR . '/views/admin/sidebar-help.php';
-	}
-
-	/**
-	 * Admin sidbar contribute section
-	 */
-	public static function admin_sidebar_contribute() {
-		include XMLSF_DIR . '/views/admin/sidebar-contribute.php';
-	}
-
-	/**
 	 * Admin notices actions
 	 */
 	public static function notices_actions() {
@@ -289,7 +272,7 @@ class Main {
 	 * @param array $links Array of links.
 	 */
 	public static function add_action_link( $links ) {
-		$settings_link = '<a href="' . \admin_url( 'options-reading.php' ) . '#xmlsf_sitemaps">' . \translate( 'Settings' ) . '</a>';
+		$settings_link = '<a href="' . \admin_url( 'options-reading.php' ) . '#xmlsf_sitemaps">' . \translate( 'Settings' ) . '</a>'; // phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction
 		\array_unshift( $links, $settings_link );
 		return $links;
 	}
@@ -302,8 +285,8 @@ class Main {
 	 */
 	public static function plugin_meta_links( $links, $file ) {
 		if ( XMLSF_BASENAME === $file ) {
-			$links[] = '<a target="_blank" href="https://wordpress.org/support/plugin/xml-sitemap-feed/">' . __( 'Support', 'xml-sitemap-feed' ) . '</a>';
-			$links[] = '<a target="_blank" href="https://wordpress.org/support/plugin/xml-sitemap-feed/reviews/?filter=5#new-post">' . __( 'Rate ★★★★★', 'xml-sitemap-feed' ) . '</a>';
+			$links[] = '<a target="_blank" href="https://premium.status301.com/support/"><span class="dashicons dashicons-sos" style="color:#d63638"></span>' . \translate( 'Help' ) . '</a>'; // phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction
+			$links[] = '<a target="_blank" href="https://wordpress.org/support/plugin/xml-sitemap-feed/reviews/?filter=5#new-post">' . \__( 'Rate', 'xml-sitemap-feed' ) . ' <span style="color:#dba617">★★★★★</span></a>';
 		}
 		return $links;
 	}

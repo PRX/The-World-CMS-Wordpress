@@ -9,7 +9,7 @@ defined( 'WPINC' ) || die;
 
 // do xml tag via echo or SVN parser is going to freak out.
 echo '<?xml version="1.0" encoding="' . esc_xml( esc_attr( get_bloginfo( 'charset' ) ) ) . '"?>' . PHP_EOL;
-echo '<?xml-stylesheet type="text/xsl" href="' . \esc_url( \wp_make_link_relative( XMLSF\get_stylesheet_url( 'author' ) ) ) . '?ver=' . \esc_xml( XMLSF_VERSION ) . '"?>' . PHP_EOL;
+echo '<?xml-stylesheet type="text/xsl" href="' . esc_url( wp_make_link_relative( XMLSF\get_stylesheet_url( 'author' ) ) ) . '?ver=' . esc_xml( XMLSF_VERSION ) . '"?>' . PHP_EOL;
 ?>
 <?php do_action( 'xmlsf_generator' ); ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" <?php do_action( 'xmlsf_urlset', 'home' ); ?>>
@@ -44,11 +44,6 @@ foreach ( $users as $user ) {
 
 	echo '<url><loc>' . esc_xml( esc_url( $url ) ) . '</loc>';
 
-	$priority = xmlsf()->sitemap->get_user_priority( $user );
-	if ( $priority ) {
-		echo '<priority>' . esc_xml( $priority ) . '</priority>';
-	}
-
 	$lastmod = xmlsf()->sitemap->get_user_modified( $user );
 	if ( $lastmod ) {
 		echo '<lastmod>' . esc_xml( get_date_from_gmt( $lastmod, DATE_W3C ) ) . '</lastmod>';
@@ -59,9 +54,8 @@ foreach ( $users as $user ) {
 	echo '</url>';
 
 	$data = array(
-		'url'      => $url,
-		'priority' => $priority,
-		'lastmod'  => $lastmod,
+		'url'     => $url,
+		'lastmod' => $lastmod,
 	);
 	do_action( 'xmlsf_url_after', 'author', $user, $data );
 

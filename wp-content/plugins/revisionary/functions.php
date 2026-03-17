@@ -10,7 +10,7 @@ function revisionary_unrevisioned_postmeta() {
 
 	$exclude = array_merge(
 		$exclude, 
-        array_fill_keys(['_rvy_base_post_id', '_rvy_has_revisions', '_rvy_published_gmt', '_rvy_approved_by', '_rvy_updated_by', '_pp_is_autodraft', '_pp_last_parent', '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_attached_file', '_menu_item_classes', '_menu_item_menu_item_parent', '_menu_item_object', '_menu_item_object_id', '_menu_item_target', '_menu_item_type', '_menu_item_url', '_menu_item_xfn', '_rs_file_key', '_scoper_custom', '_scoper_last_parent', '_wp_attachment_backup_sizes', '_wp_attachment_metadata', '_wp_trash_meta_status', '_wp_trash_meta_time', '_last_attachment_ids', '_last_category_ids', '_encloseme', '_pingme', '_pp_statuses_last_main_status', 'peepso_postnotify', '_peepso_postnotify', '_rvy_subpost_original_source_id', 'jr_listing_views', '_jr_listing_views'], true)
+        array_fill_keys(['_rvy_base_post_id', '_rvy_has_revisions', '_rvy_published_gmt', '_rvy_approved_by', '_rvy_updated_by', '_pp_is_autodraft', '_pp_last_parent', '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_attached_file', '_menu_item_classes', '_menu_item_menu_item_parent', '_menu_item_object', '_menu_item_object_id', '_menu_item_target', '_menu_item_type', '_menu_item_url', '_menu_item_xfn', '_rs_file_key', '_scoper_custom', '_scoper_last_parent', '_wp_attachment_backup_sizes', '_wp_attachment_metadata', '_wp_trash_meta_status', '_wp_trash_meta_time', '_last_attachment_ids', '_last_category_ids', '_encloseme', '_pingme', '_pp_statuses_last_main_status', 'peepso_postnotify', '_peepso_postnotify', '_rvy_subpost_original_source_id', 'jr_listing_views', '_jr_listing_views', '_wpas_*'], true)
 	);
 	
 	return array_keys(array_filter($exclude));
@@ -124,6 +124,11 @@ function revisionary_copy_terms($from_post, $target_id, $args = []) {
  * @return void
  */
 function revisionary_copy_postmeta($from_post, $to_post_id, $args = []) {
+
+    if (!rvy_get_option('enable_postmeta_revision')) {
+        return;
+    }
+
     $defaults = ['empty_target_only' => false, 'apply_deletions' => false];
     $args = array_merge($defaults, $args);
     foreach (array_keys($defaults) as $var) {
@@ -159,9 +164,27 @@ function revisionary_copy_postmeta($from_post, $to_post_id, $args = []) {
 
     $target_meta_keys = (array) \get_post_custom_keys( $to_post_id );
 
+    $skip_meta_keys = ['wpil_links_outbound_external_count_data', 'wpil_links_outbound_internal_count_data', 'wpil_links_outbound_external_count'];
+
+    if (!defined('REVISIONARY_REVISE_ELEMENTOR_CSS')) {
+        $skip_meta_keys = array_merge($skip_meta_keys, ['_elementor_css', '_elementor_element_cache']);
+    }
+
+    if (!defined('REVISIONARY_REVISE_ELEMENTOR_ASSETS')) {
+        $skip_meta_keys = array_merge($skip_meta_keys, ['_elementor_page_assets']);
+    }
+
+    if (!defined('REVISIONARY_REVISE_ELEMENTOR_CONTROLS')) {
+        $skip_meta_keys = array_merge($skip_meta_keys, ['_elementor_controls_usage']);
+    }
+
+    if (!defined('REVISIONARY_REVISE_ELEMENTOR_SCREENSHOT')) {
+        $skip_meta_keys = array_merge($skip_meta_keys, ['_elementor_screenshot']);
+    }
+
     $meta_keys = apply_filters(
-        'revisionary_create_revision_meta_keys',    // Bypass problematic Link Whisper plugin postmeta by default
-        array_diff($meta_keys, ['wpil_links_outbound_external_count_data', 'wpil_links_outbound_internal_count_data', 'wpil_links_outbound_external_count'])
+        'revisionary_create_revision_meta_keys',    // Bypass problematic Elementor, Link Whisper plugin postmeta by default
+        array_diff($meta_keys, $skip_meta_keys)
     );
 
     foreach ( $meta_keys as $meta_key ) {
@@ -242,8 +265,12 @@ function rvy_revision_statuses($args = []) {
 
     if ('object' == $output) {
         foreach($arr as $k => $status) {
-            if (!isset($arr[$k]) || !is_object($status)) {
-                $arr[$k] = get_post_status_object($k);
+            if (!is_object($status)) {
+                $arr[$k] = get_post_status_object($status);
+            }
+
+            if (empty($arr[$k])) {
+                unset($arr[$k]);
             }
         }
     }
@@ -546,6 +573,16 @@ function pp_revisions_plugin_updated($current_version, $args = []) {
 
         if (class_exists('WpeCommon') || version_compare($wp_version, '5.9', '>=')) {
             update_option('rvy_scheduled_publish_cron', 1);  // trigger generation of cron schedules for existing scheduled revisions
+        }
+    }
+
+    if (version_compare($last_ver, '3.7.20', '<')) {
+        if ($role = @get_role('administrator')) {
+            $role->add_cap('view_revision_archive');
+        }
+
+        if ($role = @get_role('editor')) {
+            $role->add_cap('view_revision_archive');
         }
     }
 

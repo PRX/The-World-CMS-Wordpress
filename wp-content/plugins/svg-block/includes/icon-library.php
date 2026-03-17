@@ -168,7 +168,7 @@ if ( ! class_exists( IconLibrary::class ) ) :
 					// Parse json.
 					$icons_library = wp_json_file_decode( $icons_file, [ 'associative' => true ] );
 
-					$icons += $icons_library;
+					$icons = array_merge( $icons, $icons_library );
 				}
 			}
 
@@ -192,7 +192,7 @@ if ( ! class_exists( IconLibrary::class ) ) :
 					'post_type'      => 'attachment',
 					'post_mime_type' => [ 'image/svg+xml' ],
 					'post_status'    => 'any',
-					'posts_per_page' => 100,
+					'posts_per_page' => apply_filters( 'boldblocks_svg_block_limit_svgs', 500 ),
 				]
 			);
 

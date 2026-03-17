@@ -10,7 +10,7 @@ add_filter(
 	'rank_math/excluded_post_types',
 	function ($types) {
 		if (function_exists('rvy_detect_post_id')) {
-			if (!empty($_POST) || rvy_get_option('revision_edit_disable_rank_math')) {
+			if (!empty($_POST) || rvy_get_option('revision_edit_disable_rank_math')) {			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 				$post_id = rvy_detect_post_id();
 
 				if (function_exists('rvy_in_revision_workflow') && rvy_in_revision_workflow($post_id)) {
@@ -130,7 +130,7 @@ if (defined('PP_AUTHORS_VERSION')) {
 				foreach ($post_types as $type_obj) {
 					if (!empty($type_obj->cap->edit_published_posts) && empty($current_user->allcaps[$type_obj->cap->edit_published_posts])
 					) {
-						if (!is_super_admin() && !current_user_can('administrator')) {
+						if (!is_content_administrator_rvy()) {
 							unset($current_user->allcaps['ppma_edit_post_authors']);
 						}
 						
