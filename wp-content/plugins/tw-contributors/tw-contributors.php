@@ -53,7 +53,7 @@ function tw_contributors_taxonomy() {
 		'graphql_single_name' => 'contributor',
 		'graphql_plural_name' => 'contributors',
 	);
-	register_taxonomy( 'contributor', array( 'post', 'attachment', 'segment' ), $args );
+	register_taxonomy( 'contributor', array( 'post', 'attachment', 'segment', 'episode' ), $args );
 }
 add_action( 'init', 'tw_contributors_taxonomy', 0 );
 
