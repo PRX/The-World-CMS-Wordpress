@@ -26,12 +26,13 @@ class TW_Station_Import_Processor {
 	 * (update_field on a sub-field key saves without the parent group prefix.)
 	 */
 	const META_FIELDS = array(
-		'frequency_info_call_letters' => 'field_69810ae7bd0f4',
-		'frequency_info_frequency'    => 'field_687ea33a3f5b0',
-		'frequency_info_modulator'    => 'field_687ea40f3f5b1',
-		'location_city'               => 'field_689a4ce0b6e60',
-		'location_state_province'     => 'field_689a4d22b6e62',
-		'location_country'            => 'field_689a4d0ab6e61',
+		'station_info_call_letters' => 'field_69810ae7bd0f4',
+		'station_info_frequency'    => 'field_687ea33a3f5b0',
+		'station_info_modulator'    => 'field_687ea40f3f5b1',
+		'station_info_website'      => 'field_69810fc4b700e',
+		'location_city'             => 'field_689a4ce0b6e60',
+		'location_state_province'   => 'field_689a4d22b6e62',
+		'location_country'          => 'field_689a4d0ab6e61',
 	);
 
 	/**
@@ -71,6 +72,9 @@ class TW_Station_Import_Processor {
 		}
 
 		$header = fgetcsv( $handle );
+		if ( $header ) {
+			$header = array_map( 'trim', $header );
+		}
 		if ( ! $header ) {
 			$this->results['errors'][] = array(
 				'title'   => '',
@@ -81,19 +85,21 @@ class TW_Station_Import_Processor {
 		}
 
 		$row_num = 1;
-		while ( ( $row = fgetcsv( $handle ) ) !== false ) {
-			$row_num++;
+		$row     = fgetcsv( $handle );
+		while ( false !== $row ) {
+			++$row_num;
 
 			if ( count( $row ) !== count( $header ) ) {
 				$this->results['errors'][] = array(
 					'title'   => '',
 					'message' => "Row $row_num has wrong column count.",
 				);
-				continue;
+			} else {
+				$data = array_combine( $header, $row );
+				$this->process_row( $data, $update );
 			}
 
-			$data = array_combine( $header, $row );
-			$this->process_row( $data, $update );
+			$row = fgetcsv( $handle );
 		}
 
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
@@ -207,13 +213,13 @@ class TW_Station_Import_Processor {
 	/**
 	 * Save all ACF fields for a station post.
 	 *
-	 * Frequency info and location fields are written via update_post_meta() with
-	 * explicit meta key names (e.g. frequency_info_frequency, location_city) plus
-	 * their ACF field-key reference rows (_frequency_info_frequency, etc.).
+	 * Station info and location fields are written via update_post_meta() with
+	 * explicit meta key names (e.g. station_info_frequency, location_city) plus
+	 * their ACF field-key reference rows (_station_info_frequency, etc.).
 	 *
-	 * Using update_field() on a group sub-field key saves the value under just the
-	 * sub-field name (e.g. "frequency") instead of the prefixed name
-	 * ("frequency_info_frequency"), so we bypass ACF's resolution for these.
+	 * ACF constructs sub-field meta keys as {group_name}_{sub_field_name}, so we
+	 * write directly with update_post_meta() using those prefixed keys to ensure
+	 * ACF can read them back correctly.
 	 *
 	 * The schedule repeater is still updated via update_field() because ACF handles
 	 * repeater index prefixing correctly at the repeater level.
@@ -226,15 +232,17 @@ class TW_Station_Import_Processor {
 		$call_letters = trim( $data['call_letters'] );
 		$frequency    = trim( $data['frequency_info_frequency'] );
 		$modulator    = trim( $data['frequency_info_modulator'] );
+		$website      = trim( $data['website'] ?? '' );
 		$city_name    = trim( $data['location_city'] );
 		$state_name   = trim( $data['location_state_province'] );
 		$country_name = trim( $data['location_country'] );
 
 		// Simple scalar fields — write meta key + ACF field reference directly.
 		$scalar_values = array(
-			'frequency_info_call_letters' => $call_letters,
-			'frequency_info_frequency'    => $frequency,
-			'frequency_info_modulator'    => $modulator,
+			'station_info_call_letters' => $call_letters,
+			'station_info_frequency'    => $frequency,
+			'station_info_modulator'    => $modulator,
+			'station_info_website'      => $website,
 		);
 
 		foreach ( $scalar_values as $meta_key => $value ) {
