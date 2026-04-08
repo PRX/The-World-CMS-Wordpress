@@ -77,3 +77,15 @@ function tw_stations_post_type() {
 	register_post_type( 'station', $args );
 }
 add_action( 'init', 'tw_stations_post_type', 0 );
+
+// Shared import processor (used by both admin UI and WP-CLI).
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-tw-station-import-processor.php';
+
+// Admin import page.
+require_once plugin_dir_path( __FILE__ ) . 'admin/class-tw-station-admin.php';
+TW_Station_Admin::init();
+
+// Register WP-CLI import command.
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once plugin_dir_path( __FILE__ ) . 'cli/class-tw-station-importer.php';
+}

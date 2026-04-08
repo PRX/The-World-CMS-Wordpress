@@ -1,0 +1,206 @@
+<?php
+/**
+ * Admin page for importing stations from a CSV file.
+ *
+ * @package tw_stations
+ */
+
+// No direct access allowed.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit();
+}
+
+/**
+ * Registers and renders the station import admin page.
+ */
+class TW_Station_Admin {
+
+	const NONCE_ACTION = 'tw_station_import';
+	const NONCE_FIELD  = 'tw_station_import_nonce';
+	const PAGE_SLUG    = 'tw-station-import';
+
+	/**
+	 * Register hooks.
+	 *
+	 * @return void
+	 */
+	public static function init() {
+		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
+	}
+
+	/**
+	 * Add submenu under Stations.
+	 *
+	 * @return void
+	 */
+	public static function register_menu() {
+		add_submenu_page(
+			'edit.php?post_type=station',
+			__( 'Import Stations', 'tw-stations' ),
+			__( 'Import Stations', 'tw-stations' ),
+			'manage_options',
+			self::PAGE_SLUG,
+			array( __CLASS__, 'render_page' )
+		);
+	}
+
+	/**
+	 * Render the import page, handling form submission if present.
+	 *
+	 * @return void
+	 */
+	public static function render_page() {
+		$results = null;
+		$error   = null;
+
+		if ( isset( $_POST[ self::NONCE_FIELD ] ) ) {
+			if ( ! check_admin_referer( self::NONCE_ACTION, self::NONCE_FIELD ) ) {
+				$error = 'Security check failed. Please try again.';
+			} elseif ( empty( $_FILES['station_csv']['tmp_name'] ) || UPLOAD_ERR_OK !== $_FILES['station_csv']['error'] ) {
+				$error = 'No file uploaded or upload error occurred.';
+			} else {
+				$tmp_path = $_FILES['station_csv']['tmp_name']; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+				$ext      = strtolower( pathinfo( sanitize_file_name( $_FILES['station_csv']['name'] ), PATHINFO_EXTENSION ) );
+
+				if ( 'csv' !== $ext ) {
+					$error = 'Please upload a .csv file.';
+				} else {
+					$update    = ! empty( $_POST['update_existing'] );
+					$processor = new TW_Station_Import_Processor();
+					$results   = $processor->process_file( $tmp_path, $update );
+				}
+			}
+		}
+
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'Import Stations', 'tw-stations' ); ?></h1>
+			<p><?php esc_html_e( 'Upload a CSV file to import stations. Existing stations are matched by call letters or post slug.', 'tw-stations' ); ?></p>
+
+			<?php if ( $error ) : ?>
+				<div class="notice notice-error"><p><?php echo esc_html( $error ); ?></p></div>
+			<?php endif; ?>
+
+			<?php if ( $results ) : ?>
+				<?php self::render_results( $results ); ?>
+			<?php endif; ?>
+
+			<form method="post" enctype="multipart/form-data">
+				<?php wp_nonce_field( self::NONCE_ACTION, self::NONCE_FIELD ); ?>
+
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row">
+							<label for="station_csv"><?php esc_html_e( 'CSV File', 'tw-stations' ); ?></label>
+						</th>
+						<td>
+							<input type="file" id="station_csv" name="station_csv" accept=".csv" required>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Options', 'tw-stations' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="update_existing" value="1">
+								<?php esc_html_e( 'Update existing stations (default: skip)', 'tw-stations' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+
+				<?php submit_button( __( 'Import', 'tw-stations' ) ); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the results table after an import.
+	 *
+	 * @param array $results Results from TW_Station_Import_Processor::process_file().
+	 * @return void
+	 */
+	private static function render_results( $results ) {
+		$created = $results['created'];
+		$updated = $results['updated'];
+		$skipped = $results['skipped'];
+		$errors  = $results['errors'];
+		?>
+		<div class="notice notice-success">
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						/* translators: 1: created count 2: updated count 3: skipped count 4: error count */
+						__( 'Import complete — Created: %1$d, Updated: %2$d, Skipped: %3$d, Errors: %4$d', 'tw-stations' ),
+						count( $created ),
+						count( $updated ),
+						count( $skipped ),
+						count( $errors )
+					)
+				);
+				?>
+			</p>
+		</div>
+
+		<?php if ( $errors ) : ?>
+			<h3><?php esc_html_e( 'Errors', 'tw-stations' ); ?></h3>
+			<ul style="color:#d63638">
+				<?php foreach ( $errors as $item ) : ?>
+					<li>
+						<?php if ( $item['title'] ) : ?>
+							<strong><?php echo esc_html( $item['title'] ); ?>:</strong>
+						<?php endif; ?>
+						<?php echo esc_html( $item['message'] ); ?>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>
+
+		<?php if ( $created ) : ?>
+			<details>
+				<summary><?php echo esc_html( sprintf( __( 'Created (%d)', 'tw-stations' ), count( $created ) ) ); ?></summary>
+				<ul>
+					<?php foreach ( $created as $item ) : ?>
+						<li>
+							<a href="<?php echo esc_url( get_edit_post_link( $item['id'] ) ); ?>">
+								<?php echo esc_html( $item['title'] ); ?>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</details>
+		<?php endif; ?>
+
+		<?php if ( $updated ) : ?>
+			<details>
+				<summary><?php echo esc_html( sprintf( __( 'Updated (%d)', 'tw-stations' ), count( $updated ) ) ); ?></summary>
+				<ul>
+					<?php foreach ( $updated as $item ) : ?>
+						<li>
+							<a href="<?php echo esc_url( get_edit_post_link( $item['id'] ) ); ?>">
+								<?php echo esc_html( $item['title'] ); ?>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</details>
+		<?php endif; ?>
+
+		<?php if ( $skipped ) : ?>
+			<details>
+				<summary><?php echo esc_html( sprintf( __( 'Skipped (%d)', 'tw-stations' ), count( $skipped ) ) ); ?></summary>
+				<ul>
+					<?php foreach ( $skipped as $item ) : ?>
+						<li>
+							<a href="<?php echo esc_url( get_edit_post_link( $item['id'] ) ); ?>">
+								<?php echo esc_html( $item['title'] ); ?>
+							</a>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			</details>
+		<?php endif; ?>
+		<?php
+	}
+}
