@@ -15,9 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class TW_Station_Admin {
 
-	const NONCE_ACTION = 'tw_station_import';
-	const NONCE_FIELD  = 'tw_station_import_nonce';
-	const PAGE_SLUG    = 'tw-station-import';
+	const NONCE_ACTION        = 'tw_station_import';
+	const NONCE_FIELD         = 'tw_station_import_nonce';
+	const DELETE_NONCE_ACTION = 'tw_station_delete_all';
+	const DELETE_NONCE_FIELD  = 'tw_station_delete_all_nonce';
+	const PAGE_SLUG           = 'tw-station-import';
 
 	/**
 	 * Register hooks.
@@ -50,8 +52,10 @@ class TW_Station_Admin {
 	 * @return void
 	 */
 	public static function render_page() {
-		$results = null;
-		$error   = null;
+		$results        = null;
+		$error          = null;
+		$delete_results = null;
+		$delete_error   = null;
 
 		if ( isset( $_POST[ self::NONCE_FIELD ] ) ) {
 			if ( ! check_admin_referer( self::NONCE_ACTION, self::NONCE_FIELD ) ) {
@@ -70,6 +74,14 @@ class TW_Station_Admin {
 					$results   = $processor->process_file( $tmp_path, $update );
 				}
 			}
+		} elseif ( isset( $_POST[ self::DELETE_NONCE_FIELD ] ) ) {
+			if ( ! check_admin_referer( self::DELETE_NONCE_ACTION, self::DELETE_NONCE_FIELD ) ) {
+				$delete_error = 'Security check failed. Please try again.';
+			} elseif ( empty( $_POST['confirm_delete_all'] ) ) {
+				$delete_error = 'You must check the confirmation box to delete all stations.';
+			} else {
+				$delete_results = self::delete_all_stations();
+			}
 		}
 
 		?>
@@ -79,6 +91,26 @@ class TW_Station_Admin {
 
 			<?php if ( $error ) : ?>
 				<div class="notice notice-error"><p><?php echo esc_html( $error ); ?></p></div>
+			<?php endif; ?>
+
+			<?php if ( $delete_error ) : ?>
+				<div class="notice notice-error"><p><?php echo esc_html( $delete_error ); ?></p></div>
+			<?php endif; ?>
+
+			<?php if ( null !== $delete_results ) : ?>
+				<div class="notice notice-success">
+					<p>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: %d: number of deleted stations */
+								__( 'Deleted %d station(s).', 'tw-stations' ),
+								$delete_results
+							)
+						);
+						?>
+					</p>
+				</div>
 			<?php endif; ?>
 
 			<?php if ( $results ) : ?>
@@ -110,8 +142,58 @@ class TW_Station_Admin {
 
 				<?php submit_button( __( 'Import', 'tw-stations' ) ); ?>
 			</form>
+
+			<hr style="margin: 2em 0;">
+
+			<h2 style="color:#d63638"><?php esc_html_e( 'Danger Zone', 'tw-stations' ); ?></h2>
+			<p><?php esc_html_e( 'Permanently delete all station posts. This cannot be undone.', 'tw-stations' ); ?></p>
+
+			<form method="post">
+				<?php wp_nonce_field( self::DELETE_NONCE_ACTION, self::DELETE_NONCE_FIELD ); ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Confirm', 'tw-stations' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="confirm_delete_all" value="1">
+								<?php esc_html_e( 'I understand this will permanently delete all stations and cannot be undone.', 'tw-stations' ); ?>
+							</label>
+						</td>
+					</tr>
+				</table>
+				<?php submit_button( __( 'Delete All Stations', 'tw-stations' ), 'delete', 'submit', true, array( 'style' => 'background:#d63638;border-color:#d63638;color:#fff;' ) ); ?>
+			</form>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Permanently delete all station posts using bulk SQL queries.
+	 *
+	 * Bypasses wp_delete_post() to avoid N×10 individual queries.
+	 *
+	 * @return int Number of posts deleted.
+	 */
+	private static function delete_all_stations() {
+		global $wpdb;
+
+		$ids = $wpdb->get_col(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'station'"
+		);
+
+		if ( empty( $ids ) ) {
+			return 0;
+		}
+
+		$ids_in = implode( ',', array_map( 'intval', $ids ) );
+
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE post_id IN ($ids_in)" );         // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "DELETE FROM {$wpdb->term_relationships} WHERE object_id IN ($ids_in)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( "DELETE FROM {$wpdb->posts} WHERE ID IN ($ids_in)" );                  // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		clean_post_cache( $ids );
+
+		return count( $ids );
 	}
 
 	/**
