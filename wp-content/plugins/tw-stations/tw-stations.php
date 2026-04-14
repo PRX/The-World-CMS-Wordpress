@@ -47,7 +47,7 @@ function tw_stations_post_type() {
 		'description'         => __( 'Manages the list of Stations that air The World', 'text_domain' ),
 		'labels'              => $labels,
 		'supports'            => array( 'title', 'editor', 'excerpt', 'thumbnail' ),
-		'taxonomies'          => array(),
+		'taxonomies'          => array( 'city', 'province_or_state', 'country' ),
 		'rewrite'             => array(
 			'slug'       => 'stations',
 			'with_front' => false,

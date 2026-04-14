@@ -30,9 +30,6 @@ class TW_Station_Import_Processor {
 		'station_info_frequency'    => 'field_687ea33a3f5b0',
 		'station_info_modulator'    => 'field_687ea40f3f5b1',
 		'station_info_website'      => 'field_69810fc4b700e',
-		'location_city'             => 'field_689a4ce0b6e60',
-		'location_state_province'   => 'field_689a4d22b6e62',
-		'location_country'          => 'field_689a4d0ab6e61',
 	);
 
 	/**
@@ -252,28 +249,25 @@ class TW_Station_Import_Processor {
 			}
 		}
 
-		// Taxonomy fields — resolve term IDs then write directly.
+		// Taxonomy terms — assign via wp_set_object_terms() using the registered taxonomies.
 		if ( $city_name ) {
 			$city_id = $this->get_or_create_term( $city_name, 'city' );
 			if ( $city_id ) {
-				update_post_meta( $post_id, 'location_city', $city_id );
-				update_post_meta( $post_id, '_location_city', self::META_FIELDS['location_city'] );
+				wp_set_object_terms( $post_id, $city_id, 'city' );
 			}
 		}
 
 		if ( $state_name ) {
 			$state_id = $this->get_or_create_term( $state_name, 'province_or_state' );
 			if ( $state_id ) {
-				update_post_meta( $post_id, 'location_state_province', $state_id );
-				update_post_meta( $post_id, '_location_state_province', self::META_FIELDS['location_state_province'] );
+				wp_set_object_terms( $post_id, $state_id, 'province_or_state' );
 			}
 		}
 
 		if ( $country_name ) {
 			$country_id = $this->get_or_create_term( $country_name, 'country' );
 			if ( $country_id ) {
-				update_post_meta( $post_id, 'location_country', $country_id );
-				update_post_meta( $post_id, '_location_country', self::META_FIELDS['location_country'] );
+				wp_set_object_terms( $post_id, $country_id, 'country' );
 			}
 		}
 
