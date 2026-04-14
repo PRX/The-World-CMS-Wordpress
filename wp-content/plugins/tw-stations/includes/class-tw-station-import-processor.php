@@ -271,17 +271,6 @@ class TW_Station_Import_Processor {
 			}
 		}
 
-		// Wipe any existing schedule rows before writing fresh ones.
-		// The first import may have written bare meta keys (schedule_0_start_time_utc, etc.)
-		// that update_field() doesn't clean up, causing duplicates on re-import.
-		$existing_count = (int) get_post_meta( $post_id, 'schedule', true );
-		for ( $i = 0; $i < $existing_count; $i++ ) {
-			delete_post_meta( $post_id, "schedule_{$i}_start_time_utc" );
-			delete_post_meta( $post_id, "_schedule_{$i}_start_time_utc" );
-		}
-		delete_post_meta( $post_id, 'schedule' );
-		delete_post_meta( $post_id, '_schedule' );
-
 		// Schedule repeater — update_field() handles index prefixing correctly here.
 		$schedule = array();
 		foreach ( array( 'schedule_0_start_time_utc', 'schedule_1_start_time_utc' ) as $col ) {
