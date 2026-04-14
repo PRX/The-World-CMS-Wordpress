@@ -105,11 +105,10 @@ class TW_Station_Importer {
 			if ( count( $row ) !== count( $header ) ) {
 				continue;
 			}
-			$data         = array_combine( $header, $row );
-			$title        = trim( $data['title'] );
-			$call_letters = trim( $data['call_letters'] );
+			$data  = array_combine( $header, $row );
+			$title = trim( $data['title'] );
 
-			$existing = $this->find_existing_station( $title, $call_letters );
+			$existing = $this->find_existing_station( $title );
 
 			if ( $existing ) {
 				if ( $update ) {
@@ -138,37 +137,12 @@ class TW_Station_Importer {
 	}
 
 	/**
-	 * Find an existing station by call letters or title slug.
+	 * Find an existing station by title slug.
 	 *
-	 * @param string $title        Post title.
-	 * @param string $call_letters Station call letters.
+	 * @param string $title Post title.
 	 * @return int|null Post ID or null.
 	 */
-	private function find_existing_station( $title, $call_letters ) {
-		if ( $call_letters ) {
-			$posts = get_posts(
-				array(
-					'post_type'      => 'station',
-					'posts_per_page' => 1,
-					'fields'         => 'ids',
-					'meta_query'     => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-						'relation' => 'OR',
-						array(
-							'key'   => 'frequency_info_call_letters',
-							'value' => $call_letters,
-						),
-						array(
-							'key'   => 'station_info_call_letters',
-							'value' => $call_letters,
-						),
-					),
-				)
-			);
-			if ( $posts ) {
-				return $posts[0];
-			}
-		}
-
+	private function find_existing_station( $title ) {
 		$post = get_page_by_path( sanitize_title( $title ), OBJECT, 'station' );
 		return $post ? $post->ID : null;
 	}
