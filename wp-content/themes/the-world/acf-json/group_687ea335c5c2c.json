@@ -1,11 +1,11 @@
 {
     "key": "group_687ea335c5c2c",
-    "title": "Station info",
+    "title": "Station Fields",
     "fields": [
         {
             "key": "field_689ba465bba2b",
-            "label": "Frequency Info",
-            "name": "frequency_info",
+            "label": "Station Info",
+            "name": "station_info",
             "aria-label": "",
             "type": "group",
             "instructions": "",
@@ -19,6 +19,28 @@
             "show_in_graphql": 1,
             "layout": "block",
             "sub_fields": [
+                {
+                    "key": "field_69810ae7bd0f4",
+                    "label": "Call Letters",
+                    "name": "call_letters",
+                    "aria-label": "",
+                    "type": "text",
+                    "instructions": "",
+                    "required": 0,
+                    "conditional_logic": 0,
+                    "wrapper": {
+                        "width": "",
+                        "class": "",
+                        "id": ""
+                    },
+                    "show_in_graphql": 1,
+                    "default_value": "",
+                    "maxlength": "",
+                    "allow_in_bindings": 0,
+                    "placeholder": "",
+                    "prepend": "",
+                    "append": ""
+                },
                 {
                     "key": "field_687ea33a3f5b0",
                     "label": "Frequency",
@@ -71,59 +93,13 @@
                     "placeholder": "",
                     "create_options": 0,
                     "save_options": 0
-                }
-            ]
-        },
-        {
-            "key": "field_689ba40b3377d",
-            "label": "Location",
-            "name": "location",
-            "aria-label": "",
-            "type": "group",
-            "instructions": "",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "show_in_graphql": 1,
-            "layout": "block",
-            "sub_fields": [
-                {
-                    "key": "field_689a4ce0b6e60",
-                    "label": "City",
-                    "name": "city",
-                    "aria-label": "",
-                    "type": "taxonomy",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "show_in_graphql": 1,
-                    "taxonomy": "city",
-                    "add_term": 1,
-                    "save_terms": 0,
-                    "load_terms": 0,
-                    "return_format": "id",
-                    "field_type": "select",
-                    "allow_null": 0,
-                    "allow_in_bindings": 0,
-                    "bidirectional": 0,
-                    "multiple": 0,
-                    "bidirectional_target": []
                 },
                 {
-                    "key": "field_689a4d22b6e62",
-                    "label": "State \/ Province",
-                    "name": "state_province",
+                    "key": "field_69810fc4b700e",
+                    "label": "Website",
+                    "name": "website",
                     "aria-label": "",
-                    "type": "taxonomy",
+                    "type": "url",
                     "instructions": "",
                     "required": 0,
                     "conditional_logic": 0,
@@ -133,44 +109,9 @@
                         "id": ""
                     },
                     "show_in_graphql": 1,
-                    "taxonomy": "province_or_state",
-                    "add_term": 1,
-                    "save_terms": 0,
-                    "load_terms": 0,
-                    "return_format": "id",
-                    "field_type": "select",
-                    "allow_null": 0,
+                    "default_value": "",
                     "allow_in_bindings": 0,
-                    "bidirectional": 0,
-                    "multiple": 0,
-                    "bidirectional_target": []
-                },
-                {
-                    "key": "field_689a4d0ab6e61",
-                    "label": "Country",
-                    "name": "country",
-                    "aria-label": "",
-                    "type": "taxonomy",
-                    "instructions": "",
-                    "required": 0,
-                    "conditional_logic": 0,
-                    "wrapper": {
-                        "width": "",
-                        "class": "",
-                        "id": ""
-                    },
-                    "show_in_graphql": 1,
-                    "taxonomy": "country",
-                    "add_term": 0,
-                    "save_terms": 0,
-                    "load_terms": 0,
-                    "return_format": "id",
-                    "field_type": "select",
-                    "allow_null": 0,
-                    "allow_in_bindings": 0,
-                    "bidirectional": 0,
-                    "multiple": 0,
-                    "bidirectional_target": []
+                    "placeholder": ""
                 }
             ]
         },
@@ -238,9 +179,10 @@
     "active": true,
     "description": "",
     "show_in_rest": 1,
+    "display_title": "",
     "show_in_graphql": 1,
     "graphql_field_name": "station_info",
     "map_graphql_types_from_location_rules": 0,
     "graphql_types": "",
-    "modified": 1755030771
+    "modified": 1776183856
 }
