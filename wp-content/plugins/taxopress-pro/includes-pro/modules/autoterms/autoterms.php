@@ -203,8 +203,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'class'     => 'autoterm-terms-to-use-field autoterm-terms-use-openai',
                     'labeltext' => esc_html__('OpenAI Max Tokens', 'taxopress-pro'),
                     'helptext'  => esc_html__('Maximum tokens for OpenAI response. You can increase this when using {site} placeholder with many terms.', 'taxopress-pro'),
-                    'min'       => '10',
-                    'max'       => '1000',
                     'required'  => false,
                 ]);
             ?>
