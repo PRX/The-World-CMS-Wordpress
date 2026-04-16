@@ -3,7 +3,7 @@
         'name' => 'taxopress/taxopress-pro',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'c55670e4cd6fec50c3772bf91cdb59a1eb4333a8',
+        'reference' => 'cdbaec1f403b4cb904e23f2e52f762708d138954',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'alledia/edd-sl-plugin-updater' => array(
-            'pretty_version' => '1.6.24',
-            'version' => '1.6.24.0',
-            'reference' => 'd3f92cd47a858da15feede854eb4b984fcf28856',
+            'pretty_version' => '1.6.25',
+            'version' => '1.6.25.0',
+            'reference' => '05efd00f46b7f82eac4b769f691001e09b0796a0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../alledia/edd-sl-plugin-updater',
             'aliases' => array(),
@@ -67,7 +67,7 @@
         'taxopress/taxopress-pro' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'c55670e4cd6fec50c3772bf91cdb59a1eb4333a8',
+            'reference' => 'cdbaec1f403b4cb904e23f2e52f762708d138954',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

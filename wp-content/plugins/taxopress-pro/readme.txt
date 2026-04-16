@@ -2,8 +2,8 @@
 Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojopaul, deji98
 Tags: category, tag, taxonomy, categories, tag cloud
 Requires at least: 5.0
-Tested up to: 6.8
-Stable tag: 3.44.0
+Tested up to: 6.9
+Stable tag: 3.45.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -224,6 +224,11 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 6. If you have a term called “WordPress”, the Auto Links feature will find any instances of “WordPress” in your content and add a link to the archive page for that tag.
 
 == Changelog ==
+
+v3.45.0- 2026-04-02
+* Fixed: Issue with metabox overlap in WordPress 7.0, #2929
+* Fixed: Uncaught TypeError: array_keys(): Argument #1 in class.admin.manage, #2921
+* Update: Related Posts settings, #2928
 
 v3.44.0- 2026-01-22
 * Fixed: Auto Terms Existing Content and Schedule aren't adding terms correctly, #2898
