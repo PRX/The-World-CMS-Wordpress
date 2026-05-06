@@ -348,6 +348,24 @@ function rvy_post_id($revision_id) {
                 $published_id = rvy_get_post_meta( $revision_id, '_rvy_base_post_id', true );
                 $busy = false;
 
+                if ('revision' == get_post_field('post_type', $published_id)) {
+                    if ('inherit' == get_post_field('post_status', $published_id)) {
+                        $_published_id = get_post_field('post_parent', $published_id);
+            
+                        if ($_published_id != $revision_id) {
+					      $published_id = $_published_id;  
+					    }
+            
+                        $post_type = get_post_field('post_type', $published_id);
+                
+                        if (!$post_type || ('revision' == $post_type)) {
+                            return 0;
+                        }
+
+                        rvy_update_post_meta($revision_id, '_rvy_base_post_id', $published_id);
+                    }
+                }
+
                 if ($published_id && ($published_id != $revision_id)) {
                     global $wpdb;
 
@@ -673,7 +691,7 @@ function pp_revisions_get_revision_statuses() {
 
 function rvy_bulk_remove_revision_statuses() {
     global $wpdb;
-    
+
     $revision_status_csv = implode("','", array_map('sanitize_key', pp_revisions_get_revision_statuses()));
 
     $wpdb->query("UPDATE $wpdb->posts SET post_mime_type = post_status WHERE post_status IN ('$revision_status_csv')");                             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -780,7 +798,9 @@ function pp_revisions_plugin_deactivation() {
         return;
     }
 
-    rvy_bulk_remove_revision_statuses();
+    $revision_status_csv = implode("','", array_map('sanitize_key', pp_revisions_get_revision_statuses()));
+
+    $wpdb->query("UPDATE $wpdb->posts SET post_status = post_mime_type WHERE post_mime_type IN ('$revision_status_csv')");  // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
     if ($timestamp = wp_next_scheduled('rvy_mail_buffer_hook')) {
         wp_unschedule_event($timestamp,'rvy_mail_buffer_hook');

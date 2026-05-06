@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name: PublishPress Revisions
+ * Plugin Name: PublishPress Revisions Free
  * Plugin URI: https://publishpress.com/revisionary/
  * Description: Maintain published content with teamwork and precision using the Revisions model to submit, approve and schedule changes.
  * Author: PublishPress
  * Author URI: https://publishpress.com
- * Version: 3.7.24
+ * Version: 3.8.1
  * Text Domain: revisionary
  * Domain Path: /languages/
  * Min WP Version: 5.5
  * Requires PHP: 7.2.5
  * 
- * Copyright (c) 2025 PublishPress
+ * Copyright (c) 2026 PublishPress
  *
  * GNU General Public License, Free Software Foundation <https://www.gnu.org/licenses/gpl-3.0.html>
  *
@@ -30,7 +30,7 @@
  *
  * @package     PublishPress\Revisions
  * @author      PublishPress
- * @copyright   Copyright (C) 2025 PublishPress. All rights reserved.
+ * @copyright   Copyright (C) 2026 PublishPress. All rights reserved.
  *
  **/
 
@@ -39,7 +39,7 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
 // Temporary usage within this module only; avoids multiple instances of version string
 global $pp_revisions_version;
 
-$pp_revisions_version = '3.7.24';
+$pp_revisions_version = '3.8.1';
 
 global $wp_version;
 
@@ -140,7 +140,7 @@ if (false === $revisionary_loaded_by_pro) {
     }
 }
 
-if ( isset($_SERVER['SCRIPT_NAME']) && strpos( esc_url_raw($_SERVER['SCRIPT_NAME']), 'p-admin/index-extra.php' ) || strpos( esc_url_raw($_SERVER['SCRIPT_NAME']), 'p-admin/update.php' ) ) {
+if (isset($_SERVER['SCRIPT_NAME']) && (strpos(esc_url_raw($_SERVER['SCRIPT_NAME']), 'p-admin/index-extra.php') || strpos(esc_url_raw($_SERVER['SCRIPT_NAME']), 'p-admin/update.php'))) {
 	return;
 }
 
@@ -170,6 +170,24 @@ if (!defined('REVISIONARY_FILE') && !$revisionary_loaded_by_pro) {
     }
 
 	include_once REVISIONS_INTERNAL_VENDORPATH . '/publishpress/wordpress-version-notices/src/include.php';
+    
+	// Load bundled-translations library
+	$bundledTranslationsPath = '/publishpress/bundled-translations/core/include.php';
+	if (file_exists(REVISIONS_INTERNAL_VENDORPATH . $bundledTranslationsPath)) {
+		require_once REVISIONS_INTERNAL_VENDORPATH . $bundledTranslationsPath;
+	}
+
+    // Initialize bundled translations
+	add_action('plugins_loaded', function() {
+		if (class_exists('PublishPress\BundledTranslations\BundledTranslations')) {
+			$bundledTranslations = new PublishPress\BundledTranslations\BundledTranslations(
+				'revisionary',
+				__DIR__ . '/languages',
+				__FILE__
+			);
+			$bundledTranslations->init();
+		}
+	}, 10);
 }
 
 if (!defined('REVISIONARY_FILE') && (!$revisionary_pro_active || $revisionary_loaded_by_pro)) {

@@ -7,7 +7,7 @@ add_action( '_wp_put_post_revision', 'rvy_review_revision' );
 /**
  * @package     PublishPress\Revisions\RevisionaryAction
  * @author      PublishPress <help@publishpress.com>
- * @copyright   Copyright (c) 2025 PublishPress. All rights reserved.
+ * @copyright   Copyright (c) 2026 PublishPress. All rights reserved.
  * @license     GPLv2 or later
  * @since       1.0.0
  */
@@ -93,6 +93,8 @@ function rvy_revision_submit($revision_id = 0) {
 			break;
 		}
 
+		$revision_before = (object) (array) $revision;
+
 		$old_revision_status = $revision->post_mime_type;
 
 		if (!in_array($revision->post_status, array_merge(['draft', 'pending'], rvy_revision_statuses()))) {
@@ -119,8 +121,6 @@ function rvy_revision_submit($revision_id = 0) {
 
 		// safeguard: make sure this hasn't already been published
 		if ( empty($status_obj->public) && empty($status_obj->private) ) {
-			$revision_before = (object) (array) $revision;
-			
 			$post_mime_type = 'pending-revision';
 			$status = (rvy_get_option('permissions_compat_mode')) ? $post_mime_type : 'pending';
 
@@ -166,7 +166,10 @@ function rvy_revision_submit($revision_id = 0) {
 	if (empty($approval_error)) {
 		$published_id = rvy_post_id($revision_id);
 		do_action( 'revision_submitted', $published_id, $revision_id, $old_revision_status );
-		do_action( 'revisionary_submitted', $published_id, $revision, $revision_before );
+
+		if (!empty($revision) && !empty($revision_before)) {
+			do_action( 'revisionary_submitted', $published_id, $revision, $revision_before );
+		}
 	}
 
 	if (!$batch_process) {
@@ -763,6 +766,26 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 
 	if (!defined('REVISIONARY_APPLY_REVISION_COMMENT_COUNT')) {
 		$published_id = get_post_meta( $revision_id, '_rvy_base_post_id', true );
+
+		$post_type = get_post_field('post_type', $published_id);
+
+		if (!$post_type) {
+			$published_id = 0;
+		} elseif ('revision' == $post_type) {
+			if ('inherit' == get_post_field('post_status', $published_id)) {
+				$_published_id = get_post_field('post_parent', $published_id);
+				
+				if ($_published_id != $revision_id) {
+				  $published_id = $_published_id;  
+				}
+			}
+	
+			$post_type = get_post_field('post_type', $published_id);
+	
+			if (!$post_type || ('revision' == $post_type)) {
+				$published_id = 0;
+			}
+		}
 	}
 
 	if (empty($published_id)) {
@@ -773,7 +796,11 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 		}
 	}
 
-	if ('revision' == get_post_field('post_type', $published_id)) {
+	if (rvy_in_revision_workflow($published_id)) {
+		$published_id = rvy_post_id($published_id);
+	}
+
+    if ('revision' == get_post_field('post_type', $published_id)) {
 		return false;
 	}
 
@@ -990,7 +1017,7 @@ function rvy_apply_revision( $revision_id, $actual_revision_status = '' ) {
 			}
 		
 			$post_id = $post->ID;
-		
+
 			/*
 			* If a limit for the number of revisions to keep has been set,
 			* delete the oldest ones.

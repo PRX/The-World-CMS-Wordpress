@@ -5,7 +5,7 @@ if (!empty($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_ur
 /**
  * @package     PublishPress\Revisions
  * @author      PublishPress <help@publishpress.com>
- * @copyright   Copyright (c) 2025 PublishPress. All rights reserved.
+ * @copyright   Copyright (c) 2026 PublishPress. All rights reserved.
  * @license     GPLv2 or later
  * @since       1.0.0
  */
@@ -128,6 +128,86 @@ class Revisionary
 
 			add_filter( 'map_meta_cap', array( $this, 'flt_limit_others_drafts' ), 10, 4 );
 
+			add_action(
+				'wp_loaded',
+				function() {
+					global $current_user;
+
+					if (isset($_REQUEST['context']) && ('edit' == $_REQUEST['context']) && empty($_POST)) {	 // phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing
+						if (0 === strpos($_SERVER['REQUEST_URI'], "/wp-json/wp/v2/blocks/")) {				 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+							
+							$can_edit_any = false;
+									
+							// We have no context info to limit this provision to Query Loop instances called from within Edit Revision, and also don't know the post type for an Edit Revision instance,
+							// so just limit to users who have at least a basic editing capability for at least one post type. 
+							foreach(array_keys($this->enabled_post_types) as $_post_type) {
+								if ($_type_obj = get_post_type_object($_post_type)) {
+									if (!empty($current_user->allcaps[$_type_obj->cap->edit_posts]) || (is_multisite() && is_super_admin())) {
+										$can_edit_any = true;
+										break;
+									}
+								}
+							}
+							
+							if (rvy_get_option('query_loop_revision_editor_allowance')) {
+    							if (!empty($can_edit_any) || current_user_can('revisor') || current_user_can('editor')) {
+    								unset($_REQUEST['context']);
+    								unset($_GET['context']);
+    							}
+    					    }
+						}
+					}
+				}, 20
+			);
+
+			add_filter( 
+				'wp_rest_server_class',
+				function ($server_class) {
+					global $current_user, $wpdb;
+			
+					if (empty($_POST)) {	// phpcs:ignore WordPress.Security.NonceVerification.Missing
+						$rest_bases = [];
+
+						foreach (get_post_types(['public' => true], 'object') as $queried_type_obj) {
+							if ($queried_type_obj && !empty($queried_type_obj->rest_base)) {
+								$rest_bases []= $queried_type_obj->rest_base;
+							}
+						}
+
+						if (defined('PP_REVISIONS_QUERY_LOOP_REST_QUERIES')) {
+							$custom_bases = explode(',', strtolower(str_replace(' ', '', constant('PP_REVISIONS_QUERY_LOOP_REST_QUERIES'))));
+							$rest_bases = array_merge($rest_bases, array_map('sanitize_key', $custom_bases));
+						}
+
+						foreach($rest_bases as $rest_base) {
+							if (0 === strpos($_SERVER['REQUEST_URI'], "/wp-json/wp/v2/{$rest_base}?")) {					// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+								if (rvy_get_option('query_loop_revision_editor_allowance') && current_user_can('read')) {
+									$can_edit_any = false;
+									
+									// We have no context info to limit this provision to Query Loop instances called from within Edit Revision, and also don't know the post type for an Edit Revision instance,
+									// so just limit to users who have at least a basic editing capability for at least one post type. 
+									foreach(array_keys($this->enabled_post_types) as $_post_type) {
+										if ($_type_obj = get_post_type_object($_post_type)) {
+											if (!empty($current_user->allcaps[$_type_obj->cap->edit_posts]) || (is_multisite() && is_super_admin())) {
+												$can_edit_any = true;
+												break;
+											}
+										}
+									}
+
+									if (!empty($can_edit_any)) {
+										$current_user->allcaps[$queried_type_obj->cap->edit_published_posts] = true;
+										break;
+									}
+								}
+							}
+						}
+					}
+			
+					return $server_class;
+				}, 5
+			);
+			
 			if (defined('PRESSPERMIT_VERSION') && version_compare(PRESSPERMIT_VERSION, '4.4.3-beta2', '>=')) {
 				add_filter(
 					'presspermit_exception_clause', 
@@ -777,6 +857,22 @@ class Revisionary
 		if (rvy_in_revision_workflow($revision)) {
 			if (empty($revision->comment_count)) {
 				if ($main_post_id = get_post_meta($revision->ID, '_rvy_base_post_id', true)) {
+					if ('revision' == get_post_field('post_type', $main_post_id)) {
+						if ('inherit' == get_post_field('post_status', $main_post_id)) {
+							$_main_post_id = get_post_field('post_parent', $main_post_id);
+						
+						    if ($_main_post_id != $revision->ID) {
+						      $main_post_id = $_main_post_id;  
+						    }
+						}
+				
+						$post_type = get_post_field('post_type', $main_post_id);
+				
+						if (!$post_type || ('revision' == $post_type)) {
+							return;
+						}
+					}
+					
 					if ($main_post_id != $revision->ID) {
 						// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 						$wpdb->update($wpdb->posts, ['comment_count' => $main_post_id], ['ID' => $revision->ID]);
@@ -1304,8 +1400,8 @@ class Revisionary
 					|| (!empty($type_obj->cap->edit_published_posts) && empty($current_user->allcaps[$type_obj->cap->edit_published_posts]))
 					) {
 						if (!current_user_can('approve_revision', $post_id)) {
-							if (!empty($current_user->allcaps['edit_others_revisions'])) {
-								$caps[] = 'edit_others_revisions';
+							if (apply_filters('revisionary_allow_edit_others_revision', !empty($current_user->allcaps['edit_others_revisions']), $post)) {
+								$caps[] = 'read';
 							} else {
 								if (defined('PRESSPERMIT_VERSION') && version_compare(PRESSPERMIT_VERSION, '4.4.3-beta2', '>=')) {
 									if (!isset($additional_ids)) {
