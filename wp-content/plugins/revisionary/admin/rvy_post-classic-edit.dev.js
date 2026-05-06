@@ -15,7 +15,7 @@ jQuery(document).ready( function($) {
             var html = '<div class="rvy-creation-ui"' + hideStyle + '><a href="javascript:void(0)" class="button revision-approve revision-create" style="margin-top: 15px; margin-bottom: 15px" title="' 
 			+ rvyObjEdit.actionTitle + '">' 
 			+ rvyObjEdit.actionCaption + '</a>'
-			+ '<div class="revision-creating"><span class="spinner"></span></div>'
+			+ '<div class="revision-creating" style="display:none"><span class="spinner"></span></div>'
 			+ '<div class="revision-created-wrapper" style="display:none; margin: 10px 0 10px 5px; font-weight: bold">'
 			+ '<span class="revision-approve revision-created">' + rvyObjEdit.completedCaption + '</span> &nbsp;';
 			
@@ -209,7 +209,7 @@ jQuery(document).ready( function($) {
         }
         
         var dateStr = $('#mm').val() + '/' + $('#jj').val() + '/' + $('#aa').val() + ' ' +  $('#hh').val() + ':' + $('#mn').val() + ':00';
-		var selectedDate = new Date( dateStr );
+        var selectedDate = new Date( dateStr );
         
 		var currentDate = new Date();
 
@@ -218,7 +218,7 @@ jQuery(document).ready( function($) {
 
 		RvyTimeSelection = RvyTimeSelection / 1000; // pass seconds to server
 
-		if ((tdiff > 1000)) {
+        if (tdiff > 120000) {
 			RvySelectedFutureDate = true;
 
 			$('.rvy-creation-ui').show();

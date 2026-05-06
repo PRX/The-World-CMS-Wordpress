@@ -290,17 +290,16 @@ jQuery(document).ready( function($) {
 		}
 
 		selectedDateHTML = wp.data.select('core/editor').getEditedPostAttribute('date');
-		var selectedDate = new Date( selectedDateHTML );
+        var selectedDate = new Date(selectedDateHTML);
 
 		var currentDate = new Date();
 
 		RvyTimeSelection = selectedDate.getTime() - ((currentDate.getTimezoneOffset() * 60 - rvyObjEdit.timezoneOffset) * 1000);
-
 		var tdiff = RvyTimeSelection - currentDate.getTime();
 
 		RvyTimeSelection = RvyTimeSelection / 1000; // pass seconds to server
 
-		if ((tdiff > 1000)) {
+		if (tdiff > 120000) {
 			RvySelectedFutureDate = true;
 
 			$('.rvy-creation-ui .revision-create').hide();

@@ -2,7 +2,7 @@
 /**
  * @package     PublishPress\Revisions\RevisionaryAdmin
  * @author      PublishPress <help@publishpress.com>
- * @copyright   Copyright (c) 2025 PublishPress. All rights reserved.
+ * @copyright   Copyright (c) 2026 PublishPress. All rights reserved.
  * @license     GPLv2 or later
  * @since       1.0.0
  *
@@ -113,6 +113,39 @@ class RevisionaryAdmin
 
 		add_filter('cme_plugin_capabilities', [$this, 'fltPublishPressCapsSection']);
 		add_filter('cme_capability_descriptions', [$this, 'fltCapDescriptions']);
+
+        // Don't allow plugin name to be translated on Plugins screen
+        if ('plugins.php' == $pagenow) {
+            add_filter(
+                'gettext', 
+                function($translation, $text, $domain) {
+                    if ('PublishPress Revisions Free' == $text) {
+                        return 'PublishPress Revisions Free';
+                    }
+
+                    return $translation;
+                }, 50, 3
+            );
+            
+            // @todo: Ideally, WordPress would provide a post-translation filter to eliminate the need for gettext filtering.
+			// @phpcs:ignore Squiz.PHP.CommentedOutCode.Found
+            /* 
+            add_filter(
+                'plugins_list', 
+                function($plugins) {
+                    $plugin_dir = trailingslashit(str_replace('\\', '/', WP_PLUGIN_DIR));
+                    $plugin_relpath = str_replace($plugin_dir, '', str_replace('\\', '/', PUBLISHPRESS_STATUSES_FILE));
+
+                    if (isset($plugins['all'][$plugin_relpath])) {
+                        $plugins['all'][$plugin_relpath]['Name'] = 'PublishPress Revisions Free';
+						$plugins['all'][$plugin_relpath]['Title'] = 'PublishPress Revisions Free';
+                        $plugins['all'][$plugin_relpath]['AuthorName'] = 'PublishPress';
+                    }
+                    return $plugins;
+                }, 50
+            );
+            */
+        }
 
 		add_filter('relevanssi_where', [$this, 'ftlRelevanssiWhere']);
 
@@ -360,7 +393,7 @@ class RevisionaryAdmin
 				$menu_func = 'rvy_omit_site_options';
 			}
 
-			add_menu_page( esc_html__($_menu_caption, 'pp'), esc_html__($_menu_caption, 'pp'), 'read', $menu_slug, $menu_func, 'dashicons-backup', 29 );
+			add_menu_page( esc_html__($_menu_caption, 'revisionary'), esc_html__($_menu_caption, 'revisionary'), 'read', $menu_slug, $menu_func, 'dashicons-backup', 29 );
 
 			if ($can_edit_any && array_filter($revisionary->enabled_post_types)) {
 				add_submenu_page('revisionary-q', esc_html__('New Revisions', 'revisionary'), esc_html__('New Revisions', 'revisionary'), 'read', 'revisionary-q', [$this, 'moderation_queue']);
@@ -518,7 +551,7 @@ class RevisionaryAdmin
 		<div class="pp-rating">
 		<a href="https://wordpress.org/support/plugin/revisionary/reviews/#new-post" target="_blank" rel="noopener noreferrer">
 		<?php printf(
-			esc_html__('If you like %s, please leave us a %s rating. Thank you!', 'revisionary'),
+			esc_html__('If you like %1$s, please leave us a %2$s rating. Thank you!', 'revisionary'),
 			'<strong>PublishPress Revisions</strong>',
 			'<span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span><span class="dashicons dashicons-star-filled"></span>'
 			);
