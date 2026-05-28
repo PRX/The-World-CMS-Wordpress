@@ -80,6 +80,26 @@ add_action(
 );
 
 /**
+ * Replace the core WPGraphQL UserLoader with our own to fix a slow query
+ */
+add_filter(
+	'graphql_data_loader_classes',
+	function ( $loader_classes ) {
+		if ( ! class_exists( 'TW_Public_User_Loader' ) && class_exists( '\WPGraphQL\Data\Loader\UserLoader' ) ) {
+			require_once __DIR__ . '/class-tw-public-user-loader.php';
+		}
+
+		if ( class_exists( 'TW_Public_User_Loader' ) ) {
+			$loader_classes['user'] = TW_Public_User_Loader::class;
+		}
+
+		return $loader_classes;
+	},
+	10,
+	1
+);
+
+/**
  * Modify GraphQL queries too support registered fields.
  */
 add_filter(
