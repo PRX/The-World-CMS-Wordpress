@@ -7,7 +7,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
     class TaxoPress_Pro_Terms 
     {
         // class instance
-        static $instance;
+        public static $instance;
 
         /**
          * Construct the TaxoPress_Pro_Terms class
@@ -37,9 +37,11 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-term-with-meta') {
-                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-                if (wp_verify_nonce($nonce, 'terms-action-request-nonce')) {
-                    $this->taxopress_action_copy_term_with_meta(sanitize_text_field($_REQUEST['taxopress_terms']));
+                if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_terms'])) {
+                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    if (wp_verify_nonce($nonce, 'terms-action-request-nonce')) {
+                        $this->taxopress_action_copy_term_with_meta(sanitize_text_field($_REQUEST['taxopress_terms']));
+                    }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_term_filter_removable_query_args']);
             }
@@ -91,6 +93,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                         $args = [
                             'post_type' => 'any',
                             'posts_per_page' => -1,
+                            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                             'tax_query' => [[
                                 'taxonomy' => $term->taxonomy,
                                 'field' => 'id',
@@ -119,6 +122,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
 
         public function taxopress_term_copy_success_admin_notice()
         {
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo taxopress_admin_notices_helper(esc_html__('Term successfully copied with metadata.', 'taxopress-pro'), true);
         }
 
@@ -166,7 +170,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                 wp_send_json_error(['message' => esc_html__('Permission denied.', 'simple-tags')]);
             }
 
-            if ( !isset($_POST['nonce']) || !wp_verify_nonce(sanitize_key($_POST['nonce']), 'st-admin-js')) {
+            if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_key($_POST['nonce']), 'st-admin-js')) {
                 wp_send_json_error(['message' => esc_html__('Invalid nonce.', 'simple-tags')]);
             }
 

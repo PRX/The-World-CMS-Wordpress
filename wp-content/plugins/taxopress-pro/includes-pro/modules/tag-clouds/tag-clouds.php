@@ -7,7 +7,7 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
     class TaxoPress_Pro_Tag_Clouds
     {
         // class instance
-        static $instance;
+        public static $instance;
 
         /**
          * Construct the TaxoPress_Pro_Tag_Clouds class
@@ -30,23 +30,26 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             return self::$instance;
         }
 
-        public function taxopress_pro_copy_tagcloud() {
+        public function taxopress_pro_copy_tagcloud()
+        {
             if (isset($_GET['copied_tagcloud']) && (int) $_GET['copied_tagcloud'] === 1) {
                 add_action('admin_notices', [$this, 'taxopress_termsdisplay_copy_success_admin_notice']);
                 add_filter('removable_query_args', [$this, 'taxopress_copied_tagcloud_filter_removable_query_args']);
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-tagcloud') {
-                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-                if (wp_verify_nonce($nonce, 'tagcloud-action-request-nonce')) {
-                    $this->taxopress_action_copy_tagcloud(sanitize_text_field($_REQUEST['taxopress_termsdisplay']));
+                if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_termsdisplay'])) {
+                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    if (wp_verify_nonce($nonce, 'tagcloud-action-request-nonce')) {
+                        $this->taxopress_action_copy_tagcloud(sanitize_text_field($_REQUEST['taxopress_termsdisplay']));
+                    }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_tagcloud_filter_removable_query_args']);
             }
-
         }
 
-        public function taxopress_action_copy_tagcloud($tagcloud_id) {
+        public function taxopress_action_copy_tagcloud($tagcloud_id)
+        {
 
             $tagclouds = taxopress_get_tagcloud_data();
 
@@ -72,20 +75,20 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             exit();
         }
 
-        function taxopress_termsdisplay_copy_success_admin_notice()
+        public function taxopress_termsdisplay_copy_success_admin_notice()
         {
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo taxopress_admin_notices_helper(esc_html__('Terms Display successfully copied.', 'simple-tags'), true);
         }
         
-        function taxopress_copied_tagcloud_filter_removable_query_args(array $args)
+        public function taxopress_copied_tagcloud_filter_removable_query_args(array $args)
         {
             return array_merge($args, [
                 'copied_tagcloud',
             ]);
         }
 
-        function taxopress_copy_tagcloud_filter_removable_query_args(array $args)
+        public function taxopress_copy_tagcloud_filter_removable_query_args(array $args)
         {
             return array_merge($args, [
                 'action',
@@ -94,7 +97,8 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             ]);
         }
 
-        public function taxopress_pro_copy_action($actions, $item) {
+        public function taxopress_pro_copy_action($actions, $item)
+        {
             
             $actions['copy'] = sprintf(
                 '<a href="%s" class="copy-tagcloud">%s</a>',
@@ -121,27 +125,27 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             return $actions;
         }
 
-        function taxopress_pro_tagcloud_ordering_method($current){
+        public function taxopress_pro_tagcloud_ordering_method($current)
+        {
             $ui = new taxopress_admin_ui();
 
             $select = [
                 'options' => [
-                    [ 'attr' => 'name', 'text' => esc_attr__( 'Name', 'simple-tags' ) ],
-                    [ 'attr' => 'count', 'text' => esc_attr__( 'Counter', 'simple-tags') ],
-                    [ 'attr' => 'random', 'text' => esc_attr__( 'Random', 'simple-tags' ), 'default' => 'true' ],
-                    [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__( 'Term Order', 'simple-tags' ) ],
+                    [ 'attr' => 'name', 'text' => esc_attr__('Name', 'simple-tags') ],
+                    [ 'attr' => 'count', 'text' => esc_attr__('Counter', 'simple-tags') ],
+                    [ 'attr' => 'random', 'text' => esc_attr__('Random', 'simple-tags'), 'default' => 'true' ],
+                    [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__('Term Order', 'simple-tags') ],
                 ],
             ];
-            $selected = isset( $current ) ? taxopress_disp_boolean( $current['orderby'] ) : '';
-            $select['selected'] = ! empty( $selected ) ? $current['orderby'] : '';
+            $selected = isset($current) ? taxopress_disp_boolean($current['orderby']) : '';
+            $select['selected'] = ! empty($selected) ? $current['orderby'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input_main( [
+            echo $ui->get_select_checkbox_input_main([
                     'namearray'  => 'taxopress_tag_cloud',
                     'name'       => 'orderby',
-                    'labeltext'  => esc_html__( 'Method for choosing terms for display', 'simple-tags' ),
+                    'labeltext'  => esc_html__('Method for choosing terms for display', 'simple-tags'),
                     'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ] );
+            ]);
         }
-
     }
 }    

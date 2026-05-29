@@ -63,7 +63,7 @@ if ( ! class_exists( Style::class ) ) :
 		 */
 		public function run() {
 			// Handle output.
-			add_action( 'render_block_boldblocks/svg-block', [ $this, 'svg_block_render_block' ], 10, 3 );
+			add_filter( 'render_block_boldblocks/svg-block', [ $this, 'svg_block_render_block' ], 10, 3 );
 
 			// Enqueue responsive style.
 			add_action( 'enqueue_block_assets', [ $this, 'enqueue_dynamic_style' ] );

@@ -1,14 +1,13 @@
 <?php
+
 if (!class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
 }
 
 
 if (!class_exists('Taxopress_Linked_Terms_List')) {
-
     class Taxopress_Linked_Terms_List extends WP_List_Table
     {
-
         /** Class constructor */
         public function __construct()
         {
@@ -23,28 +22,27 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         public function get_all_linked_terms($count = false)
         {
             global $wpdb;
-        
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
-        
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $search = (!empty($_REQUEST['s'])) ? '%' . $wpdb->esc_like(sanitize_text_field($_REQUEST['s'])) . '%' : '';
-        
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field($_REQUEST['orderby']) : 'id';
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $order = (!empty($_REQUEST['order'])) ? sanitize_text_field($_REQUEST['order']) : 'desc';
-        
             $items_per_page = $this->get_items_per_page('st_linked_terms_per_page', 20);
             $page = $this->get_pagenum();
             $offset = ($page - 1) * $items_per_page;
-        
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
-        
             if ($count) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $query = "SELECT COUNT(*) FROM $table_name WHERE 1 = 1";
             } else {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $query = "SELECT * FROM $table_name WHERE 1 = 1";
             }
 
             $placeholders = [];
-        
             if (!empty($selected_taxonomy)) {
                 $query .= " AND (term_taxonomy = %s OR linked_term_taxonomy = %s)";
                 $placeholders[] = $selected_taxonomy;
@@ -56,20 +54,18 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 $placeholders[] = $search;
             }
         
-            $query .= " ORDER BY {$orderby} {$order}";
-        
+            $query .= " ORDER BY {$orderby} {$order}"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Orderby/order are sanitized, column names are safe
             if (!$count) {
                 $query .= " LIMIT %d, %d";
                 $placeholders[] = $offset;
                 $placeholders[] = $items_per_page;
             }
         
-            $prepared_query = !empty($placeholders) ? $wpdb->prepare($query, $placeholders) : $query;
-        
+            $prepared_query = !empty($placeholders) ? $wpdb->prepare($query, $placeholders) : $query; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
             if ($count) {
-                $linked_terms = $wpdb->get_var($prepared_query);
+                $linked_terms = $wpdb->get_var($prepared_query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
             } else {
-                $linked_terms = $wpdb->get_results($prepared_query);
+                $linked_terms = $wpdb->get_results($prepared_query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
             }
 
         
@@ -118,7 +114,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
          *
          * @return array
          */
-        function get_columns()
+        public function get_columns()
         {
             $columns = [
                 'cb'                        => '<input type="checkbox" />',
@@ -129,7 +125,6 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 'term_counts'               => esc_html__('Primary Term Post Count', 'taxopress-pro'),
                 'linked_term_counts'        => esc_html__('Secondary Term Post Count', 'taxopress-pro')
             ];
-
             return $columns;
         }
 
@@ -146,7 +141,6 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 'term_taxonomy'        => ['term_taxonomy', true],
                 'linked_term_taxonomy' => ['linked_term_taxonomy', true],
             ];
-
             return $sortable_columns;
         }
 
@@ -157,7 +151,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
          *
          * @return string
          */
-        function column_cb($item)
+        public function column_cb($item)
         {
             return sprintf('<input type="checkbox" name="%1$s[]" value="%2$s" />', 'taxopress_linked_terms', $item->id);
         }
@@ -174,7 +168,6 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 'taxopress-linked-terms-add-terms' => esc_html__('Add secondary term to posts with primary term', 'taxopress-pro'),
                 'taxopress-linked-terms-delete-relationship' => esc_html__('Delete Relationship', 'taxopress-pro')
             ];
-
             return $actions;
         }
 
@@ -188,8 +181,9 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
 
             if ('top' === $which) {
                 $taxonomies = get_all_taxopress_taxonomies_request();
-                 $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
-            ?>
+                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
+                ?>
 
 
                 <div class="alignleft actions autoterms-terms-table-filter">
@@ -206,7 +200,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                     <a href="javascript:void(0)" class="taxopress-terms-tablenav-filter button"><?php esc_html_e('Filter', 'taxopress-pro'); ?></a>
 
                 </div>
-            <?php
+                <?php
             }
         }
 
@@ -216,29 +210,22 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         public function process_bulk_action()
         {
             global $wpdb;
-
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
-
             $query_arg = '_wpnonce';
             $action = 'bulk-' . $this->_args['plural'];
             $checked = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key($_REQUEST[$query_arg]), $action) : false;
-
             if (!$checked || !current_user_can('simple_tags') || empty($_REQUEST['taxopress_linked_terms'])) {
                 return;
             }
             $taxopress_linked_terms = array_map('sanitize_text_field', (array)$_REQUEST['taxopress_linked_terms']);
-
             $action_acount = 0;
             $action_message = '';
             $message_sucess = false;
             foreach ($taxopress_linked_terms as $taxopress_linked_term) {
                 if ($this->current_action() === 'taxopress-linked-terms-delete-relationship') {
-                    $delete =  $wpdb->query($wpdb->prepare(
-                        "DELETE FROM $table_name WHERE id = %d",
-                        $taxopress_linked_term
-                    ));
+                    $delete =  $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id = %d", $taxopress_linked_term)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
                     if ($delete) {
-                        $action_acount++;
+                            $action_acount++;
                     }
                     if ($action_acount === 0) {
                         $action_message = esc_html__('Error deleting linked term relationship.', 'taxopress-pro');
@@ -250,27 +237,17 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                         $action_message = esc_html__('Linked term deleted successfully.', 'taxopress-pro');
                         $message_sucess = true;
                     }
-                } elseif(in_array($this->current_action(), ['taxopress-linked-terms-add-linked-terms', 'taxopress-linked-terms-add-terms'])) {
-                    $linked_term_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $taxopress_linked_term));
+                } elseif (in_array($this->current_action(), ['taxopress-linked-terms-add-linked-terms', 'taxopress-linked-terms-add-terms'])) {
+                    $linked_term_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $taxopress_linked_term)); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
                     if (is_object($linked_term_data) && isset($linked_term_data->id)) {
                         if ($this->current_action() == 'taxopress-linked-terms-add-linked-terms') {
-                            //Add main term to posts with Linked Term
-                            $not_linked_posts = $this->get_linked_terms_relationship_non_linked_posts(
-                                $linked_term_data->linked_term_taxonomy,
-                                $linked_term_data->linked_term_id, 
-                                $linked_term_data->term_taxonomy,
-                                $linked_term_data->term_id
-                            );
+                    //Add main term to posts with Linked Term
+                            $not_linked_posts = $this->get_linked_terms_relationship_non_linked_posts($linked_term_data->linked_term_taxonomy, $linked_term_data->linked_term_id, $linked_term_data->term_taxonomy, $linked_term_data->term_id);
                             $new_term_name      = $linked_term_data->term_name;
                             $new_term_taxonomy  = $linked_term_data->term_taxonomy;
                         } else {
-                            //Add Linked Term to post with main term
-                            $not_linked_posts = $this->get_linked_terms_relationship_non_linked_posts(
-                                $linked_term_data->term_taxonomy, 
-                                $linked_term_data->term_id, 
-                                $linked_term_data->linked_term_taxonomy,
-                                $linked_term_data->linked_term_id
-                            );
+                //Add Linked Term to post with main term
+                                $not_linked_posts = $this->get_linked_terms_relationship_non_linked_posts($linked_term_data->term_taxonomy, $linked_term_data->term_id, $linked_term_data->linked_term_taxonomy, $linked_term_data->linked_term_id);
                             $new_term_name      = $linked_term_data->linked_term_name;
                             $new_term_taxonomy  = $linked_term_data->linked_term_taxonomy;
                         }
@@ -281,7 +258,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                             $action_acount = $action_acount + count($not_linked_posts);
                             $action_message = sprintf(esc_html__('%d posts updated successfully.', 'taxopress-pro'), $action_acount);
                             $message_sucess = true;
-                        } elseif(empty($action_message)) {
+                        } elseif (empty($action_message)) {
                             $action_message = esc_html__('0 post update.', 'taxopress-pro');
                             $message_sucess = false;
                         }
@@ -290,18 +267,20 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
             }
 
             if (!empty($action_message)) {
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 echo taxopress_admin_notices_helper($action_message, $message_sucess); 
             }
-            
         }
 
-        public function get_linked_terms_relationship_non_linked_posts($term_taxonomy, $term_id, $not_in_term_taxonomy, $not_in_term_id) {
+        public function get_linked_terms_relationship_non_linked_posts($term_taxonomy, $term_id, $not_in_term_taxonomy, $not_in_term_id)
+        {
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
             $args = array(
                 'post_type'      => array_keys(get_post_types(array('public' => true), 'names')),
                 'post_status'    => 'any',
                 'posts_per_page' => -1,
                 'fields'         => 'ids',
-                'tax_query'      => array(
+                'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                     'relation' => 'AND',
                     array(
                         'taxonomy' => $term_taxonomy,
@@ -316,9 +295,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                     ),
                 ),
             );
-        
             $post_ids = get_posts($args);
-        
             return $post_ids;
         }
         
@@ -352,26 +329,25 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
          */
         public function search_box($text, $input_id)
         {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             if (empty($_REQUEST['s']) && !$this->has_items()) {
-                //return;
+//return;
             }
 
             $input_id = $input_id . '-search-input';
-
-            if (!empty($_REQUEST['orderby'])) {
-                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />';
+            if (!empty($_REQUEST['orderby'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
-            if (!empty($_REQUEST['order'])) {
-                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />';
+            if (!empty($_REQUEST['order'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
-            if (!empty($_REQUEST['page'])) {
-                echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />';
+            if (!empty($_REQUEST['page'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
 
             $custom_filters = ['terms_filter_taxonomy'];
-
-            foreach ($custom_filters as  $custom_filter) {
-                $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : '';
+            foreach ($custom_filters as $custom_filter) {
+                $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 echo '<input type="hidden" name="' . esc_attr($custom_filter) . '" value="' . esc_attr($filter_value) . '" />';
             }
             ?>
@@ -380,7 +356,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 <input type="search" id="<?php echo esc_attr($input_id); ?>" name="s" value="<?php _admin_search_query(); ?>" />
                 <?php submit_button($text, '', '', false, ['id' => 'taxopress-terms-search-submit']); ?>
             </p>
-        <?php
+            <?php
         }
 
         /**
@@ -391,29 +367,24 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
 
             $this->_column_headers = $this->get_column_info();
             $this->process_bulk_action();
-
-            /**
+/**
              * First, lets decide how many records per page to show
              */
             $per_page = $this->get_items_per_page('st_linked_terms_per_page', 20);
-
-            /**
+/**
              * Fetch the data
              */
             $data = $this->get_st_Terms();
-
-            /**
+/**
              * Pagination.
              */
             $current_page = $this->get_pagenum();
             $total_items  = $this->record_count();
-
-            /**
+/**
              * Now we can add the data to the items property, where it can be used by the rest of the class.
              */
             $this->items = $data;
-
-            /**
+/**
              * We also have to register our pagination options & calculations.
              */
             $this->set_pagination_args([
@@ -436,50 +407,25 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         {
             //Build row actions
             $actions = [];
-
             if (current_user_can('edit_term', $item->term_id)) {
-
-                $actions['add_linked_term_post'] = sprintf(
-                    '<a href="%s">%s</a>',
-                    add_query_arg(
-                        [
+                $actions['add_linked_term_post'] = sprintf('<a href="%s">%s</a>', add_query_arg([
                             'page'                   => 'st_linked_terms',
                             'action'                 => 'taxopress-linked-terms-add-linked-terms',
                             'taxopress_linked_terms' => esc_attr($item->id),
                             '_wpnonce'               => wp_create_nonce('bulk-' . $this->_args['plural'])
-                        ],
-                        admin_url('admin.php')
-                    ),
-                    esc_html__('Add primary term to posts with secondary term', 'taxopress-pro')
-                );
-
-                $actions['add_term_post'] = sprintf(
-                    '<a href="%s">%s</a>',
-                    add_query_arg(
-                        [
+                        ], admin_url('admin.php')), esc_html__('Add primary term to posts with secondary term', 'taxopress-pro'));
+                $actions['add_term_post'] = sprintf('<a href="%s">%s</a>', add_query_arg([
                             'page'                   => 'st_linked_terms',
                             'action'                 => 'taxopress-linked-terms-add-terms',
                             'taxopress_linked_terms' => esc_attr($item->id),
                             '_wpnonce'               => wp_create_nonce('bulk-' . $this->_args['plural'])
-                        ],
-                        admin_url('admin.php')
-                    ),
-                    esc_html__('Add secondary term to posts with primary term', 'taxopress-pro')
-                );
-
-                $actions['delete'] = sprintf(
-                    '<a href="%s" class="delete-terms">%s</a>',
-                    add_query_arg(
-                        [
+                        ], admin_url('admin.php')), esc_html__('Add secondary term to posts with primary term', 'taxopress-pro'));
+                $actions['delete'] = sprintf('<a href="%s" class="delete-terms">%s</a>', add_query_arg([
                             'page'                   => 'st_linked_terms',
                             'action'                 => 'taxopress-linked-terms-delete-relationship',
                             'taxopress_linked_terms' => esc_attr($item->id),
                             '_wpnonce'               => wp_create_nonce('bulk-' . $this->_args['plural'])
-                        ],
-                        admin_url('admin.php')
-                    ),
-                    esc_html__('Delete Relationship', 'taxopress-pro')
-                );
+                        ], admin_url('admin.php')), esc_html__('Delete Relationship', 'taxopress-pro'));
             }
 
             return $column_name === $primary ? $this->row_actions($actions, false) : '';
@@ -495,18 +441,10 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_term_name($item)
         {
 
-            $title = sprintf(
-                '<a href="%1$s"><strong><span class="row-title">%2$s</span></strong></a>',
-                add_query_arg(
-                    [
+            $title = sprintf('<a href="%1$s"><strong><span class="row-title">%2$s</span></strong></a>', add_query_arg([
                         'taxonomy' => $item->term_taxonomy,
                         'tag_ID' => $item->term_id,
-                    ],
-                    admin_url('term.php')
-                ),
-                esc_html($item->term_name)
-            );
-
+                    ], admin_url('term.php')), esc_html($item->term_name));
             return $title;
         }
 
@@ -520,18 +458,10 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_linked_term_name($item)
         {
 
-            $title = sprintf(
-                '<a href="%1$s"><strong><span class="row-title">%2$s</span></strong></a>',
-                add_query_arg(
-                    [
+            $title = sprintf('<a href="%1$s"><strong><span class="row-title">%2$s</span></strong></a>', add_query_arg([
                         'taxonomy' => $item->linked_term_taxonomy,
                         'tag_ID' => $item->linked_term_id,
-                    ],
-                    admin_url('term.php')
-                ),
-                esc_html($item->linked_term_name)
-            );
-
+                    ], admin_url('term.php')), esc_html($item->linked_term_name));
             return $title;
         }
 
@@ -545,21 +475,13 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_term_taxonomy($item)
         {
             $taxonomy = get_taxonomy($item->term_taxonomy);
-
             if ($taxonomy) {
-                $return = sprintf(
-                    '<a href="%1$s">%2$s</a>',
-                    add_query_arg(
-                        [
+                $return = sprintf('<a href="%1$s">%2$s</a>', add_query_arg([
                             'page' => 'st_taxonomies',
                             'add' => 'taxonomy',
                             'action' => 'edit',
                             'taxopress_taxonomy' => $taxonomy->name,
-                        ],
-                        taxopress_admin_url('admin.php')
-                    ),
-                    esc_html($taxonomy->labels->name)
-                );
+                        ], taxopress_admin_url('admin.php')), esc_html($taxonomy->labels->name));
             } else {
                 $return = $item->term_taxonomy;
             }
@@ -577,21 +499,13 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_linked_term_taxonomy($item)
         {
             $taxonomy = get_taxonomy($item->linked_term_taxonomy);
-
             if ($taxonomy) {
-                $return = sprintf(
-                    '<a href="%1$s">%2$s</a>',
-                    add_query_arg(
-                        [
+                $return = sprintf('<a href="%1$s">%2$s</a>', add_query_arg([
                             'page' => 'st_taxonomies',
                             'add' => 'taxonomy',
                             'action' => 'edit',
                             'taxopress_taxonomy' => $taxonomy->name,
-                        ],
-                        taxopress_admin_url('admin.php')
-                    ),
-                    esc_html($taxonomy->labels->name)
-                );
+                        ], taxopress_admin_url('admin.php')), esc_html($taxonomy->labels->name));
             } else {
                 $return = $item->linked_term_taxonomy;
             }
@@ -609,18 +523,10 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_term_counts($item)
         {
             $term_counts = $this->count_posts_by_term($item->term_id, $item->term_taxonomy);
-
-            return sprintf(
-                '<a href="%s" class="">%s</a>',
-                add_query_arg(
-                    [
+            return sprintf('<a href="%s" class="">%s</a>', add_query_arg([
                         'page' => 'st_posts',
                         'posts_term_filter' => (int) $item->term_id,
-                    ],
-                    admin_url('admin.php')
-                ),
-                number_format_i18n($term_counts)
-            );
+                    ], admin_url('admin.php')), number_format_i18n($term_counts));
         }
 
         /**
@@ -633,27 +539,20 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
         protected function column_linked_term_counts($item)
         {
             $term_counts = $this->count_posts_by_term($item->linked_term_id, $item->linked_term_taxonomy);
-
-            return sprintf(
-                '<a href="%s" class="">%s</a>',
-                add_query_arg(
-                    [
+            return sprintf('<a href="%s" class="">%s</a>', add_query_arg([
                         'page' => 'st_posts',
                         'posts_term_filter' => (int) $item->linked_term_id,
-                    ],
-                    admin_url('admin.php')
-                ),
-                number_format_i18n($term_counts)
-            );
+                    ], admin_url('admin.php')), number_format_i18n($term_counts));
         }
 
-        protected function count_posts_by_term($term_id, $taxonomy) {
-            
+        protected function count_posts_by_term($term_id, $taxonomy)
+        {
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
             $args = array(
                 'post_type' => array_keys(get_post_types(array('public' => true), 'names')),
                 'post_status' => 'any',
                 'posts_per_page' => 1,
-                'tax_query' => array(
+                'tax_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                     'relation' => 'AND',
                     array(
                         'taxonomy' => $taxonomy,
@@ -662,15 +561,13 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                     ),
                 ),
             );
-        
             $term_count = new WP_Query($args);
-
             if ($term_count->have_posts()) {
                 return $term_count->found_posts;
             } else {
                 return 0;
             }
         }
-
     }
+
 }

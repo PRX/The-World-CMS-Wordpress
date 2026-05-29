@@ -6,11 +6,10 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ACPL\\AIAltGenerator\\Admin' => $baseDir . '/includes/Admin.php',
-    'ACPL\\AIAltGenerator\\AltGenerator' => $baseDir . '/includes/AltGenerator.php',
-    'ACPL\\AIAltGenerator\\AltGeneratorPlugin' => $baseDir . '/includes/AltGeneratorPlugin.php',
-    'ACPL\\AIAltGenerator\\ApiController' => $baseDir . '/includes/ApiController.php',
-    'ACPL\\AIAltGenerator\\Enum\\ErrorCodes' => $baseDir . '/includes/Enum/ErrorCodes.php',
-    'ACPL\\AIAltGenerator\\Enum\\OpenAIModel' => $baseDir . '/includes/Enum/OpenAIModel.php',
+    'Acpl\\AltGenerator\\Admin' => $baseDir . '/includes/Admin.php',
+    'Acpl\\AltGenerator\\AltGenerator' => $baseDir . '/includes/AltGenerator.php',
+    'Acpl\\AltGenerator\\AltGeneratorPlugin' => $baseDir . '/includes/AltGeneratorPlugin.php',
+    'Acpl\\AltGenerator\\ApiController' => $baseDir . '/includes/ApiController.php',
+    'Acpl\\AltGenerator\\ModelHelper' => $baseDir . '/includes/ModelHelper.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
 );

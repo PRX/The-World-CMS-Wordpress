@@ -6,7 +6,7 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
      */
     class TaxoPress_Pro_Auto_Terms_Schedule
     {
-        static $instance;
+        public static $instance;
 
         public function __construct()
         {
@@ -17,7 +17,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms_Schedule')) {
             
             add_action('taxopress_cron_autoterms_hourly', [$this, 'taxopress_cron_autoterms_hourly_execution']);
             add_action('taxopress_cron_autoterms_daily', [$this, 'taxopress_cron_autoterms_daily_execution']);
-
         }
 
         public static function get_instance()
