@@ -9,7 +9,26 @@
         "platform-check": false,
         "autoloader-suffix": "TaxoPressPro"
     },
+    "repositories": [
+        {
+            "type": "github",
+            "url": "https://github.com/Taxopress/TaxoPress",
+            "only": [
+                "taxopress/simple-tags"
+            ]
+        }
+    ],
     "require": {
-        "php": ">=7.2.5"
+        "php": ">=7.2.5",
+        "taxopress/simple-tags": "^3.50.0",
+        "publishpress/instance-protection": "^1.0",
+        "publishpress/wordpress-reviews": "^1.2.1",
+        "publishpress/wordpress-version-notices": "^2.2.1",
+        "publishpress/wordpress-edd-license": "^3.0.6",
+        "publishpress/bundled-translations": "^1.0.3"
+    },
+    "scripts": {
+        "post-update-cmd": "rm -rf vendor/taxopress/simple-tags/lib/vendor",
+        "post-install-cmd": "@post-update-cmd"
     }
 }

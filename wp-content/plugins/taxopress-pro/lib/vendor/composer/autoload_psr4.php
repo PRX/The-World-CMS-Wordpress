@@ -6,4 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'PublishPress\\WordPressEDDLicense\\' => array($vendorDir . '/publishpress/wordpress-edd-license/src/classes'),
 );

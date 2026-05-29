@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2
+class ComposerStaticInit77ff300e5ff3e643c2a911cd672b0905
 {
     public static $prefixLengthsPsr4 = array (
         'W' =>
@@ -64,6 +64,7 @@ class ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2
         'GraphQL\\Executor\\Executor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Executor.php',
         'GraphQL\\Executor\\ExecutorImplementation' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/ExecutorImplementation.php',
         'GraphQL\\Executor\\PromiseExecutor' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/PromiseExecutor.php',
+        'GraphQL\\Executor\\Promise\\Adapter\\AmpFutureAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/AmpFutureAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\AmpPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/AmpPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\ReactPromiseAdapter' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/ReactPromiseAdapter.php',
         'GraphQL\\Executor\\Promise\\Adapter\\SyncPromise' => __DIR__ . '/..' . '/webonyx/graphql-php/src/Executor/Promise/Adapter/SyncPromise.php',
@@ -510,9 +511,9 @@ class ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit0f5db82aa0580f16feb9a6c79b56f0b2::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit77ff300e5ff3e643c2a911cd672b0905::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit77ff300e5ff3e643c2a911cd672b0905::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit77ff300e5ff3e643c2a911cd672b0905::$classMap;
 
         }, null, ClassLoader::class);
     }

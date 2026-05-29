@@ -1,50 +1,44 @@
 <?php
+
 require_once plugin_dir_path(__FILE__) . 'linked-terms-schema.php';
 require_once plugin_dir_path(__FILE__) . 'linked-terms-table.php';
-
 if (!class_exists('TaxoPress_Linked_Terms')) {
-    /**
+/**
      * class TaxoPress_Linked_Terms
      */
     class TaxoPress_Linked_Terms
     {
-        const MENU_SLUG = 'st_options';
-
-        // class instance
-        static $instance;
-
-        // WP_List_Table object
+        public const MENU_SLUG = 'st_options';
+// class instance
+        public static $instance;
+// WP_List_Table object
         public $terms_table;
-
-        /**
+/**
          * Construct the TaxoPress_Linked_Terms class
          */
         public function __construct()
         {
             add_action('admin_init', [$this, 'run_installer_task']);
-
             add_action('admin_init', function () {
+
                 $linked_terms_taxonomies = SimpleTags_Plugin::get_option_value('linked_terms_taxonomies');
                 if (is_array($linked_terms_taxonomies)) {
                     foreach ($linked_terms_taxonomies as $taxonomy) {
-                        add_action($taxonomy . '_add_form_fields', [$this, 'add_term_fields']);
-                        add_action($taxonomy . '_edit_form_fields', [$this, 'edit_term_fields'], 10, 2);
-                        add_action('created_' . $taxonomy, [$this, 'save_term_fields']);
-                        add_action('edited_' . $taxonomy, [$this, 'save_term_fields']);
-                        add_action('delete_' . $taxonomy, [$this, 'delete_linked_term_relation'], 10, 3);
+                            add_action($taxonomy . '_add_form_fields', [$this, 'add_term_fields']);
+                            add_action($taxonomy . '_edit_form_fields', [$this, 'edit_term_fields'], 10, 2);
+                            add_action('created_' . $taxonomy, [$this, 'save_term_fields']);
+                            add_action('edited_' . $taxonomy, [$this, 'save_term_fields']);
+                            add_action('delete_' . $taxonomy, [$this, 'delete_linked_term_relation'], 10, 3);
                     }
                 }
             }, 19);
 
             // Add linked term to post
             add_action('save_post', [$this, 'add_linked_term_to_post'], 100, 2);
-
             add_filter('set-screen-option', [$this, 'set_screen'], 10, 3);
             // Admin menu
             add_action('admin_menu', [$this, 'admin_menu']);
-
             add_filter('removable_query_args', [$this, 'remove_args']);
-
         }
 
         /** Singleton instance */
@@ -60,17 +54,20 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
         /**
          * Run installer task
          */
-        public function run_installer_task() {
+        public function run_installer_task()
+        {
             if (!get_option('taxopress_linked_terms_table_installed')) {
                 // create linked terms table if not exist
                 TaxoPress_Linked_Terms_Schema::createTableIfNotExists();
                 // run migration for legacy linked terms
                 self::migrate_legacy_linked_terms();
                 update_option('taxopress_linked_terms_table_installed', true);
-           }
+            }
         }
 
-        public function remove_args ($args) {
+        public function remove_args($args)
+        {
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             if (isset($_GET['page']) && $_GET['page'] === 'st_linked_terms') {
                 $args = array_merge($args, [
                     'action',
@@ -98,9 +95,7 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                 'default' => 20,
                 'option'  => 'st_linked_terms_per_page'
             ];
-    
             add_screen_option($option, $args);
-    
             $this->terms_table = new Taxopress_Linked_Terms_List();
         }
 
@@ -111,18 +106,10 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          */
         public function admin_menu()
         {
-            $hook = add_submenu_page(
-                self::MENU_SLUG,
-                esc_html__('Linked Terms', 'taxopress-pro'),
-                esc_html__('Linked Terms', 'taxopress-pro'),
-                'simple_tags',
-                'st_linked_terms',
-                [
+            $hook = add_submenu_page(self::MENU_SLUG, esc_html__('Linked Terms', 'taxopress-pro'), esc_html__('Linked Terms', 'taxopress-pro'), 'simple_tags', 'st_linked_terms', [
                     $this,
                     'page_manage_linked_terms',
-                ]
-            );
-    
+                ]);
             add_action("load-$hook", [$this, 'screen_option']);
         }
 
@@ -135,12 +122,13 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
         public function page_manage_linked_terms()
         {
             // Default order
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             if (!isset($_GET['order'])) {
                 $_GET['order'] = 'name-asc';
             }
     
             settings_errors(__CLASS__);
-        ?>
+            ?>
             <div class="wrap st_wrap st-manage-taxonomies-page manage-taxopress-linked-terms">
     
                 <div id="">
@@ -150,12 +138,10 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                     </div>
     
                     <?php
+                    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                     if (isset($_REQUEST['s']) && $search = esc_attr(sanitize_text_field(wp_unslash($_REQUEST['s'])))) {
-                        /* translators: %s: search keywords */
-                        printf(' <span class="subtitle">' . esc_html__(
-                            'Search results for &#8220;%s&#8221;',
-                            'taxopress-pro'
-                        ) . '</span>', esc_html($search));
+                    /* translators: %s: search keywords */
+                        printf(' <span class="subtitle">' . esc_html__('Search results for &#8220;%s&#8221;', 'taxopress-pro') . '</span>', esc_html($search));
                     }
                     ?>
                     <?php
@@ -191,43 +177,41 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                 </div>
                 <?php SimpleTags_Admin::printAdminFooter(); ?>
             </div>
-    <?php
-    }
+            <?php
+        }
 
         /**
          * Run migration for legacy linked terms
          */
-        public static function migrate_legacy_linked_terms() {
+        public static function migrate_legacy_linked_terms()
+        {
             global $wpdb;
-
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             $query = "
                 SELECT t.*, tt.*, tm.meta_value
                 FROM $wpdb->terms AS t
                 INNER JOIN $wpdb->term_taxonomy AS tt ON t.term_id = tt.term_id
                 INNER JOIN $wpdb->termmeta AS tm ON t.term_id = tm.term_id
-                WHERE tm.meta_key = '_taxopress_linked_terms'
+                WHERE tm.meta_key = %s
             ";
-
-            $terms = $wpdb->get_results($query);
-
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $prepared_query = $wpdb->prepare($query, '_taxopress_linked_terms'); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            $terms = $wpdb->get_results($prepared_query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
             if ($terms && !empty($terms)) {
                 foreach ($terms as $term) {
                     $linked_terms = maybe_unserialize($term->meta_value);
                     if (is_array($linked_terms) && !empty($linked_terms)) {
-
                         foreach ($linked_terms as $linked_term) {
                             $linked_term_details = get_term_by('name', $linked_term, $term->taxonomy);
                             if (is_object($linked_term_details) && isset($linked_term_details->term_id)) {
-                                self::addLinkedTermsRelation($term->term_id, $term->name, $term->taxonomy, $linked_term_details->term_id, $linked_term_details->name, $linked_term_details->taxonomy);
+                                        self::addLinkedTermsRelation($term->term_id, $term->name, $term->taxonomy, $linked_term_details->term_id, $linked_term_details->name, $linked_term_details->taxonomy);
                             }
                         }
-
                     }
                     // delete relation either it's empty or not after migration
                     delete_term_meta($term->term_id, '_taxopress_linked_terms');
                 }
             }
-
         }
 
         /**
@@ -242,44 +226,30 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          *
          * @return integer|bool
          */
-        public static function addLinkedTermsRelation($term_id, $term_name, $term_taxonomy, $linked_term_id, $linked_term_name, $linked_term_taxonomy) {
+        public static function addLinkedTermsRelation($term_id, $term_name, $term_taxonomy, $linked_term_id, $linked_term_name, $linked_term_taxonomy)
+        {
             global $wpdb;
-
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
-
-            $existing_entry = $wpdb->get_row(
-                $wpdb->prepare(
-                    "SELECT * FROM $table_name WHERE (term_id = %d AND linked_term_id = %d) OR (term_id = %d AND linked_term_id = %d)",
-                    $term_id,
-                    $linked_term_id,
-                    $linked_term_id,
-                    $term_id
-                )
-            );
-
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $existing_entry = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE (term_id = %d AND linked_term_id = %d) OR (term_id = %d AND linked_term_id = %d)", $term_id, $linked_term_id, $linked_term_id, $term_id));
             if ($existing_entry) {
                 return $existing_entry->id;
             } else {
-                $inserted = $wpdb->insert(
-                    $table_name,
-                    [
+                $inserted = $wpdb->insert($table_name, [
                         'term_id'               => $term_id,
                         'linked_term_id'        => $linked_term_id,
                         'term_name'             => $term_name,
                         'linked_term_name'      => $linked_term_name,
                         'term_taxonomy'         => $term_taxonomy,
                         'linked_term_taxonomy'  => $linked_term_taxonomy,
-                    ],
-                    [
+                    ], [
                         '%d',
                         '%d',
                         '%s',
                         '%s',
                         '%s',
                         '%s',
-                    ]
-                );
-            
+                    ]);
                 if ($inserted) {
                     return $wpdb->insert_id;
                 } else {
@@ -297,28 +267,20 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          *
          * @return integer|bool
          */
-        public function deleteLinkedTermsRelation($term_id, $linked_term_id = false) {
+        public function deleteLinkedTermsRelation($term_id, $linked_term_id = false)
+        {
             global $wpdb;
-
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
-
             if (!$linked_term_id) {
-                $query = $wpdb->prepare(
-                    "DELETE FROM $table_name WHERE term_id = %d OR linked_term_id = %d",
-                    $term_id,
-                    $term_id
-                );
-            } elseif($linked_term_id) {
-                $query = $wpdb->prepare(
-                    "DELETE FROM $table_name WHERE (term_id = %d AND linked_term_id = %d) OR (term_id = %d AND linked_term_id = %d)",
-                    $term_id,
-                    $linked_term_id,
-                    $linked_term_id,
-                    $term_id
-                );
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                $query = $wpdb->prepare("DELETE FROM $table_name WHERE term_id = %d OR linked_term_id = %d", $term_id, $term_id);
+            } elseif ($linked_term_id) {
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                $query = $wpdb->prepare("DELETE FROM $table_name WHERE (term_id = %d AND linked_term_id = %d) OR (term_id = %d AND linked_term_id = %d)", $term_id, $linked_term_id, $linked_term_id, $term_id); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
             }
 
-            return $wpdb->query($query);
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+            return $wpdb->query($query); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.NoCaching
         }
 
         /**
@@ -326,41 +288,25 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          */
         public function taxopress_load_taxonomy_linked_terms_assets()
         {
-            wp_enqueue_style(
-                'taxopress-linked-terms-css',
-                plugins_url('', __FILE__) . '/assets/css/taxonomy-linked-terms.css',
-                [],
-                STAGS_VERSION,
-                'all'
-            );
-            wp_enqueue_script(
-                'taxopress-linked-terms-js',
-                plugins_url('', __FILE__) . '/assets/js/taxonomy-linked-terms.js',
-                ['jquery', 'jquery-ui-sortable', 'jquery-ui-autocomplete'],
-                STAGS_VERSION
-            );
-
-            wp_localize_script(
-                'taxopress-linked-terms-js',
-                'linkedTermsRequestAction',
-                array(
-                    'taxonomy' => !empty($_GET['taxonomy']) ? sanitize_key($_GET['taxonomy']) : 'post_tag',
-                    'term_id'  => !empty($_GET['tag_ID']) ? sanitize_key($_GET['tag_ID']) : 0,
-                )
-            );
+            wp_enqueue_style('taxopress-linked-terms-css', plugins_url('', __FILE__) . '/assets/css/taxonomy-linked-terms.css', [], STAGS_VERSION, 'all');
+            wp_enqueue_script('taxopress-linked-terms-js', plugins_url('', __FILE__) . '/assets/js/taxonomy-linked-terms.js', ['jquery', 'jquery-ui-sortable', 'jquery-ui-autocomplete'], STAGS_VERSION);
+            wp_localize_script('taxopress-linked-terms-js', 'linkedTermsRequestAction', array(
+                    'taxonomy' => !empty($_GET['taxonomy']) ? sanitize_key($_GET['taxonomy']) : 'post_tag', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    'term_id'  => !empty($_GET['tag_ID']) ? sanitize_key($_GET['tag_ID']) : 0, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                ));
         }
 
         public function add_term_fields($taxonomy)
         {
             wp_nonce_field('taxopress_linked_terms', 'taxopress_linked_terms_nonce');
-?>
+            ?>
             <div class="form-field">
                 <label for="text"><?php esc_html_e('Linked Terms', 'taxopress-pro'); ?></label>
                 <input type="text" class="taxopress-linked-terms-input term-linked-terms linked-term-autocomplete-input" placeholder="<?php esc_attr_e('Start typing to choose existing terms.', 'taxopress-pro'); ?>" />
                 <p><?php esc_html_e('These terms are linked to the main term. When the primary or secondary term is added to a post, the other term can be added also.', 'taxopress-pro'); ?></p>
                 <ul class="taxopress-term-linked-terms wrapper"></ul>
             </div>
-        <?php
+            <?php
             $this->taxopress_load_taxonomy_linked_terms_assets();
         }
 
@@ -370,10 +316,9 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
         public function edit_term_fields($term, $taxonomy)
         {
             wp_nonce_field('taxopress_linked_terms', 'taxopress_linked_terms_nonce');
-
             $linked_terms = taxopress_get_linked_terms($term->term_id);
             $existing_linked_term_ids = [];
-        ?><tr class="form-field">
+            ?><tr class="form-field">
                 <th>
                     <label for="text"><?php esc_html_e('Linked Terms', 'taxopress-pro'); ?></label>
                 </th>
@@ -381,16 +326,15 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                     <input type="text" class="taxopress-linked-terms-input term-linked-terms linked-term-autocomplete-input" placeholder="<?php esc_attr_e('Start typing to choose existing terms.', 'taxopress-pro'); ?>" />
                     <p><?php esc_html_e('These terms are linked to the main term. When the primary or secondary term is added to a post, the other term can be added also.', 'taxopress-pro'); ?></p>
                     <ul class="taxopress-term-linked-terms wrapper">
-                        <?php if (!empty($linked_terms)) : ?>
-                            <?php foreach ($linked_terms as $linked_term_option) : 
-                            $linked_term_tag = ((int)$linked_term_option->term_id === (int)$term->term_id) ? '2' : '1';
-                            $actual_linked_term_data = taxopress_get_linked_term_data($linked_term_option, $term->term_id);
-                            
-                            $taxopress_linked_term_id       = $actual_linked_term_data->term_id;
-                            $taxopress_linked_term_name     = $actual_linked_term_data->term_name;
-                            $taxopress_linked_term_taxonomy = $actual_linked_term_data->term_taxonomy;
-
-                            $existing_linked_term_ids[] = $taxopress_linked_term_id;
+                        <?php if (!empty($linked_terms)) :
+                            ?>
+                            <?php foreach ($linked_terms as $linked_term_option) :
+                                $linked_term_tag = ((int)$linked_term_option->term_id === (int)$term->term_id) ? '2' : '1';
+                                $actual_linked_term_data = taxopress_get_linked_term_data($linked_term_option, $term->term_id);
+                                $taxopress_linked_term_id       = $actual_linked_term_data->term_id;
+                                $taxopress_linked_term_name     = $actual_linked_term_data->term_name;
+                                $taxopress_linked_term_taxonomy = $actual_linked_term_data->term_taxonomy;
+                                $existing_linked_term_ids[] = $taxopress_linked_term_id;
                                 ?>
                                 <li class="taxopress-term-li <?php echo esc_attr($taxopress_linked_term_taxonomy); ?>-<?php echo esc_attr($taxopress_linked_term_id); ?>" data-position="<?php echo esc_attr($linked_term_tag); ?>">
                                     <span class="display-text"><?php echo esc_html($taxopress_linked_term_name); ?> (<?php echo esc_html($taxopress_linked_term_taxonomy); ?>)</span>
@@ -401,27 +345,33 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                                     <input type="hidden" class="term-linked-terms name" name="taxopress_linked_term_name[]" value="<?php echo esc_attr($taxopress_linked_term_name); ?>">
                                     <input type="hidden" class="term-linked-terms taxonomy" name="taxopress_linked_term_taxonomy[]" value="<?php echo esc_attr($taxopress_linked_term_taxonomy); ?>">
                                 </li>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
+                                <?php 
+                            endforeach; ?>
+                            <?php 
+                        endif; ?>
                     </ul>
-                    <?php foreach ($existing_linked_term_ids as $existing_linked_term_id) : ?>
+                    <?php foreach ($existing_linked_term_ids as $existing_linked_term_id) :
+                        ?>
                         <input type="hidden" name="taxopress_existing_linked_term_id[]" value="<?php echo esc_attr($existing_linked_term_id); ?>">
-                    <?php endforeach; ?>
-                    <?php if (!empty($linked_terms)) : ?>
+                        <?php 
+                    endforeach; ?>
+                    <?php if (!empty($linked_terms)) :
+                        ?>
                         <p class="taxopress-term-position-msg">
                             <?php 
                             printf(
                                 /* translators: %1$s and %2$s are superscript numbers. */
-                                __('The superscript %1$s indicates the linked term being the primary term, while %2$s is shown when the linked term is the secondary term. You can delete the relationship and re-add it from your preferred term edit screen to make them the primary term.', 'taxopress-pro'),
+                                esc_html__('The superscript %1$s indicates the linked term being the primary term, while %2$s is shown when the linked term is the secondary term. You can delete the relationship and re-add it from your preferred term edit screen to make them the primary term.', 'taxopress-pro'),
                                 '<strong>1</strong>',
                                 '<strong>2</strong>'
                             ); 
                             ?>
                         </p>
-                    <?php endif; ?>
+                        <?php 
+                    endif; ?>
                 </td>
             </tr>
-<?php
+            <?php
             $this->taxopress_load_taxonomy_linked_terms_assets();
         }
 
@@ -434,17 +384,18 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
 
             if (!empty($_POST['taxopress_linked_term_id'])) {
                 $taxopress_linked_term_id       = array_map('sanitize_text_field', $_POST['taxopress_linked_term_id']);
-                $taxopress_linked_term_name     = array_map('sanitize_text_field', $_POST['taxopress_linked_term_name']);
-                $taxopress_linked_term_taxonomy = array_map('sanitize_text_field', $_POST['taxopress_linked_term_taxonomy']);
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                $taxopress_linked_term_name     = isset($_POST['taxopress_linked_term_name']) ? array_map('sanitize_text_field', $_POST['taxopress_linked_term_name']) : [];
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                $taxopress_linked_term_taxonomy = isset($_POST['taxopress_linked_term_taxonomy']) ? array_map('sanitize_text_field', $_POST['taxopress_linked_term_taxonomy']) : [];
                 $existing_linked_term_ids       = [0];
                 if (!empty($_POST['taxopress_existing_linked_term_id'])) {
-                    // delete removed linked term
+                // delete removed linked term
                     $existing_linked_term_ids = array_map('sanitize_text_field', $_POST['taxopress_existing_linked_term_id']);
-
                     $old_removed_relations = array_diff($existing_linked_term_ids, $taxopress_linked_term_id);
                     if (!empty($old_removed_relations)) {
                         foreach ($old_removed_relations as $old_removed_relation) {
-                            self::deleteLinkedTermsRelation($term_id, $old_removed_relation);
+                                    self::deleteLinkedTermsRelation($term_id, $old_removed_relation);
                         }
                     }
                 }
@@ -458,9 +409,8 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                         self::addLinkedTermsRelation($current_term->term_id, $current_term->name, $current_term->taxonomy, $linked_term_id, $linked_term_name, $linked_term_taxonomy);
                     }
                 }
-
             } elseif (!empty($_POST['taxopress_existing_linked_term_id'])) {
-                // all linked terms are removed
+            // all linked terms are removed
                 self::deleteLinkedTermsRelation($term_id);
             }
         }
@@ -471,9 +421,10 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          * @param int     $tt_id        Term taxonomy ID.
          * @param WP_Term $deleted_term Copy of the already-deleted term.
          */
-         public function delete_linked_term_relation($term, $tt_id, $deleted_term) {
+        public function delete_linked_term_relation($term, $tt_id, $deleted_term)
+        {
             self::deleteLinkedTermsRelation($deleted_term->term_id);
-         }
+        }
 
         /**
          * Add post linked terms
@@ -482,7 +433,8 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
          * @param object $post
          * @return void
          */
-        public function add_linked_term_to_post($post_id, $post) {
+        public function add_linked_term_to_post($post_id, $post)
+        {
             // Check if the post is being updated
             if (wp_is_post_revision($post_id)) {
                 return;
@@ -490,19 +442,17 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
     
             // Get all taxonomies associated with the post
             $taxonomies = get_object_taxonomies($post);
-
             foreach ($taxonomies as $taxonomy) {
-                // Get all terms for the current taxonomy
+            // Get all terms for the current taxonomy
                 $terms = get_the_terms($post_id, $taxonomy);
-                
                 if (!empty($terms)) {
                     foreach ($terms as $term) {
-                        // Add linked term
+                            // Add linked term
                         $linked_terms_type = SimpleTags_Plugin::get_option_value('linked_terms_type');
-                        $linked_terms = taxopress_get_linked_terms($term->term_id, '', false, $linked_terms_type);
+                            $linked_terms = taxopress_get_linked_terms($term->term_id, '', false, $linked_terms_type);
                         if (!empty($linked_terms)) {
-                            foreach($linked_terms as $linked_term) {
-                                $linked_term_data = taxopress_get_linked_term_data($linked_term, $term->term_id);
+                            foreach ($linked_terms as $linked_term) {
+                                        $linked_term_data = taxopress_get_linked_term_data($linked_term, $term->term_id);
                                 if (in_array($linked_term_data->term_taxonomy, $taxonomies)) {
                                     wp_set_object_terms($post_id, [$linked_term_data->term_name], $linked_term_data->term_taxonomy, true);
                                 }
@@ -512,6 +462,6 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
                 }
             }
         }
-
     }
+
 }

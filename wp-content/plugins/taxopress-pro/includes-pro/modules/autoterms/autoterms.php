@@ -7,15 +7,15 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
     class TaxoPress_Pro_Auto_Terms
     {
         // class instance
-        static $instance;
+        public static $instance;
 
         /**
          * Construct the TaxoPress_Pro_Auto_Terms class
          */
         public function __construct()
         {
-            add_action( 'taxopress_autoterms_after_autoterm_terms_to_use', [$this, 'taxopress_autoterms_after_autoterm_terms_to_use_field'] );
-            add_action( 'taxopress_autoterms_after_autoterm_advanced', [$this, 'taxopress_pro_autoterm_advanced_field'] );
+            add_action('taxopress_autoterms_after_autoterm_terms_to_use', [$this, 'taxopress_autoterms_after_autoterm_terms_to_use_field']);
+            add_action('taxopress_autoterms_after_autoterm_advanced', [$this, 'taxopress_pro_autoterm_advanced_field']);
 
             add_action('admin_init', [$this, 'taxopress_pro_copy_autoterm']);
             add_filter('taxopress_autoterm_row_actions', [$this, 'taxopress_pro_copy_action'], 10, 2);
@@ -69,7 +69,7 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'name'       => 'autoterm_use_open_ai',
                 'class'      => 'autoterm_use_open_ai  autoterm-terms-to-use-field autoterm-terms-use-openai fields-control',
                 'labeltext'  => esc_html__('Enable OpenAI', 'taxopress-pro'),
-                'aftertext'  => $description_text,
+                'aftertext'  => $description_text, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 'selections' => $select,
             ]);
@@ -125,7 +125,7 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'labeltext'  => esc_html__('OpenAI Models', 'taxopress-pro'),
                 'aftertext'  => esc_html__('Some models availability depends on your subscription and access.', 'taxopress-pro'),
                 'required'   => false,
-                'selections' => $select,
+                'selections' => $select, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             ]);
 
             $select             = [
@@ -140,9 +140,9 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'text' => esc_attr__('True', 'taxopress-pro'),
                 ],
             ],
-        ];
-        $selected           = ( isset($current) && isset($current['open_ai_show_post_count']) ) ? taxopress_disp_boolean($current['open_ai_show_post_count']) : '';
-        $select['selected'] = !empty($selected) ? $current['open_ai_show_post_count'] : '';
+            ];
+            $selected           = ( isset($current) && isset($current['open_ai_show_post_count']) ) ? taxopress_disp_boolean($current['open_ai_show_post_count']) : '';
+            $select['selected'] = !empty($selected) ? $current['open_ai_show_post_count'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
@@ -217,8 +217,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     </p>
                 </td>
             </tr>
-            <?php
-            $select             = [
+                <?php
+                $select             = [
                 'options' => [
                     [
                         'attr'    => '0',
@@ -230,24 +230,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                         'text' => esc_attr__('True', 'taxopress-pro'),
                     ],
                 ],
-            ];
-            $selected           = (isset($current) && isset($current['autoterm_use_ibm_watson'])) ? taxopress_disp_boolean($current['autoterm_use_ibm_watson']) : '';
-            $select['selected'] = !empty($selected) ? $current['autoterm_use_ibm_watson'] : '';
+                ];
+                $selected           = (isset($current) && isset($current['autoterm_use_ibm_watson'])) ? taxopress_disp_boolean($current['autoterm_use_ibm_watson']) : '';
+                $select['selected'] = !empty($selected) ? $current['autoterm_use_ibm_watson'] : '';
 
-            $description_text = esc_html__('This will automatically add new terms from the IBM Watson service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
+                $description_text = esc_html__('This will automatically add new terms from the IBM Watson service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'autoterm_use_ibm_watson',
                 'class'      => 'autoterm_use_ibm_watson  autoterm-terms-to-use-field autoterm-terms-use-ibm-watson fields-control',
                 'labeltext'  => esc_html__('Enable IBM Watson', 'taxopress-pro'),
-                'aftertext'  => $description_text,
+                'aftertext'  => $description_text, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 'selections' => $select,
-            ]);
+                ]);
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_text_input([
+                echo $ui->get_text_input([
                 'namearray' => 'taxopress_autoterm',
                 'name'      => 'ibm_watson_api_url',
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
@@ -255,10 +255,10 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'labeltext' => esc_html__('API URL', 'taxopress-pro'),
                 'helptext' => esc_html__('Enter your IBM Watson API URL.', 'taxopress-pro'),
                 'required'  => false,
-            ]);
+                ]);
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_text_input([
+                echo $ui->get_text_input([
                 'namearray' => 'taxopress_autoterm',
                 'name'      => 'ibm_watson_api_key',
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
@@ -266,36 +266,36 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'labeltext' => esc_html__('API Key', 'taxopress-pro'),
                 'helptext' => esc_html__('Enter your IBM Watson API Key.', 'taxopress-pro'),
                 'required'  => false,
-            ]);
+                ]);
 
-            $select             = [
-            'options' => [
-            [
+                $select             = [
+                'options' => [
+                [
                 'attr'    => '0',
                 'text'    => esc_attr__('False', 'taxopress-pro'),
                 'default' => 'true',
-            ],
-            [
+                ],
+                [
                 'attr' => '1',
                 'text' => esc_attr__('True', 'taxopress-pro'),
-            ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['ibm_watson_show_post_count']) ) ? taxopress_disp_boolean($current['ibm_watson_show_post_count']) : '';
-            $select['selected'] = !empty($selected) ? $current['ibm_watson_show_post_count'] : '';
+                ],
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['ibm_watson_show_post_count']) ) ? taxopress_disp_boolean($current['ibm_watson_show_post_count']) : '';
+                $select['selected'] = !empty($selected) ? $current['ibm_watson_show_post_count'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-            'namearray'  => 'taxopress_autoterm',
-            'name'       => 'ibm_watson_show_post_count',
-            'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
-            'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
-            'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
-            'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
+                echo $ui->get_select_checkbox_input([
+                'namearray'  => 'taxopress_autoterm',
+                'name'       => 'ibm_watson_show_post_count',
+                'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
+                'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
+                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
+                'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                ]);
             
             
-            $select             = [
-            'options' => [
+                $select             = [
+                'options' => [
                 [
                     'attr'    => '0',
                     'text'    => esc_attr__('False', 'taxopress-pro'),
@@ -305,21 +305,21 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'attr' => '1',
                     'text' => esc_attr__('True', 'taxopress-pro'),
                 ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['ibm_watson_cache_result']) ) ? taxopress_disp_boolean($current['ibm_watson_cache_result']) : '';
-            $select['selected'] = !empty($selected) ? $current['ibm_watson_cache_result'] : '';
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['ibm_watson_cache_result']) ) ? taxopress_disp_boolean($current['ibm_watson_cache_result']) : '';
+                $select['selected'] = !empty($selected) ? $current['ibm_watson_cache_result'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'ibm_watson_cache_result',
                 'labeltext'  => esc_html__('Cache Results', 'taxopress-pro'),
                 'aftertext'  => esc_html__('By caching the results locally, new API requests will not be made unless the post title or content changes. This saves API usage.', 'taxopress-pro'),
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
                 'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
+                ]);
             } else {
-                 ?>
+                ?>
             <tr class="autoterm-description-tr">
                 <td colspan="2">
                     <p class="taxopress-field-description description autoterm-terms-use-ibm-watson-notice">
@@ -327,7 +327,7 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     </p>
                 </td>
             </tr>
-            <?php
+                <?php
             }
             ?>
             <?php
@@ -340,8 +340,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     </p>
                 </td>
             </tr>
-            <?php
-            $select             = [
+                <?php
+                $select             = [
                 'options' => [
                     [
                         'attr'    => '0',
@@ -353,24 +353,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                         'text' => esc_attr__('True', 'taxopress-pro'),
                     ],
                 ],
-            ];
-            $selected           = (isset($current) && isset($current['autoterm_use_dandelion'])) ? taxopress_disp_boolean($current['autoterm_use_dandelion']) : '';
-            $select['selected'] = !empty($selected) ? $current['autoterm_use_dandelion'] : '';
+                ];
+                $selected           = (isset($current) && isset($current['autoterm_use_dandelion'])) ? taxopress_disp_boolean($current['autoterm_use_dandelion']) : '';
+                $select['selected'] = !empty($selected) ? $current['autoterm_use_dandelion'] : '';
 
-            $description_text = esc_html__('This will automatically add new terms from the Dandelion service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
+                $description_text = esc_html__('This will automatically add new terms from the Dandelion service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'autoterm_use_dandelion',
                 'class'      => 'autoterm_use_dandelion  autoterm-terms-to-use-field autoterm-terms-use-dandelion fields-control',
                 'labeltext'  => esc_html__('Enable Dandelion', 'taxopress-pro'),
-                'aftertext'  => $description_text,
+                'aftertext'  => $description_text, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 'selections' => $select,
-            ]);
+                ]);
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_text_input([
+                echo $ui->get_text_input([
                 'namearray' => 'taxopress_autoterm',
                 'name'      => 'dandelion_api_token',
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
@@ -378,10 +378,10 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'labeltext' => esc_html__('API Token', 'taxopress-pro'),
                 'helptext' => esc_html__('Enter your Dandelion API Key.', 'taxopress-pro'),
                 'required'  => false,
-            ]);
+                ]);
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_number_input([
+                echo $ui->get_number_input([
                 'namearray' => 'taxopress_autoterm',
                 'name'      => 'dandelion_api_confidence_value',
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
@@ -391,36 +391,36 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'other_attr' => 'step=".1" min="0" max="1"',
                 'min' => '0',
                 'required'  => false,
-            ]);
+                ]);
 
-            $select             = [
-            'options' => [
-            [
+                $select             = [
+                'options' => [
+                [
                 'attr'    => '0',
                 'text'    => esc_attr__('False', 'taxopress-pro'),
                 'default' => 'true',
-            ],
-            [
+                ],
+                [
                 'attr' => '1',
                 'text' => esc_attr__('True', 'taxopress-pro'),
-            ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['dandelion_show_post_count']) ) ? taxopress_disp_boolean($current['dandelion_show_post_count']) : '';
-            $select['selected'] = !empty($selected) ? $current['dandelion_show_post_count'] : '';
+                ],
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['dandelion_show_post_count']) ) ? taxopress_disp_boolean($current['dandelion_show_post_count']) : '';
+                $select['selected'] = !empty($selected) ? $current['dandelion_show_post_count'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-            'namearray'  => 'taxopress_autoterm',
-            'name'       => 'dandelion_show_post_count',
-            'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
-            'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
-            'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
-            'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
+                echo $ui->get_select_checkbox_input([
+                'namearray'  => 'taxopress_autoterm',
+                'name'       => 'dandelion_show_post_count',
+                'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
+                'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
+                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
+                'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                ]);
             
             
-            $select             = [
-            'options' => [
+                $select             = [
+                'options' => [
                 [
                     'attr'    => '0',
                     'text'    => esc_attr__('False', 'taxopress-pro'),
@@ -430,30 +430,30 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'attr' => '1',
                     'text' => esc_attr__('True', 'taxopress-pro'),
                 ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['dandelion_cache_result']) ) ? taxopress_disp_boolean($current['dandelion_cache_result']) : '';
-            $select['selected'] = !empty($selected) ? $current['dandelion_cache_result'] : '';
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['dandelion_cache_result']) ) ? taxopress_disp_boolean($current['dandelion_cache_result']) : '';
+                $select['selected'] = !empty($selected) ? $current['dandelion_cache_result'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'dandelion_cache_result',
                 'labeltext'  => esc_html__('Cache Results', 'taxopress-pro'),
                 'aftertext'  => esc_html__('By caching the results locally, new API requests will not be made unless the post title or content changes. This saves API usage.', 'taxopress-pro'),
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
                 'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-        } else {
+                ]);
+            } else {
                 ?>
             <tr class="autoterm-description-tr">
                 <td colspan="2">
                     <p class="taxopress-field-description description autoterm-terms-use-dandelion-notice">
-                        <?php printf(esc_html__('This integration is no longer actively supported. If you still need to use it, you can enable it in the Legacy AI Sources settings.', 'taxopress-pro')); ?>
+                    <?php printf(esc_html__('This integration is no longer actively supported. If you still need to use it, you can enable it in the Legacy AI Sources settings.', 'taxopress-pro')); ?>
                     </p>
                 </td>
             </tr>
-            <?php
-        }
+                <?php
+            }
             ?>
             <?php
             if (!empty(SimpleTags_Plugin::get_option_value('enable_lseg_ai_source'))) {
@@ -465,8 +465,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     </p>
                 </td>
             </tr>
-            <?php
-            $select             = [
+                <?php
+                $select             = [
                 'options' => [
                     [
                         'attr'    => '0',
@@ -478,24 +478,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                         'text' => esc_attr__('True', 'taxopress-pro'),
                     ],
                 ],
-            ];
-            $selected           = (isset($current) && isset($current['autoterm_use_opencalais'])) ? taxopress_disp_boolean($current['autoterm_use_opencalais']) : '';
-            $select['selected'] = !empty($selected) ? $current['autoterm_use_opencalais'] : '';
+                ];
+                $selected           = (isset($current) && isset($current['autoterm_use_opencalais'])) ? taxopress_disp_boolean($current['autoterm_use_opencalais']) : '';
+                $select['selected'] = !empty($selected) ? $current['autoterm_use_opencalais'] : '';
 
-            $description_text = esc_html__('This will automatically add new terms from the LSEG / Refinitiv service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
+                $description_text = esc_html__('This will automatically add new terms from the LSEG / Refinitiv service. Before use, please test carefully using the preview feature.', 'taxopress-pro');
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'autoterm_use_opencalais',
                 'class'      => 'autoterm_use_opencalais  autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv fields-control',
                 'labeltext'  => esc_html__('Enable LSEG / Refinitiv', 'taxopress-pro'),
-                'aftertext'  => $description_text,
+                'aftertext'  => $description_text, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 'selections' => $select,
-            ]);
+                ]);
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_text_input([
+                echo $ui->get_text_input([
                 'namearray' => 'taxopress_autoterm',
                 'name'      => 'open_calais_api_key',
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
@@ -503,36 +503,36 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'labeltext' => esc_html__('API Key', 'taxopress-pro'),
                 'helptext' => esc_html__('Enter your LSEG / Refinitiv API Key.', 'taxopress-pro'),
                 'required'  => false,
-            ]);
+                ]);
 
-            $select             = [
-            'options' => [
-            [
+                $select             = [
+                'options' => [
+                [
                 'attr'    => '0',
                 'text'    => esc_attr__('False', 'taxopress-pro'),
                 'default' => 'true',
-            ],
-            [
+                ],
+                [
                 'attr' => '1',
                 'text' => esc_attr__('True', 'taxopress-pro'),
-            ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['open_calais_show_post_count']) ) ? taxopress_disp_boolean($current['open_calais_show_post_count']) : '';
-            $select['selected'] = !empty($selected) ? $current['open_calais_show_post_count'] : '';
+                ],
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['open_calais_show_post_count']) ) ? taxopress_disp_boolean($current['open_calais_show_post_count']) : '';
+                $select['selected'] = !empty($selected) ? $current['open_calais_show_post_count'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
-            'namearray'  => 'taxopress_autoterm',
-            'name'       => 'open_calais_show_post_count',
-            'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
-            'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
-            'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
-            'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
+                echo $ui->get_select_checkbox_input([
+                'namearray'  => 'taxopress_autoterm',
+                'name'       => 'open_calais_show_post_count',
+                'labeltext'  => esc_html__('Show Term Post Count', 'taxopress-pro'),
+                'aftertext'  => esc_html__('This will show the number of posts attached to the terms.', 'taxopress-pro'),
+                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
+                'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                ]);
             
             
-            $select             = [
-            'options' => [
+                $select             = [
+                'options' => [
                 [
                     'attr'    => '0',
                     'text'    => esc_attr__('False', 'taxopress-pro'),
@@ -542,30 +542,30 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                     'attr' => '1',
                     'text' => esc_attr__('True', 'taxopress-pro'),
                 ],
-            ],
-            ];
-            $selected           = ( isset($current) && isset($current['open_calais_cache_result']) ) ? taxopress_disp_boolean($current['open_calais_cache_result']) : '';
-            $select['selected'] = !empty($selected) ? $current['open_calais_cache_result'] : '';
+                ],
+                ];
+                $selected           = ( isset($current) && isset($current['open_calais_cache_result']) ) ? taxopress_disp_boolean($current['open_calais_cache_result']) : '';
+                $select['selected'] = !empty($selected) ? $current['open_calais_cache_result'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input([
+                echo $ui->get_select_checkbox_input([
                 'namearray'  => 'taxopress_autoterm',
                 'name'       => 'open_calais_cache_result',
                 'labeltext'  => esc_html__('Cache Results', 'taxopress-pro'),
                 'aftertext'  => esc_html__('By caching the results locally, new API requests will not be made unless the post title or content changes. This saves API usage.', 'taxopress-pro'),
                 'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
                 'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ]);
-        } else {
+                ]);
+            } else {
                 ?>
             <tr class="autoterm-description-tr">
                 <td colspan="2">
                     <p class="taxopress-field-description description autoterm-terms-use-lseg-refinitiv-notice">
-                        <?php printf(esc_html__('This integration is no longer actively supported. If you still need to use it, you can enable it in the Legacy AI Sources settings.', 'taxopress-pro')); ?>
+                    <?php printf(esc_html__('This integration is no longer actively supported. If you still need to use it, you can enable it in the Legacy AI Sources settings.', 'taxopress-pro')); ?>
                     </p>
                 </td>
             </tr>
-            <?php
-        }
+                <?php
+            }
         }
 
 
@@ -618,7 +618,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
             ]);
         }
 
-        public function taxopress_action_copy_autoterm($autoterm_id) {
+        public function taxopress_action_copy_autoterm($autoterm_id)
+        {
             $autoterms = taxopress_get_autoterm_data();
 
             if (array_key_exists($autoterm_id, $autoterms)) {
@@ -643,34 +644,45 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
             exit();
         }
 
-        public function taxopress_autoterms_copy_success_admin_notice() {
-            echo taxopress_admin_notices_helper(esc_html__('Auto Terms successfully copied.', 'taxopress-pro'), true);
+        public function taxopress_autoterms_copy_success_admin_notice()
+        {
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo wp_kses_post(taxopress_admin_notices_helper(esc_html__('Auto Terms successfully copied.', 'taxopress-pro'), true));
         }
 
-        public function taxopress_copied_autoterm_filter_removable_query_args(array $args) {
+        public function taxopress_copied_autoterm_filter_removable_query_args(array $args)
+        {
             return array_merge($args, ['copied_autoterm']);
         }
 
-        public function taxopress_copy_autoterm_filter_removable_query_args(array $args) {
+        public function taxopress_copy_autoterm_filter_removable_query_args(array $args)
+        {
             return array_merge($args, ['action', 'taxopress_autoterm', '_wpnonce']);
         }
 
-        public function taxopress_pro_copy_autoterm() {
+        public function taxopress_pro_copy_autoterm()
+        {
             if (isset($_GET['copied_autoterm']) && (int) $_GET['copied_autoterm'] === 1) {
                 add_action('admin_notices', [$this, 'taxopress_autoterms_copy_success_admin_notice']);
                 add_filter('removable_query_args', [$this, 'taxopress_copied_autoterm_filter_removable_query_args']);
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-autoterm') {
-                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-                if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
-                    $this->taxopress_action_copy_autoterm(sanitize_text_field($_REQUEST['taxopress_autoterm']));
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
+                if ($nonce && wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
+                    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                    $autoterm_id = isset($_REQUEST['taxopress_autoterm']) ? sanitize_text_field($_REQUEST['taxopress_autoterm']) : '';
+                    if ($autoterm_id) {
+                        $this->taxopress_action_copy_autoterm($autoterm_id);
+                    }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_autoterm_filter_removable_query_args']);
             }
         }
 
-        public function taxopress_pro_copy_action($actions, $item) {
+        public function taxopress_pro_copy_action($actions, $item)
+        {
             $actions['copy'] = sprintf(
                 '<a href="%s" class="copy-autoterm">%s</a>',
                 add_query_arg([

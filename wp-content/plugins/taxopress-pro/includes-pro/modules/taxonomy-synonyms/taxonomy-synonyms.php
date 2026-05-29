@@ -6,11 +6,10 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
      */
     class TaxoPress_Taxonomy_Synonyms
     {
-
         // class instance
-        static $instance;
+        public static $instance;
 
-        const TERM_SYNONYMS_FIELD = '_taxopress_term_synonyms';
+        public const TERM_SYNONYMS_FIELD = '_taxopress_term_synonyms';
 
         /**
          * Construct the TaxoPress_Taxonomy_Synonyms class
@@ -75,14 +74,14 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
         public function add_term_fields($taxonomy)
         {
             wp_nonce_field('taxopress_term_synonyms', 'taxopress_term_synonyms_nonce');
-?>
+            ?>
             <div class="form-field">
                 <label for="text"><?php esc_html_e('Term Synonyms', 'taxopress-pro'); ?></label>
                 <input type="text" class="taxopress-synonyms-input term-synonyms" name="taxopress_term_synonyms[]" placeholder="<?php esc_attr_e('Type the synonym name (comma-separated) and then click Enter or Return.', 'taxopress-pro'); ?>" />
                 <p><?php esc_html_e('If TaxoPress scans your content and finds a synonym, it will act as if it has found the main term.', 'taxopress-pro'); ?></p>
                 <ul class="taxopress-term-synonyms wrapper"></ul>
             </div>
-        <?php
+            <?php
             $this->taxopress_load_taxonomy_synonyms_assets();
         }
 
@@ -93,7 +92,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
             // get meta data value
             $term_synonyms = taxopress_get_term_synonyms($term->term_id);
 
-        ?><tr class="form-field">
+            ?><tr class="form-field">
                 <th>
                     <label for="text"><?php esc_html_e('Term Synonyms', 'taxopress-pro'); ?></label>
                 </th>
@@ -115,7 +114,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                     </ul>
                 </td>
             </tr>
-<?php
+            <?php
             $this->taxopress_load_taxonomy_synonyms_assets();
         }
 
@@ -126,7 +125,8 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                 return;
             }
 
-            $taxopress_term_synonyms = array_map('sanitize_text_field', $_POST['taxopress_term_synonyms']);
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Input is properly validated with isset() check above and sanitized here
+            $taxopress_term_synonyms = isset($_POST['taxopress_term_synonyms']) ? array_map('sanitize_text_field', $_POST['taxopress_term_synonyms']) : [];
             $taxopress_term_synonyms = array_filter($taxopress_term_synonyms);
 
             update_term_meta(
@@ -141,14 +141,15 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
 
             $synonyms_terms = [];
             foreach ($synonyms as $meta_value) {
-            
                 $synonyms_args = [
                     'hide_empty' => false,
+                    // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
                     'meta_query' => []
                 ];
                 $synonyms_args['meta_query']['relation'] = 'OR';
                 $synonyms_args['meta_query'][] = [
                     'key' => self::TERM_SYNONYMS_FIELD,
+                    // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
                     'value' => serialize(strval($meta_value)),
                     'compare' => 'LIKE'
                 ];
@@ -182,7 +183,8 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
          * @param array $array
          * @return string
          */
-        public static function format_synonyms_list($array) {
+        public static function format_synonyms_list($array)
+        {
 
             $array = array_values($array);
 
@@ -212,7 +214,10 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
          */
         public function filter_pre_insert_term($term, $taxonomy)
         {
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing
             if (!empty($_POST) && isset($_POST['taxopress_term_synonyms']) && !empty($_POST['taxopress_term_synonyms'])) {
+                // phpcs:ignore WordPress.Security.NonceVerification.Missing
                 $meta_values = array_map('sanitize_text_field', $_POST['taxopress_term_synonyms']);
                 $meta_values = array_filter($meta_values);
                 if (!empty($meta_values)) {
@@ -239,8 +244,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                     }
                     
                     if (!is_wp_error($duplicate_terms) && count($duplicate_terms) > 0) {
-
-                        $duplicate_terms_names = array_map(function($term) {
+                        $duplicate_terms_names = array_map(function ($term) {
                             return $term->name;
                         }, $duplicate_terms);
 
@@ -310,7 +314,6 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                 $term_id     = !empty($_POST['term_id']) ? (int) $_POST['term_id'] : 0;
 
                 if ($term_id > 0 && !empty($term_synonyms)) {
-
                     $duplicate_terms = self::find_terms_with_synonyms($term_synonyms);
                     $duplicate_synonyms = self::duplicate_synonyms_terms($term_synonyms);
 
