@@ -3,8 +3,8 @@ Contributors:      Mr2P
 Tags:              block, SVG, image, icon, button
 Requires PHP:      7.1
 Requires at least: 6.5
-Tested up to:      6.9
-Stable tag:        1.2.3
+Tested up to:      7.0
+Stable tag:        1.2.4
 License:           GPL-3.0
 License URI:       https://www.gnu.org/licenses/gpl-3.0.html
 Donate link:       https://boldblocks.net?utm_source=wp.org&utm_campaign=readme&utm_medium=link&utm_content=SVG+Block+Donate
@@ -100,6 +100,12 @@ Anyone can use this plugin.
 7. Block's placeholder
 
 == Changelog ==
+
+= 1.2.4 =
+*Release Date - 07 May 2026*
+
+* Improved - Updated enshrined/svg-sanitize to the latest version
+* Improved - Updated inspector control style
 
 = 1.2.3 =
 *Release Date - 19 November 2025*

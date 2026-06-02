@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ACPL\\AIAltGenerator\\' => array($baseDir . '/includes'),
+    'Acpl\\AltGenerator\\' => array($baseDir . '/includes'),
 );

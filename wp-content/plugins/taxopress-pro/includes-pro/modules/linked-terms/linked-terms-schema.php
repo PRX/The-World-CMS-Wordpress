@@ -29,7 +29,8 @@ if (!class_exists('TaxoPress_Linked_Terms_Schema')) {
         {
             global $wpdb;
 
-            return $wpdb->get_var("SHOW TABLES LIKE '{$table_name}'") === $table_name;
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+            return $wpdb->get_var($wpdb->prepare("SHOW TABLES LIKE %s", $table_name)) === $table_name; // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching
         }
 
 

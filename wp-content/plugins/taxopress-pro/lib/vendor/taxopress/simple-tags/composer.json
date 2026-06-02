@@ -1,0 +1,59 @@
+{
+    "name": "taxopress/simple-tags",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "description": "",
+    "authors": [
+        {
+            "name": "PublishPress",
+            "email": "help@publishpress.com",
+            "homepage": "https://publishpress.com",
+            "role": "Developer"
+        }
+    ],
+    "config": {
+        "process-timeout": 6000,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "automattic/jetpack-autoloader": true,
+            "php-http/discovery": true,
+            "publishpress/dev-workspace": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "prefer-stable": true,
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.2.5"
+    },
+    "require-dev": {
+        "automattic/vipwpcs": "^3",
+        "publishpress/dev-workspace": "^1.3"
+    },
+    "scripts": {
+        "fix:php": [
+            "php-cs-fixer fix .",
+            "@fix:cs"
+        ]
+    },
+    "scripts-descriptions": {
+        "fix:php": "Fixes the PHP files."
+    },
+    "extra": {
+        "plugin-slug": "simple-tags",
+        "plugin-name": "taxopress",
+        "plugin-folder": "simple-tags",
+        "version-constant": "STAGS_VERSION",
+        "plugin-lang-domain": "simple-tags",
+        "plugin-github-repo": "taxopress/taxopress",
+        "plugin-composer-package": "taxopress/taxopress"
+    },
+    "repositories": [{
+        "name": "publishpress-phpcs-standards",
+        "type": "vcs",
+        "url": "https://github.com/publishpress/publishpress-phpcs-standards.git"
+    }]
+}

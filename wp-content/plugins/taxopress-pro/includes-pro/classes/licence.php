@@ -1,16 +1,15 @@
 <?php
 
-use PublishPress\EDD_License\Core\Container as EDDContainer;
-use PublishPress\EDD_License\Core\Services as EDDServices;
-use PublishPress\EDD_License\Core\ServicesConfig as EDDServicesConfig;
+use PublishPress\WordPressEDDLicense\Container as EDDContainer;
+use PublishPress\WordPressEDDLicense\Services as EDDServices;
+use PublishPress\WordPressEDDLicense\ServicesConfig as EDDServicesConfig;
 
 class TaxoPress_License
 {
-
-    const MENU_SLUG = 'st_options';
+    public const MENU_SLUG = 'st_options';
 
     // class instance
-    static $instance;
+    public static $instance;
 
     /**
      * @var Container
@@ -52,7 +51,7 @@ class TaxoPress_License
         $config->setPluginVersion(TAXOPRESS_PRO_VERSION);
         $config->setEddItemId(TAXOPRESS_PRO_EDD_ITEM_ID);
         $config->setPluginAuthor(TAXOPRESS_PLUGIN_AUTHOR);
-        $config->setPluginFile(TAXOPRESS_PLUGIN_FILE);
+        $config->setPluginFile(defined('TAXOPRESS_PRO_PLUGIN_FILE') ? TAXOPRESS_PRO_PLUGIN_FILE : TAXOPRESS_PRO_FILE);
 
         $this->edd_container = new EDDContainer();
         $this->edd_container->register(new EDDServices($config));
@@ -61,7 +60,8 @@ class TaxoPress_License
         $this->edd_container['update_manager'];
     }
     
-    public function taxopress_options($options) {
+    public function taxopress_options($options)
+    {
 
         $license = $this->get_license_key();
         $status  = $this->get_license_status();
@@ -72,8 +72,8 @@ class TaxoPress_License
             esc_html__('License key', 'taxopress-pro'),
             'licence_field',
             $license,
-            '<div class="taxopress_licence_key_status '. esc_attr($status) .'"><span class="taxopress_licence_key_label">'. esc_html__('Status', 'taxopress-pro').': </span>'. ucwords($status) .'</div>
-            <p class="taxopress_settings_field_description">'. esc_html__('Your license key provides access to updates and support.', 'taxopress-pro') .'</p>',
+            '<div class="taxopress_licence_key_status ' . esc_attr($status) . '"><span class="taxopress_licence_key_label">' . esc_html__('Status', 'taxopress-pro') . ': </span>' . ucwords($status) . '</div>
+            <p class="taxopress_settings_field_description">' . esc_html__('Your license key provides access to updates and support.', 'taxopress-pro') . '</p>',
             ''
         );
 
@@ -81,9 +81,9 @@ class TaxoPress_License
             $additional_texts = '';
 
             if ($status !== false && $status == 'active') {
-                $additional_texts .= '<input type="submit" class="button-secondary" name="edd_license_deactivate" value="'. esc_attr__('Deactivate License', 'simpletags') .'"/>';
+                $additional_texts .= '<input type="submit" class="button-secondary" name="edd_license_deactivate" value="' . esc_attr__('Deactivate License', 'simpletags') . '"/>';
             } else {
-                $additional_texts .= '<input type="submit" class="button-secondary" name="edd_license_activate" value="'. esc_attr__('Activate License', 'simpletags') .'"/>';
+                $additional_texts .= '<input type="submit" class="button-secondary" name="edd_license_activate" value="' . esc_attr__('Activate License', 'simpletags') . '"/>';
             }
 
             $licence_fields[] = array(

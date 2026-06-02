@@ -7,7 +7,7 @@ if (!class_exists('TaxoPress_Pro_Taxonomies_Table')) {
     class TaxoPress_Pro_Taxonomies_Table
     {
         // class instance
-        static $instance;
+        public static $instance;
 
         /**
          * Construct the TaxoPress_Pro_Taxonomies_Table class
@@ -104,8 +104,5 @@ if (!class_exists('TaxoPress_Pro_Taxonomies_Table')) {
                 esc_html($tooltip)
             );
         }
-
-
-        }
-}    
-
+    }
+}

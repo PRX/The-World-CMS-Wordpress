@@ -4,38 +4,37 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17
+class ComposerStaticInit302b8a63e870c8e74251eef418648373
 {
     public static $prefixLengthsPsr4 = array (
         'A' =>
         array (
-            'ACPL\\AIAltGenerator\\' => 20,
+            'Acpl\\AltGenerator\\' => 18,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'ACPL\\AIAltGenerator\\' =>
+        'Acpl\\AltGenerator\\' =>
         array (
             0 => __DIR__ . '/../..' . '/includes',
         ),
     );
 
     public static $classMap = array (
-        'ACPL\\AIAltGenerator\\Admin' => __DIR__ . '/../..' . '/includes/Admin.php',
-        'ACPL\\AIAltGenerator\\AltGenerator' => __DIR__ . '/../..' . '/includes/AltGenerator.php',
-        'ACPL\\AIAltGenerator\\AltGeneratorPlugin' => __DIR__ . '/../..' . '/includes/AltGeneratorPlugin.php',
-        'ACPL\\AIAltGenerator\\ApiController' => __DIR__ . '/../..' . '/includes/ApiController.php',
-        'ACPL\\AIAltGenerator\\Enum\\ErrorCodes' => __DIR__ . '/../..' . '/includes/Enum/ErrorCodes.php',
-        'ACPL\\AIAltGenerator\\Enum\\OpenAIModel' => __DIR__ . '/../..' . '/includes/Enum/OpenAIModel.php',
+        'Acpl\\AltGenerator\\Admin' => __DIR__ . '/../..' . '/includes/Admin.php',
+        'Acpl\\AltGenerator\\AltGenerator' => __DIR__ . '/../..' . '/includes/AltGenerator.php',
+        'Acpl\\AltGenerator\\AltGeneratorPlugin' => __DIR__ . '/../..' . '/includes/AltGeneratorPlugin.php',
+        'Acpl\\AltGenerator\\ApiController' => __DIR__ . '/../..' . '/includes/ApiController.php',
+        'Acpl\\AltGenerator\\ModelHelper' => __DIR__ . '/../..' . '/includes/ModelHelper.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit7ce9243e93708c03ce775f1fbba17e17::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit302b8a63e870c8e74251eef418648373::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit302b8a63e870c8e74251eef418648373::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit302b8a63e870c8e74251eef418648373::$classMap;
 
         }, null, ClassLoader::class);
     }

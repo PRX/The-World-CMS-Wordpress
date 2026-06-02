@@ -37,9 +37,11 @@ if (!class_exists('TaxoPress_Pro_Post_Tags')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-posttags') {
-                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-                if (wp_verify_nonce($nonce, 'posttags-action-request-nonce')) {
-                    $this->taxopress_action_copy_posttags(sanitize_text_field($_REQUEST['taxopress_posttags']));
+                if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_posttags'])) {
+                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    if (wp_verify_nonce($nonce, 'posttags-action-request-nonce')) {
+                        $this->taxopress_action_copy_posttags(sanitize_text_field($_REQUEST['taxopress_posttags']));
+                    }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_posttags_filter_removable_query_args']);
             }
@@ -78,6 +80,7 @@ if (!class_exists('TaxoPress_Pro_Post_Tags')) {
 
         public function taxopress_posttags_copy_success_admin_notice()
         {
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo taxopress_admin_notices_helper(esc_html__('Shortcode entry successfully copied.', 'simple-tags'), true);
         }
 
@@ -118,49 +121,53 @@ if (!class_exists('TaxoPress_Pro_Post_Tags')) {
             return $actions;
         }
 
-        public function taxopress_render_display_formats_fields($current){
+        public function taxopress_render_display_formats_fields($current)
+        {
             $ui = new taxopress_admin_ui();
              $select = [
                 'options' => [
-                    [ 'attr' => 'flat', 'text' => esc_attr__( 'Cloud', 'simple-tags' )],
-                    [ 'attr' => 'list', 'text' => esc_attr__( 'Unordered List (UL/LI)', 'simple-tags' ) ],
-                    [ 'attr' => 'ol', 'text' => esc_attr__( 'Ordered List (OL/LI)', 'simple-tags' ) ],
-                    [ 'attr' => 'comma', 'text' => esc_attr__( 'WordPress Default', 'simple-tags' ), 'default' => 'true'],
+                    [ 'attr' => 'flat', 'text' => esc_attr__('Cloud', 'simple-tags')],
+                    [ 'attr' => 'list', 'text' => esc_attr__('Unordered List (UL/LI)', 'simple-tags') ],
+                    [ 'attr' => 'ol', 'text' => esc_attr__('Ordered List (OL/LI)', 'simple-tags') ],
+                    [ 'attr' => 'comma', 'text' => esc_attr__('WordPress Default', 'simple-tags'), 'default' => 'true'],
                     ['attr' => 'table', 'text' => esc_attr__('Table List', 'simple-tags')],
                     ['attr' => 'border', 'text' => esc_attr__('Border Cloud', 'simple-tags')],
                 ],
-            ];
-            $selected = (isset($current) && isset($current['format'])) ? taxopress_disp_boolean($current['format']) : '';
-            $select['selected'] = ! empty( $selected ) ? $current['format'] : '';
+             ];
+             $selected = (isset($current) && isset($current['format'])) ? taxopress_disp_boolean($current['format']) : '';
+             $select['selected'] = ! empty($selected) ? $current['format'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input_main( [
+             echo $ui->get_select_checkbox_input_main([
                     'namearray'  => 'taxopress_post_tags',
                     'name'       => 'format',
-                    'labeltext'  => esc_html__( 'Display format', 'simple-tags' ),
+                    'labeltext'  => esc_html__('Display format', 'simple-tags'),
                     'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ] );
+             ]);
+
+             return $current;
         }
 
-         function taxopress_pro_posttags_ordering_method($current){
+        public function taxopress_pro_posttags_ordering_method($current)
+        {
             $ui = new taxopress_admin_ui();
 
             $select = [
-                'options' => [
-                    [ 'attr' => 'name', 'text' => esc_attr__( 'Name', 'simple-tags' ) ],
-                    [ 'attr' => 'count', 'text' => esc_attr__( 'Counter', 'simple-tags') ],
-                    [ 'attr' => 'random', 'text' => esc_attr__( 'Random', 'simple-tags' ), 'default' => 'true' ],
-                    [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__( 'Term Order', 'simple-tags' ) ],
-                ],
+               'options' => [
+                   [ 'attr' => 'name', 'text' => esc_attr__('Name', 'simple-tags') ],
+                   [ 'attr' => 'count', 'text' => esc_attr__('Counter', 'simple-tags') ],
+                   [ 'attr' => 'random', 'text' => esc_attr__('Random', 'simple-tags'), 'default' => 'true' ],
+                   [ 'attr' => 'taxopress_term_order', 'text' => esc_attr__('Term Order', 'simple-tags') ],
+               ],
             ];
-            $selected = isset( $current['orderby'] ) ? taxopress_disp_boolean( $current['orderby'] ) : '';
-            $select['selected'] = ! empty( $selected ) ? $current['orderby'] : '';
+            $selected = isset($current['orderby']) ? taxopress_disp_boolean($current['orderby']) : '';
+            $select['selected'] = ! empty($selected) ? $current['orderby'] : '';
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_select_checkbox_input_main( [
-                    'namearray'  => 'taxopress_post_tags',
-                    'name'       => 'orderby',
-                    'labeltext'  => esc_html__( 'Method for choosing terms for display', 'simple-tags' ),
-                    'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            ] );
+            echo $ui->get_select_checkbox_input_main([
+                   'namearray'  => 'taxopress_post_tags',
+                   'name'       => 'orderby',
+                   'labeltext'  => esc_html__('Method for choosing terms for display', 'simple-tags'),
+                   'selections' => $select,// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            ]);
         }
     }
 }

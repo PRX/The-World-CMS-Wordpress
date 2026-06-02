@@ -7,7 +7,7 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
     class TaxoPress_Pro_Auto_Links
     {
         // class instance
-        static $instance;
+        public static $instance;
 
         /**
          * Construct the TaxoPress_Pro_Auto_Links class
@@ -33,7 +33,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
         }
 
 
-        public function taxopress_pro_autolinks_after_html_exclusions_tr($current, $ui){
+        public function taxopress_pro_autolinks_after_html_exclusions_tr($current, $ui)
+        {
 
            
             $shortcodes_exclusion_entries = (!empty($current['shortcodes_exclusion_entries']) && is_array($current['shortcodes_exclusion_entries'])) ? $current['shortcodes_exclusion_entries'] : [];
@@ -53,12 +54,12 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
             // Shortcodes
             if (!empty($shortcodes_exclusion_entries)) : 
                 foreach ($shortcodes_exclusion_entries as $shortcodes_exclusion_entry) :
-                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($shortcodes_exclusion_entry) . '">[' . esc_html($shortcodes_exclusion_entry) . ']</label></th><td>';
+                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($shortcodes_exclusion_entry) . '">[' . esc_html($shortcodes_exclusion_entry) . ']</label></th><td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo '<input type="hidden" name="shortcodes_exclusion_entries[]" value="' . esc_attr($shortcodes_exclusion_entry) . '" />';
 
                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo $ui->get_check_input([
-                        'checkvalue' => $shortcodes_exclusion_entry,
+                        'checkvalue' => $shortcodes_exclusion_entry, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                         'checked'    => (!empty($current['shortcodes_exclusion']) && is_array($current['shortcodes_exclusion']) && in_array(
                             $shortcodes_exclusion_entry,
                             $current['shortcodes_exclusion'],
@@ -93,14 +94,15 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
                     $entry_label    = $block_entries_labels[$entry_index];
                     $entry_slug     = $block_entries_slugs[$entry_index];
 
-                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($entry_slug) . '">' . esc_html($entry_label) . '</label></th><td>';
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Variables are properly escaped with esc_attr() and esc_html()
+                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($entry_slug) . '">' . esc_html($entry_label) . '</label></th><td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo '<input type="hidden" name="blocks_exclusion_entries[name][]" value="' . esc_attr($entry_name) . '" />';
                     echo '<input type="hidden" name="blocks_exclusion_entries[label][]" value="' . esc_attr($entry_label) . '" />';
                     echo '<input type="hidden" name="blocks_exclusion_entries[slug][]" value="' . esc_attr($entry_slug) . '" />';
 
                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo $ui->get_check_input([
-                        'checkvalue' => $entry_name,
+                        'checkvalue' => $entry_name, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                         'checked'    => (!empty($current['blocks_exclusion']) && is_array($current['blocks_exclusion']) && in_array(
                             $entry_name,
                             $current['blocks_exclusion'],
@@ -119,16 +121,16 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
 
             echo '<tr valign="top" class="html-exclusions-customs-row blocks-exclusions-placeholder"></tr>';
             echo '<tr valign="top" class="html-exclusions-customs-row"><th colspan="2" style="padding: 0; padding-top: 15px;"><span>' . esc_html__('Search Block', 'taxopress-pro') . '</span> </th></tr>';
-            echo '<tr valign="top" class="html-exclusions-customs-row blocks-exclusions-form st-exclusion-custom-form"><th colspan="2" style="padding: 0;margin: 0;padding: 0;" scope="row"><div class="flex-parent"><select style="width: 100%;" class="block-name" data-placeholder="' . esc_html__("Search...", "taxopress-pro") .'" data-nonce="'. esc_attr(wp_create_nonce('taxopress-blocks-search')) .'"></select></th></tr>';
+            echo '<tr valign="top" class="html-exclusions-customs-row blocks-exclusions-form st-exclusion-custom-form"><th colspan="2" style="padding: 0;margin: 0;padding: 0;" scope="row"><div class="flex-parent"><select style="width: 100%;" class="block-name" data-placeholder="' . esc_attr__('Search...', 'taxopress-pro') . '" data-nonce="' . esc_attr(wp_create_nonce('taxopress-blocks-search')) . '"></select></th></tr>';
             echo '<tr valign="top" class="html-exclusions-customs-row"><td colspan="2" style="padding: 0;"><span style="color: #646970;">' . esc_html__('Search and select blocks.', 'taxopress-pro') . '</span></td></tr>';
 
             // end table
             echo '</table></td></tr>';
-
         }
 
 
-        public function taxopress_pro_autolinks_after_html_exclusions($current, $ui){
+        public function taxopress_pro_autolinks_after_html_exclusions($current, $ui)
+        {
 
             $html_exclusions_customs = (!empty($current['html_exclusion_customs_entry']) && is_array($current['html_exclusion_customs_entry'])) ? $current['html_exclusion_customs_entry'] : [];
 
@@ -138,12 +140,13 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
 
             if (!empty($html_exclusions_customs)) : 
                 foreach ($html_exclusions_customs as $html_exclusions_custom) :
-                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($html_exclusions_custom) . '">' . esc_html($html_exclusions_custom) . '</label></th><td>';
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Variables are properly escaped with esc_attr() and esc_html()
+                    echo '<tr valign="top" class="html-exclusions-customs-row"><th scope="row"><label for="' . esc_attr($html_exclusions_custom) . '">' . esc_html($html_exclusions_custom) . '</label></th><td>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo '<input type="hidden" name="html_exclusion_customs_entry[]" value="' . esc_attr($html_exclusions_custom) . '" />';
 
                     // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                     echo $ui->get_check_input([
-                        'checkvalue' => $html_exclusions_custom,
+                        'checkvalue' => $html_exclusions_custom, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                         'checked'    => (!empty($current['html_exclusion_customs']) && is_array($current['html_exclusion_customs']) && in_array(
                             $html_exclusions_custom,
                             $current['html_exclusion_customs'],
@@ -167,8 +170,6 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
 
             //add new button
             echo '<tr valign="top" class="html-exclusions-customs-row html-exclusions-customs-add"><th style="padding: 0;" scope="row"><br />' . esc_html__('Add Element', 'taxopress-pro') . '</th><td style="padding: 0;text-align: right;"><br /><button class="button show-autolink-custom-html-exclusions">' . esc_html__('New Element', 'taxopress-pro') . '</button></td></tr>';
-
-
         }
 
         public function taxopress_pro_copy_autolink()
@@ -179,9 +180,14 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-autolink') {
-                $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
-                if (wp_verify_nonce($nonce, 'autolink-action-request-nonce')) {
-                    $this->taxopress_action_copy_autolink(sanitize_text_field($_REQUEST['taxopress_autolink']));
+                // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
+                if ($nonce && wp_verify_nonce($nonce, 'autolink-action-request-nonce')) {
+                    // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+                    $autolink_id = isset($_REQUEST['taxopress_autolink']) ? sanitize_text_field($_REQUEST['taxopress_autolink']) : '';
+                    if ($autolink_id) {
+                        $this->taxopress_action_copy_autolink($autolink_id);
+                    }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_autolink_filter_removable_query_args']);
             }
@@ -220,6 +226,8 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
 
         public function taxopress_autolink_copy_success_admin_notice()
         {
+            
+            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- taxopress_admin_notices_helper() is a trusted internal function that properly constructs HTML output
             echo taxopress_admin_notices_helper(esc_html__('Autolink successfully copied.', 'simple-tags'), true);
         }
 
