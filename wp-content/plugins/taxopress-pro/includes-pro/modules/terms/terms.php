@@ -100,11 +100,11 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                                 'terms' => $term->term_id,
                             ]],
                         ];
-                        $posts = get_posts($args);
-                        foreach ($posts as $post) {
-                            wp_set_object_terms($post->ID, $new_term->term_id, $term->taxonomy, true);
+                        foreach (taxopress_get_post_ids_for_terms_action($args) as $post_id) {
+                            wp_set_object_terms($post_id, $new_term->term_id, $term->taxonomy, true);
                         }
 
+                        taxopress_place_copied_term_near_original($term->taxonomy, $term->term_id, $new_term->term_id);
                         clean_term_cache($new_term->term_id, $term->taxonomy);
                         delete_transient('taxopress_terms_' . $term->taxonomy);
                     }
@@ -112,10 +112,15 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
             }
 
             wp_safe_redirect(
-                add_query_arg([
-                    'page'         => 'st_terms',
-                    'copied_term'  => 1,
-                ], admin_url('admin.php'))
+                add_query_arg(
+                    taxopress_get_terms_screen_query_args([
+                        'copied_term'                => 1,
+                        'taxopress_copied_term_id'   => isset($new_term->term_id) && !is_wp_error($new_term) ? (int) $new_term->term_id : 0,
+                        'taxopress_original_term_id' => isset($term->term_id) && !is_wp_error($term) ? (int) $term->term_id : 0,
+                        'taxopress_copied_taxonomy'  => isset($term->taxonomy) && !is_wp_error($term) ? $term->taxonomy : '',
+                    ]),
+                    admin_url('admin.php')
+                )
             );
             exit();
         }
@@ -128,7 +133,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
 
         public function taxopress_copied_term_filter_removable_query_args(array $args)
         {
-            return array_merge($args, ['copied_term']);
+            return array_merge($args, ['copied_term', 'taxopress_copied_term_id', 'taxopress_original_term_id', 'taxopress_copied_taxonomy']);
         }
 
         public function taxopress_copy_term_filter_removable_query_args(array $args)
@@ -140,12 +145,11 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
         {
             $actions['copy_term_with_meta'] = sprintf(
                 '<a href="%s">%s</a>',
-                add_query_arg([
-                    'page'            => 'st_terms',
+                add_query_arg(taxopress_get_terms_screen_query_args([
                     'action'          => 'taxopress-copy-term-with-meta',
                     'taxopress_terms' => esc_attr($item->term_id),
                     '_wpnonce'        => wp_create_nonce('terms-action-request-nonce'),
-                ], admin_url('admin.php')),
+                ]), admin_url('admin.php')),
                 esc_html__('Copy with Metadata', 'taxopress-pro')
             );
 
@@ -182,6 +186,10 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                 wp_send_json_error(['message' => esc_html__('Invalid taxonomy or order.', 'simple-tags')]);
             }
 
+            if (!taxonomy_exists($taxonomy)) {
+                wp_send_json_error(['message' => esc_html__('Invalid taxonomy.', 'simple-tags')]);
+            }
+
             // Get the current order setting for this taxonomy
             $taxonomy_settings = taxopress_get_all_edited_taxonomy_data();
             $order_setting = isset($taxonomy_settings[$taxonomy]['order']) ? $taxonomy_settings[$taxonomy]['order'] : 'desc';
@@ -191,7 +199,66 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                 $order = array_reverse($order);
             }
 
-            update_option('taxopress_term_order_' . $taxonomy, $order);
+            $order = array_values(array_unique(array_filter(array_map('intval', $order))));
+            $option_name = 'taxopress_term_order_' . $taxonomy;
+            $saved_order = array_values(array_unique(array_filter(array_map('intval', (array) get_option($option_name, [])))));
+            $visible_lookup = array_flip($order);
+
+            if (empty($saved_order)) {
+                $saved_order = get_terms([
+                    'taxonomy'               => [$taxonomy],
+                    'hide_empty'             => false,
+                    'fields'                 => 'ids',
+                    'pad_counts'             => false,
+                    'hierarchical'           => false,
+                    'update_term_meta_cache' => false,
+                ]);
+
+                if (is_wp_error($saved_order)) {
+                    $saved_order = [];
+                }
+
+                $saved_order = array_values(array_unique(array_filter(array_map('intval', (array) $saved_order))));
+            } else {
+                $term_count = wp_count_terms($taxonomy, [
+                    'hide_empty' => false,
+                ]);
+
+                if (!is_wp_error($term_count) && count($saved_order) < (int) $term_count) {
+                    $all_term_ids = get_terms([
+                        'taxonomy'               => [$taxonomy],
+                        'hide_empty'             => false,
+                        'fields'                 => 'ids',
+                        'pad_counts'             => false,
+                        'hierarchical'           => false,
+                        'update_term_meta_cache' => false,
+                    ]);
+                    $missing_term_ids = is_wp_error($all_term_ids)
+                        ? []
+                        : array_values(array_diff(array_map('intval', (array) $all_term_ids), $saved_order));
+
+                    if (!empty($missing_term_ids)) {
+                        $saved_order = array_merge($saved_order, array_map('intval', (array) $missing_term_ids));
+                    }
+                }
+            }
+
+            $visible_positions = [];
+            foreach ($saved_order as $position => $term_id) {
+                if (isset($visible_lookup[$term_id])) {
+                    $visible_positions[] = $position;
+                }
+            }
+
+            foreach ($visible_positions as $index => $position) {
+                if (isset($order[$index])) {
+                    $saved_order[$position] = $order[$index];
+                }
+            }
+
+            $saved_order = array_values(array_unique(array_filter(array_map('intval', $saved_order))));
+
+            update_option($option_name, $saved_order);
 
             wp_send_json_success(['message' => esc_html__('Order saved.', 'simple-tags')]);
         }

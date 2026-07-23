@@ -1,0 +1,1041 @@
+# Copyright (C) 2026 TaxoPress
+# This file is distributed under the GPLv3.
+msgid ""
+msgstr ""
+"Project-Id-Version: TaxoPress Pro 3.51.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/project\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-07-22T18:23:43+00:00\n"
+"PO-Revision-Date: 2026-07-22 18:37+0000\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: taxopress-pro\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Language: pt-BR\n"
+
+#: taxopress-pro.php:4, fuzzy
+#. Plugin Name of the plugin
+msgid "TaxoPress Pro"
+msgstr "TaxoPress Pro"
+
+#: taxopress-pro.php:5, fuzzy
+#. Plugin URI of the plugin
+msgid "https://wordpress.org/plugins/simple-tags/"
+msgstr "https://wordpress.org/plugins/simple-tags/"
+
+#: taxopress-pro.php:6
+#. Description of the plugin
+msgid ""
+"TaxoPress allows you to create and manage Tags, Categories, and all your "
+"WordPress taxonomy terms."
+msgstr ""
+"TaxoPress permite que você crie e gerencie Tags, Categorias e todos os seus "
+"termos de taxonomia do WordPress."
+
+#: taxopress-pro.php:8
+#. Author of the plugin
+msgid "TaxoPress"
+msgstr "TaxoPress"
+
+#: taxopress-pro.php:9, fuzzy
+#. Author URI of the plugin
+msgid "https://taxopress.com"
+msgstr "https://taxopress.com"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/classes/licence.php:72
+#: dist/taxopress-pro/includes-pro/classes/licence.php:72
+#: includes-pro/classes/licence.php:72
+msgid "License key"
+msgstr "Chave de licença"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/classes/licence.php:75
+#: dist/taxopress-pro/includes-pro/classes/licence.php:75
+#: includes-pro/classes/licence.php:75, fuzzy
+msgid "Status"
+msgstr "Status"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/classes/licence.php:76
+#: dist/taxopress-pro/includes-pro/classes/licence.php:76
+#: includes-pro/classes/licence.php:76
+msgid "Your license key provides access to updates and support."
+msgstr "Sua chave de licença fornece acesso a atualizações e suporte."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/classes/licence.php:91
+#: dist/taxopress-pro/includes-pro/classes/licence.php:91
+#: includes-pro/classes/licence.php:91
+msgid "Activate License"
+msgstr "Ativar Licença"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/load.php:114
+#: dist/taxopress-pro/includes-pro/load.php:114
+#: includes-pro/load.php:114
+msgid "Synonyms"
+msgstr "Sinônimos"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/load.php:115
+#: dist/taxopress-pro/includes-pro/load.php:115
+#: includes-pro/load.php:115
+msgid ""
+"This feature allows you to associate additional words with each term. For "
+"example, \"website\" can have synonyms such as \"websites\", \"web site\", "
+"and \"web pages\"."
+msgstr ""
+"Este recurso permite que você associe palavras adicionais a cada termo. Por "
+"exemplo, \"website\" pode ter sinônimos como \"websites\", \"web site\" e "
+"\"web pages\"."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/load.php:119
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:109
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:135
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:304
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:323
+#: dist/taxopress-pro/includes-pro/load.php:119
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:109
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:135
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:304
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:323
+#: includes-pro/load.php:119
+#: includes-pro/modules/linked-terms/linked-terms.php:109
+#: includes-pro/modules/linked-terms/linked-terms.php:135
+#: includes-pro/modules/linked-terms/linked-terms.php:304
+#: includes-pro/modules/linked-terms/linked-terms.php:323
+msgid "Linked Terms"
+msgstr "Termos Vinculados"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/load.php:120
+#: dist/taxopress-pro/includes-pro/load.php:120
+#: includes-pro/load.php:120
+msgid ""
+"This feature allows you to connect terms. When the main term or any of "
+"these terms are added to the post, all the other terms will be added also."
+msgstr ""
+"Este recurso permite que você conecte termos. Quando o termo principal ou "
+"qualquer um desses termos é adicionado ao post, todos os outros termos "
+"também serão adicionados."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:80
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:80
+#: includes-pro/modules/autolinks/autolinks.php:80
+msgid "Shortcode Name"
+msgstr "Nome do Shortcode"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:81
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:169
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:81
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:169
+#: includes-pro/modules/autolinks/autolinks.php:81
+#: includes-pro/modules/autolinks/autolinks.php:169
+msgid "Add"
+msgstr "Adicionar"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:82
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:82
+#: includes-pro/modules/autolinks/autolinks.php:82
+msgid "Enter the shortcode name without [ ] or parameters."
+msgstr "Digite o nome do shortcode sem [ ] ou parâmetros."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:123
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:123
+#: includes-pro/modules/autolinks/autolinks.php:123
+msgid "Search Block"
+msgstr "Bloco de Pesquisa"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:124
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:124
+#: includes-pro/modules/autolinks/autolinks.php:124
+msgid "Search..."
+msgstr "Pesquisar..."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:125
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:125
+#: includes-pro/modules/autolinks/autolinks.php:125
+msgid "Search and select blocks."
+msgstr "Pesquise e selecione blocos."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:169
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:169
+#: includes-pro/modules/autolinks/autolinks.php:169
+msgid "Element tag"
+msgstr "Tag do elemento"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:172
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:172
+#: includes-pro/modules/autolinks/autolinks.php:172
+msgid "Add Element"
+msgstr "Adicionar Elemento"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:172
+#: dist/taxopress-pro/includes-pro/modules/autolinks/autolinks.php:172
+#: includes-pro/modules/autolinks/autolinks.php:172
+msgid "New Element"
+msgstr "Novo Elemento"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:44
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:44
+#: includes-pro/modules/autoterms/autoterms.php:44
+#, php-format
+msgid ""
+"OpenAI is an external service that can scan your content and suggest "
+"relevant terms. %1sClick here for details%2s."
+msgstr ""
+"OpenAI é um serviço externo que pode escanear seu conteúdo e sugerir termos "
+"relevantes. %1sClique aqui para detalhes%2s."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:53
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:135
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:161
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:225
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:275
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:301
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:348
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:400
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:426
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:473
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:512
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:538
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:582
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:53
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:135
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:161
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:225
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:275
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:301
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:348
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:400
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:426
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:473
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:512
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:538
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:582
+#: includes-pro/modules/autoterms/autoterms.php:53
+#: includes-pro/modules/autoterms/autoterms.php:135
+#: includes-pro/modules/autoterms/autoterms.php:161
+#: includes-pro/modules/autoterms/autoterms.php:225
+#: includes-pro/modules/autoterms/autoterms.php:275
+#: includes-pro/modules/autoterms/autoterms.php:301
+#: includes-pro/modules/autoterms/autoterms.php:348
+#: includes-pro/modules/autoterms/autoterms.php:400
+#: includes-pro/modules/autoterms/autoterms.php:426
+#: includes-pro/modules/autoterms/autoterms.php:473
+#: includes-pro/modules/autoterms/autoterms.php:512
+#: includes-pro/modules/autoterms/autoterms.php:538
+#: includes-pro/modules/autoterms/autoterms.php:582
+msgid "False"
+msgstr "Falso"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:58
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:140
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:166
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:230
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:280
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:306
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:353
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:405
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:431
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:478
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:517
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:543
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:587
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:58
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:140
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:166
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:230
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:280
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:306
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:353
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:405
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:431
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:478
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:517
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:543
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:587
+#: includes-pro/modules/autoterms/autoterms.php:58
+#: includes-pro/modules/autoterms/autoterms.php:140
+#: includes-pro/modules/autoterms/autoterms.php:166
+#: includes-pro/modules/autoterms/autoterms.php:230
+#: includes-pro/modules/autoterms/autoterms.php:280
+#: includes-pro/modules/autoterms/autoterms.php:306
+#: includes-pro/modules/autoterms/autoterms.php:353
+#: includes-pro/modules/autoterms/autoterms.php:405
+#: includes-pro/modules/autoterms/autoterms.php:431
+#: includes-pro/modules/autoterms/autoterms.php:478
+#: includes-pro/modules/autoterms/autoterms.php:517
+#: includes-pro/modules/autoterms/autoterms.php:543
+#: includes-pro/modules/autoterms/autoterms.php:587
+msgid "True"
+msgstr "Verdadeiro"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:65
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:65
+#: includes-pro/modules/autoterms/autoterms.php:65
+msgid ""
+"This will automatically add new terms from the OpenAI service. Before use, "
+"please test carefully using the preview feature."
+msgstr ""
+"Isto irá adicionar automaticamente novos termos do serviço OpenAI. Antes de "
+"usar, teste cuidadosamente usando o recurso de visualização."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:71
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:71
+#: includes-pro/modules/autoterms/autoterms.php:71
+msgid "Enable OpenAI"
+msgstr "Ativar OpenAI"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:82
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:266
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:503
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:82
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:266
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:503
+#: includes-pro/modules/autoterms/autoterms.php:82
+#: includes-pro/modules/autoterms/autoterms.php:266
+#: includes-pro/modules/autoterms/autoterms.php:503
+msgid "API Key"
+msgstr "Chave da API"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:83
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:83
+#: includes-pro/modules/autoterms/autoterms.php:83
+msgid "Enter your OpenAI API Key."
+msgstr "Insira sua chave da API OpenAI."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:89
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:89
+#: includes-pro/modules/autoterms/autoterms.php:89, fuzzy
+msgid "gpt-3.5-turbo"
+msgstr "gpt-3.5-turbo"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:90
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:90
+#: includes-pro/modules/autoterms/autoterms.php:90, fuzzy
+msgid "gpt-4o-mini"
+msgstr "gpt-4o-mini"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:91
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:91
+#: includes-pro/modules/autoterms/autoterms.php:91, fuzzy
+msgid "gpt-4o"
+msgstr "gpt-4o"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:92
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:92
+#: includes-pro/modules/autoterms/autoterms.php:92
+msgid "chatgpt-4o-latest"
+msgstr "chatgpt-4o-último"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:93
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:93
+#: includes-pro/modules/autoterms/autoterms.php:93, fuzzy
+msgid "gpt-5"
+msgstr "gpt-5"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:94
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:94
+#: includes-pro/modules/autoterms/autoterms.php:94, fuzzy
+msgid "gpt-5-mini"
+msgstr "gpt-5-mini"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:95
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:95
+#: includes-pro/modules/autoterms/autoterms.php:95, fuzzy
+msgid "gpt-5-nano"
+msgstr "gpt-5-nano"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:96
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:96
+#: includes-pro/modules/autoterms/autoterms.php:96, fuzzy
+msgid "o3-mini"
+msgstr "o3-mini"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:97
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:97
+#: includes-pro/modules/autoterms/autoterms.php:97, fuzzy
+msgid "o1-mini"
+msgstr "o1-mini"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:98
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:98
+#: includes-pro/modules/autoterms/autoterms.php:98, fuzzy
+msgid "o1"
+msgstr "o1"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:125
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:125
+#: includes-pro/modules/autoterms/autoterms.php:125
+msgid "OpenAI Models"
+msgstr "Modelos OpenAI"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:126
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:126
+#: includes-pro/modules/autoterms/autoterms.php:126
+msgid "Some models availability depends on your subscription and access."
+msgstr "A disponibilidade de alguns modelos depende da sua assinatura e acesso."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:150
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:290
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:415
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:527
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:150
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:290
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:415
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:527
+#: includes-pro/modules/autoterms/autoterms.php:150
+#: includes-pro/modules/autoterms/autoterms.php:290
+#: includes-pro/modules/autoterms/autoterms.php:415
+#: includes-pro/modules/autoterms/autoterms.php:527
+msgid "Show Term Post Count"
+msgstr "Mostrar Contagem de Postagens do Termo"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:151
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:291
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:416
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:528
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:151
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:291
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:416
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:528
+#: includes-pro/modules/autoterms/autoterms.php:151
+#: includes-pro/modules/autoterms/autoterms.php:291
+#: includes-pro/modules/autoterms/autoterms.php:416
+#: includes-pro/modules/autoterms/autoterms.php:528
+msgid "This will show the number of posts attached to the terms."
+msgstr "Isso mostrará o número de postagens anexadas aos termos."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:176
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:316
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:441
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:553
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:176
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:316
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:441
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:553
+#: includes-pro/modules/autoterms/autoterms.php:176
+#: includes-pro/modules/autoterms/autoterms.php:316
+#: includes-pro/modules/autoterms/autoterms.php:441
+#: includes-pro/modules/autoterms/autoterms.php:553
+msgid "Cache Results"
+msgstr "Resultados em Cache"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:177
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:317
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:442
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:554
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:177
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:317
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:442
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:554
+#: includes-pro/modules/autoterms/autoterms.php:177
+#: includes-pro/modules/autoterms/autoterms.php:317
+#: includes-pro/modules/autoterms/autoterms.php:442
+#: includes-pro/modules/autoterms/autoterms.php:554
+msgid ""
+"By caching the results locally, new API requests will not be made unless "
+"the post title or content changes. This saves API usage."
+msgstr ""
+"Ao armazenar os resultados em cache localmente, novas solicitações de API "
+"não serão feitas a menos que o título ou o conteúdo da postagem mudem. Isso "
+"economiza uso da API."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:190
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:190
+#: includes-pro/modules/autoterms/autoterms.php:190
+msgid "OpenAI Prompt (Beta)"
+msgstr "Prompt OpenAI (Beta)"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:194
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:194
+#: includes-pro/modules/autoterms/autoterms.php:194
+#, php-format
+msgid "%1s Click here for prompt documentation. %2s"
+msgstr "%1s Clique aqui para a documentação do prompt. %2s"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:204
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:204
+#: includes-pro/modules/autoterms/autoterms.php:204
+msgid "OpenAI Max Tokens"
+msgstr "Máximos Tokens OpenAI"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:205
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:205
+#: includes-pro/modules/autoterms/autoterms.php:205
+msgid ""
+"Maximum tokens for OpenAI response. You can increase this when using {site} "
+"placeholder with many terms."
+msgstr ""
+"Tokens máximos para a resposta do OpenAI. Você pode aumentar isso ao usar o "
+"placeholder {site} com muitos termos."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:216
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:216
+#: includes-pro/modules/autoterms/autoterms.php:216
+#, php-format
+msgid ""
+"IBM Watson is an external service that can scan your content and suggest "
+"relevant terms. %1sClick here for details%2s."
+msgstr ""
+"O IBM Watson é um serviço externo que pode escanear seu conteúdo e sugerir "
+"termos relevantes. %1sClique aqui para detalhes%2s."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:237
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:237
+#: includes-pro/modules/autoterms/autoterms.php:237
+msgid ""
+"This will automatically add new terms from the IBM Watson service. Before "
+"use, please test carefully using the preview feature."
+msgstr ""
+"Isso adicionará automaticamente novos termos do serviço IBM Watson. Antes "
+"de usar, teste cuidadosamente usando o recurso de visualização."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:243
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:243
+#: includes-pro/modules/autoterms/autoterms.php:243
+msgid "Enable IBM Watson"
+msgstr "Ativar IBM Watson"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:255
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:255
+#: includes-pro/modules/autoterms/autoterms.php:255
+msgid "API URL"
+msgstr "URL da API"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:256
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:256
+#: includes-pro/modules/autoterms/autoterms.php:256
+msgid "Enter your IBM Watson API URL."
+msgstr "Digite sua URL da API IBM Watson."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:267
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:267
+#: includes-pro/modules/autoterms/autoterms.php:267
+msgid "Enter your IBM Watson API Key."
+msgstr "Digite sua Chave da API IBM Watson."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:326
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:451
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:563
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:326
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:451
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:563
+#: includes-pro/modules/autoterms/autoterms.php:326
+#: includes-pro/modules/autoterms/autoterms.php:451
+#: includes-pro/modules/autoterms/autoterms.php:563
+msgid ""
+"This integration is no longer actively supported. If you still need to use "
+"it, you can enable it in the Legacy AI Sources settings."
+msgstr ""
+"Esta integração não é mais suportada ativamente. Se você ainda precisar "
+"usá-la, pode ativá-la nas configurações de Fontes de IA Legadas."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:339
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:339
+#: includes-pro/modules/autoterms/autoterms.php:339
+#, php-format
+msgid ""
+"Dandelion is an external service that can scan your content and suggest "
+"relevant terms. %1sClick here for details%2s."
+msgstr ""
+"O Dandelion é um serviço externo que pode escanear seu conteúdo e sugerir "
+"termos relevantes. %1sClique aqui para detalhes%2s."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:360
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:360
+#: includes-pro/modules/autoterms/autoterms.php:360
+msgid ""
+"This will automatically add new terms from the Dandelion service. Before "
+"use, please test carefully using the preview feature."
+msgstr ""
+"Isso adicionará automaticamente novos termos do serviço Dandelion. Antes de "
+"usar, teste cuidadosamente usando o recurso de visualização."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:366
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:366
+#: includes-pro/modules/autoterms/autoterms.php:366
+msgid "Enable Dandelion"
+msgstr "Ativar Dandelion"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:378
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:378
+#: includes-pro/modules/autoterms/autoterms.php:378
+msgid "API Token"
+msgstr "Token da API"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:379
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:379
+#: includes-pro/modules/autoterms/autoterms.php:379
+msgid "Enter your Dandelion API Key."
+msgstr "Digite sua Chave da API Dandelion."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:389
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:389
+#: includes-pro/modules/autoterms/autoterms.php:389
+msgid "API Confidence Value"
+msgstr "Valor de Confiança da API"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:390
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:390
+#: includes-pro/modules/autoterms/autoterms.php:390
+msgid ""
+"Choose a value between 0 and 1. A high value such as 0.8 will provide a "
+"few, accurate suggestions. A low value such as 0.2 will produce more "
+"suggestions, but they may be less accurate."
+msgstr ""
+"Escolha um valor entre 0 e 1. Um valor alto como 0.8 fornecerá algumas "
+"sugestões precisas. Um valor baixo como 0.2 produzirá mais sugestões, mas "
+"elas podem ser menos precisas."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:464
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:464
+#: includes-pro/modules/autoterms/autoterms.php:464
+#, php-format
+msgid ""
+"LSEG / Refinitiv is an external service that can scan your content and "
+"suggest relevant terms. %1sClick here for details%2s."
+msgstr ""
+"LSEG / Refinitiv é um serviço externo que pode escanear seu conteúdo e "
+"sugerir termos relevantes. %1sClique aqui para detalhes%2s."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:485
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:485
+#: includes-pro/modules/autoterms/autoterms.php:485
+msgid ""
+"This will automatically add new terms from the LSEG / Refinitiv service. "
+"Before use, please test carefully using the preview feature."
+msgstr ""
+"Isto adicionará automaticamente novos termos do serviço LSEG / Refinitiv. "
+"Antes de usar, teste cuidadosamente usando o recurso de visualização."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:491
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:491
+#: includes-pro/modules/autoterms/autoterms.php:491
+msgid "Enable LSEG / Refinitiv"
+msgstr "Ativar LSEG / Refinitiv"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:504
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:504
+#: includes-pro/modules/autoterms/autoterms.php:504
+msgid "Enter your LSEG / Refinitiv API Key."
+msgstr "Digite sua Chave da API LSEG / Refinitiv."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:598
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:598
+#: includes-pro/modules/autoterms/autoterms.php:598
+msgid "Regular Expressions"
+msgstr "Expressões Regulares"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:599
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:599
+#: includes-pro/modules/autoterms/autoterms.php:599
+msgid ""
+"Use Regular Expressions to change how Auto Terms analyzes your posts. This "
+"works for terms added when posts are saved or added via the \"Schedule\" "
+"feature."
+msgstr ""
+"Use Expressões Regulares para alterar como os Termos Automáticos analisam "
+"suas postagens. Isso funciona para termos adicionados quando as postagens "
+"são salvas ou adicionadas via o recurso \"Agendar\"."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:610
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:610
+#: includes-pro/modules/autoterms/autoterms.php:610
+msgid "Regex code"
+msgstr "Código Regex"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:613
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:613
+#: includes-pro/modules/autoterms/autoterms.php:613
+msgid ""
+"Example: <code>/\\b({term})\\b/i</code> will match the whole word while "
+"<code>/({term})/i</code> will match at any location even if it's part of "
+"another word. <code>{term}</code> will be replaced with the term name "
+"before the regex action."
+msgstr ""
+"Exemplo: <code>/\\b({term})\\b/i</code> corresponderá à palavra inteira, "
+"enquanto <code>/({term})/i</code> corresponderá em qualquer local, mesmo "
+"que seja parte de outra palavra. <code>{term}</code> será substituído pelo "
+"nome do termo antes da ação regex."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:650
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:650
+#: includes-pro/modules/autoterms/autoterms.php:650
+msgid "Auto Terms successfully copied."
+msgstr "Termos Automáticos copiados com sucesso."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:694
+#: dist/taxopress-pro/includes-pro/modules/autoterms/autoterms.php:694
+#: includes-pro/modules/autoterms/autoterms.php:694
+msgid "Copy"
+msgstr "Copiar"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/schedule.php:43
+#: dist/taxopress-pro/includes-pro/modules/autoterms/schedule.php:43
+#: includes-pro/modules/autoterms/schedule.php:43
+msgid "Hourly"
+msgstr "Horário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/autoterms/schedule.php:56
+#: dist/taxopress-pro/includes-pro/modules/autoterms/schedule.php:56
+#: includes-pro/modules/autoterms/schedule.php:56
+msgid "Daily"
+msgstr "Diário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:121
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:121
+#: includes-pro/modules/linked-terms/linked-terms-table.php:121
+msgid "Primary Term Name"
+msgstr "Nome do Termo Primário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:122
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:122
+#: includes-pro/modules/linked-terms/linked-terms-table.php:122
+msgid "Secondary Term Name"
+msgstr "Nome do Termo Secundário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:123
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:123
+#: includes-pro/modules/linked-terms/linked-terms-table.php:123
+msgid "Primary Term Taxonomy"
+msgstr "Taxonomia do Termo Primário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:124
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:124
+#: includes-pro/modules/linked-terms/linked-terms-table.php:124
+msgid "Secondary Term Taxonomy"
+msgstr "Taxonomia do Termo Secundário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:125
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:125
+#: includes-pro/modules/linked-terms/linked-terms-table.php:125
+msgid "Primary Term Post Count"
+msgstr "Contagem de Postagens do Termo Primário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:126
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:126
+#: includes-pro/modules/linked-terms/linked-terms-table.php:126
+msgid "Secondary Term Post Count"
+msgstr "Contagem de Posts do Termo Secundário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:167
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:416
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:167
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:416
+#: includes-pro/modules/linked-terms/linked-terms-table.php:167
+#: includes-pro/modules/linked-terms/linked-terms-table.php:416
+msgid "Add primary term to posts with secondary term"
+msgstr "Adicionar termo primário a posts com termo secundário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:168
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:422
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:168
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:422
+#: includes-pro/modules/linked-terms/linked-terms-table.php:168
+#: includes-pro/modules/linked-terms/linked-terms-table.php:422
+msgid "Add secondary term to posts with primary term"
+msgstr "Adicionar termo secundário a posts com termo primário"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:169
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:428
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:169
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:428
+#: includes-pro/modules/linked-terms/linked-terms-table.php:169
+#: includes-pro/modules/linked-terms/linked-terms-table.php:428
+msgid "Delete Relationship"
+msgstr "Excluir Relacionamento"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:192
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:192
+#: includes-pro/modules/linked-terms/linked-terms-table.php:192
+msgid "Taxonomy"
+msgstr "Taxonomia"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:200
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:200
+#: includes-pro/modules/linked-terms/linked-terms-table.php:200
+msgid "Filter"
+msgstr "Filtrar"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:231
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:231
+#: includes-pro/modules/linked-terms/linked-terms-table.php:231
+msgid "Error deleting linked term relationship."
+msgstr "Erro ao excluir relacionamento de termo vinculado."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:234
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:234
+#: includes-pro/modules/linked-terms/linked-terms-table.php:234
+msgid "Linked terms deleted successfully."
+msgstr "Termos vinculados excluídos com sucesso."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:237
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:237
+#: includes-pro/modules/linked-terms/linked-terms-table.php:237
+msgid "Linked term deleted successfully."
+msgstr "Termo vinculado excluído com sucesso."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:259
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:259
+#: includes-pro/modules/linked-terms/linked-terms-table.php:259
+#, php-format
+msgid "%d posts updated successfully."
+msgstr "%d posts atualizados com sucesso."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:262
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:262
+#: includes-pro/modules/linked-terms/linked-terms-table.php:262
+msgid "0 post update."
+msgstr "0 atualização de post."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:319
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms-table.php:319
+#: includes-pro/modules/linked-terms/linked-terms-table.php:319
+msgid "No linked terms found."
+msgstr "Nenhum termo vinculado encontrado."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:94
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:94
+#: includes-pro/modules/linked-terms/linked-terms.php:94
+msgid "Number of items per page"
+msgstr "Número de itens por página"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:137
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:137
+#: includes-pro/modules/linked-terms/linked-terms.php:137
+msgid ""
+"This feature allows you to connect terms. When the primary or secondary "
+"term is added to a post, the other term can be added also."
+msgstr ""
+"Esse recurso permite conectar termos. Quando o termo primário ou secundário "
+"é adicionado a um post, o outro termo também pode ser adicionado."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:144
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:144
+#: includes-pro/modules/linked-terms/linked-terms.php:144
+#. translators: %s: search keywords
+#, php-format
+msgid "Search results for &#8220;%s&#8221;"
+msgstr "Resultados da pesquisa para &#8220;%s&#8221;"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:157
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:157
+#: includes-pro/modules/linked-terms/linked-terms.php:157
+msgid "Search Terms"
+msgstr "Termos de Pesquisa"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:169
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:169
+#: includes-pro/modules/linked-terms/linked-terms.php:169
+msgid "Description here."
+msgstr "Descrição aqui."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:305
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:326
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:305
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:326
+#: includes-pro/modules/linked-terms/linked-terms.php:305
+#: includes-pro/modules/linked-terms/linked-terms.php:326
+msgid "Start typing to choose existing terms."
+msgstr "Comece a digitar para escolher termos existentes."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:306
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:327
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:306
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:327
+#: includes-pro/modules/linked-terms/linked-terms.php:306
+#: includes-pro/modules/linked-terms/linked-terms.php:327
+msgid ""
+"These terms are linked to the main term. When the primary or secondary term "
+"is added to a post, the other term can be added also."
+msgstr ""
+"Esses termos estão vinculados ao termo principal. Quando o termo primário "
+"ou secundário é adicionado a um post, o outro termo também pode ser "
+"adicionado."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:364
+#: dist/taxopress-pro/includes-pro/modules/linked-terms/linked-terms.php:364
+#: includes-pro/modules/linked-terms/linked-terms.php:364
+#. translators: %1$s and %2$s are superscript numbers.
+#, php-format
+msgid ""
+"The superscript %1$s indicates the linked term being the primary term, "
+"while %2$s is shown when the linked term is the secondary term. You can "
+"delete the relationship and re-add it from your preferred term edit screen "
+"to make them the primary term."
+msgstr ""
+"O sobrescrito %1$s indica que o termo vinculado é o termo primário, "
+"enquanto %2$s é mostrado quando o termo vinculado é o termo secundário. "
+"Você pode excluir o relacionamento e re-adicioná-lo a partir da tela de "
+"edição do seu termo preferido para torná-los o termo primário."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:79
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:97
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:79
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:97
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:79
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:97
+msgid "Term Synonyms"
+msgstr "Sinônimos de Termo"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:80
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:100
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:80
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:100
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:80
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:100
+msgid "Type the synonym name (comma-separated) and then click Enter or Return."
+msgstr ""
+"Digite o nome do sinônimo (separado por vírgulas) e depois clique em Enter "
+"ou Return."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:81
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:101
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:81
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:101
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:81
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:101
+msgid ""
+"If TaxoPress scans your content and finds a synonym, it will act as if it "
+"has found the main term."
+msgstr ""
+"Se o TaxoPress escanear seu conteúdo e encontrar um sinônimo, ele atuará "
+"como se tivesse encontrado o termo principal."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:230
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:323
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:230
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:323
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:230
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:323
+#, php-format
+msgid "This synonym can't be added because %1$s is a term on this site."
+msgstr "Este sinônimo não pode ser adicionado porque %1$s é um termo neste site."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:235
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:328
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:235
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:328
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:235
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:328
+#, php-format
+msgid "These synonyms can't be added because %1$s are terms on this site."
+msgstr "Estes sinônimos não podem ser adicionados porque %1$s são termos neste site."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:253
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:348
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:253
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:348
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:253
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:348
+#, php-format
+msgid "This synonym can't be added because %1$s is already added to another term."
+msgstr ""
+"Este sinônimo não pode ser adicionado porque %1$s já está adicionado a "
+"outro termo."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:258
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:353
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:258
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:353
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:258
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:353
+#, php-format
+msgid ""
+"These synonyms can't be added because %1$s are already added to another "
+"term."
+msgstr ""
+"Estes sinônimos não podem ser adicionados porque %1$s já estão adicionados "
+"a outro termo."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:278
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:278
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:278
+#, php-format
+msgid "%1$s can't be added as a tag because %2$s is already used as a synonym."
+msgstr ""
+"%1$s não pode ser adicionado como uma tag porque %2$s já está sendo usado "
+"como um sinônimo."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:300
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:300
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:300
+msgid "Request status."
+msgstr "Status do pedido."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:308
+#: dist/taxopress-pro/includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:308
+#: includes-pro/modules/taxonomy-synonyms/taxonomy-synonyms.php:308
+msgid "Security error. Kindly reload this page and try again"
+msgstr "Erro de segurança. Por favor, recarregue esta página e tente novamente"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:43
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:43
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:43
+msgid "Default"
+msgstr "Padrão"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:44
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:44
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:44, fuzzy
+msgid "Dropdown"
+msgstr "Dropdown"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:45
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:45
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:45
+msgid "Checkbox"
+msgstr "Caixa de seleção"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:51
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:51
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:51
+msgid "Taxonomy Display"
+msgstr "Exibição de Taxonomia"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:84
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:84
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:84
+msgid "Enable IBM Watson integration"
+msgstr "Habilitar integração com IBM Watson"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:87
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:87
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:87
+msgid "Show IBM Watson as an AI source for Auto Terms"
+msgstr "Mostrar IBM Watson como uma fonte de IA para Termos Automáticos"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:92
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:92
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:92
+msgid "Enable Dandelion integration"
+msgstr "Habilitar integração com Dandelion"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:95
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:95
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:95
+msgid "Show Dandelion as an AI source for Auto Terms."
+msgstr "Mostrar Dandelion como uma fonte de IA para Termos Automáticos."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:100
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:100
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:100
+msgid "Enable LSEG/Refinitiv integration"
+msgstr "Habilitar integração com LSEG/Refinitiv"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:103
+#: dist/taxopress-pro/includes-pro/modules/taxopress-ai/taxopress-ai.php:103
+#: includes-pro/modules/taxopress-ai/taxopress-ai.php:103
+msgid "Show LSEG/Refinitiv as an AI source for Auto Terms"
+msgstr "Mostrar LSEG/Refinitiv como uma fonte de IA para Termos Automáticos"
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/terms/terms.php:126
+#: dist/taxopress-pro/includes-pro/modules/terms/terms.php:131
+#: includes-pro/modules/terms/terms.php:131
+msgid "Term successfully copied with metadata."
+msgstr "Termo copiado com sucesso com metadados."
+
+#: dist/taxopress-pro-3.50.0/taxopress-pro/includes-pro/modules/terms/terms.php:149
+#: dist/taxopress-pro/includes-pro/modules/terms/terms.php:153
+#: includes-pro/modules/terms/terms.php:153
+msgid "Copy with Metadata"
+msgstr "Copiar com Metadados"

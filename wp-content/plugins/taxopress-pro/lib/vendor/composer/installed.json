@@ -586,17 +586,17 @@
         },
         {
             "name": "taxopress/simple-tags",
-            "version": "v3.50.0",
-            "version_normalized": "3.50.0.0",
+            "version": "v3.51.0",
+            "version_normalized": "3.51.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/TaxoPress/TaxoPress.git",
-                "reference": "984da10ccaf469a2473a2ea4a44b784046664d44"
+                "reference": "f57eaee4b88d010d3471d3f0289e085a3e0e196a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/TaxoPress/TaxoPress/zipball/984da10ccaf469a2473a2ea4a44b784046664d44",
-                "reference": "984da10ccaf469a2473a2ea4a44b784046664d44",
+                "url": "https://api.github.com/repos/TaxoPress/TaxoPress/zipball/f57eaee4b88d010d3471d3f0289e085a3e0e196a",
+                "reference": "f57eaee4b88d010d3471d3f0289e085a3e0e196a",
                 "shasum": ""
             },
             "require": {
@@ -606,7 +606,7 @@
                 "automattic/vipwpcs": "^3",
                 "publishpress/dev-workspace": "^1.3"
             },
-            "time": "2026-05-13T16:24:38+00:00",
+            "time": "2026-07-22T19:30:10+00:00",
             "type": "wordpress-plugin",
             "extra": {
                 "plugin-slug": "simple-tags",
@@ -636,7 +636,7 @@
                 }
             ],
             "support": {
-                "source": "https://github.com/TaxoPress/TaxoPress/tree/v3.50.0",
+                "source": "https://github.com/TaxoPress/TaxoPress/tree/v3.51.0",
                 "issues": "https://github.com/TaxoPress/TaxoPress/issues"
             },
             "install-path": "../taxopress/simple-tags"
