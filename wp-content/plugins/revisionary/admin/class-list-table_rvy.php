@@ -1860,7 +1860,7 @@ class Revisionary_List_Table extends WP_Posts_List_Table {
 			) {
 				//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$redirect_arg = ( ! empty($_REQUEST['rvy_redirect']) ) ? "&rvy_redirect=" . esc_url_raw($_REQUEST['rvy_redirect']) : '';
-				$url = rvy_admin_url("admin.php?page=rvy-revisions&amp;post={$post->ID}&amp;action=revise$redirect_arg");
+				$url = rvy_admin_url("admin.php?page=rvy-revisions&amp;post={$post->ID}&amp;action=copy$redirect_arg");
 				$actions['copy_revision'] = "<a href='$url'>" . esc_html__('Copy') . '</a>';
 			}
 		}
@@ -1919,10 +1919,29 @@ class Revisionary_List_Table extends WP_Posts_List_Table {
 			);
 		}
 
+		if (current_user_can('approve_revision', $post->ID)) {
+			$revision_id = $post->ID;
+
+			if ( !in_array( $post->post_mime_type, array( 'future-revision', 'inherit' ) ) ) {
+				$actions['publish'] = sprintf(
+					'<a href="%1$s" class="" target="_revision_approve">%2$s</a>',
+					wp_nonce_url( rvy_admin_url("admin.php?page=rvy-revisions&revision=$revision_id&action=approve"), "approve-post_$main_post_id|$revision_id" ),
+					_x( 'Approve', 'revisions', 'revisionary' )
+				);
+			
+			} elseif ( in_array( $post->post_mime_type, array( 'future-revision' ) ) ) {
+				$actions['publish'] = sprintf(
+					'<a href="%1$s" class="" target="_revision_approve">%2$s</a>',
+					wp_nonce_url( rvy_admin_url("admin.php?page=rvy-revisions&revision=$revision_id&action=publish"), "publish-post_$main_post_id|$revision_id" ),
+					_x( 'Publish', 'revisions', 'revisionary' )
+				);
+			}
+		}
+
 		if ($can_edit_post && ('pending-revision' == $post->post_mime_type)) {
 			$actions['decline'] = sprintf(
 				'<a href="%1$s" class="" target="_revision_diff">%2$s</a>',
-				wp_nonce_url(admin_url("post.php?post=$post->ID&action=decline_revision"), 'decline-revision'),
+				wp_nonce_url(admin_url("post.php?post=$post->ID&action=decline_revision"), "decline-revision_{$post->ID}"),
 				_x( 'Decline', 'revisions', 'revisionary' )
 			);
 		}

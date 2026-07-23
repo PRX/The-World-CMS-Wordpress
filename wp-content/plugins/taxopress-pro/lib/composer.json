@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": ">=7.2.5",
-        "taxopress/simple-tags": "^3.50.0",
+        "taxopress/simple-tags": "^3.51.0",
         "publishpress/instance-protection": "^1.0",
         "publishpress/wordpress-reviews": "^1.2.1",
         "publishpress/wordpress-version-notices": "^2.2.1",
