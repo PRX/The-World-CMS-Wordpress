@@ -24,26 +24,6 @@
             "append": ""
         },
         {
-            "key": "field_622a6312b1b5d",
-            "label": "Hide Image",
-            "name": "hide_image",
-            "aria-label": "",
-            "type": "true_false",
-            "instructions": "Hide image when we are not sure we have the rights to use it. Once usage rights have been determined or acquired, deselect this option.",
-            "required": 0,
-            "conditional_logic": 0,
-            "wrapper": {
-                "width": "",
-                "class": "",
-                "id": ""
-            },
-            "message": "",
-            "default_value": 0,
-            "ui": 0,
-            "ui_on_text": "",
-            "ui_off_text": ""
-        },
-        {
             "key": "field_65cdf8ee238b7",
             "label": "Image Credit",
             "name": "_media_credit",
@@ -81,6 +61,66 @@
             "show_in_graphql": 1,
             "default_value": "",
             "placeholder": ""
+        },
+        {
+            "key": "field_6a7cc218d0be1",
+            "label": "Focal Edge",
+            "name": "focal_edge",
+            "aria-label": "",
+            "type": "select",
+            "instructions": "Select which edge or edges the image should scale or crop from to retain focus on the image's subject matter.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "choices": {
+                "center": "Center",
+                "top": "Top",
+                "bottom": "Bottom",
+                "left": "Left",
+                "right": "Right",
+                "top left": "Top Left",
+                "top right": "Top Right",
+                "bottom left": "Bottom Left",
+                "bottom right": "Bottom Right"
+            },
+            "default_value": "center",
+            "return_format": "value",
+            "multiple": 0,
+            "allow_null": 0,
+            "allow_in_bindings": 1,
+            "ui": 0,
+            "show_in_graphql": 1,
+            "graphql_description": "Indicates which edge or edges the image should scale or crop from to retain focus on image subject matter. Value should be compatible with CSS `object-position` and `background-position` styles.",
+            "graphql_field_name": "focalEdge",
+            "graphql_non_null": 0,
+            "ajax": 0,
+            "placeholder": "",
+            "create_options": 0,
+            "save_options": 0
+        },
+        {
+            "key": "field_622a6312b1b5d",
+            "label": "Hide Image",
+            "name": "hide_image",
+            "aria-label": "",
+            "type": "true_false",
+            "instructions": "Hide image when we are not sure we have the rights to use it. Once usage rights have been determined or acquired, deselect this option.",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "message": "",
+            "default_value": 0,
+            "ui": 0,
+            "ui_on_text": "",
+            "ui_off_text": ""
         }
     ],
     "location": [
@@ -101,9 +141,12 @@
     "active": true,
     "description": "",
     "show_in_rest": 0,
+    "display_title": "",
+    "allow_ai_access": false,
+    "ai_description": "",
     "show_in_graphql": 1,
     "graphql_field_name": "imageFields",
     "map_graphql_types_from_location_rules": 0,
     "graphql_types": "",
-    "modified": 1714499083
+    "modified": 1786562795
 }
