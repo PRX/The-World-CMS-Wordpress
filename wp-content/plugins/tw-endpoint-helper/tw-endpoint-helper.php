@@ -603,7 +603,7 @@ function _peh_get_object_with_fid( $slug ) {
 		$object_segment     = array_pop( $object_segments );
 
 		if ( $object_attachment && 0 === strpos( $object_attachment->post_mime_type, 'audio/' ) && $object_segment ) {
-			// Both an audio attachment and segment wher found for the fid.
+			// Both an audio attachment and segment were found for the fid.
 			// We want to return the route for the segment.
 			$object = $object_segment;
 		} else {
