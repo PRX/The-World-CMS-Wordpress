@@ -49,7 +49,7 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
             </div>
             <?php
 
-            if (XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() && XmlExportWooCommerceOrder::$is_active && $update_previous->options['export_type'] == 'specific') {
+            if ( ( XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() || XMLExportEngine::get_addons_service()->isWooCommerceOrderAddonActive() ) && XmlExportWooCommerceOrder::$is_active && $update_previous->options['export_type'] == 'specific') {
 
                 $exportList = new PMXE_Export_List();
                 foreach ($exportList->getBy('parent_id', $update_previous->id)->convertRecords() as $child_export) {

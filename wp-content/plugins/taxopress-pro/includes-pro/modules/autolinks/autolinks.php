@@ -180,11 +180,15 @@ if (!class_exists('TaxoPress_Pro_Auto_Links')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-autolink') {
+                if (!current_user_can('simple_tags')) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
+                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
                 if ($nonce && wp_verify_nonce($nonce, 'autolink-action-request-nonce')) {
                     // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                    $autolink_id = isset($_REQUEST['taxopress_autolink']) ? sanitize_text_field($_REQUEST['taxopress_autolink']) : '';
+                    $autolink_id = isset($_REQUEST['taxopress_autolink']) ? sanitize_text_field(wp_unslash($_REQUEST['taxopress_autolink'])) : '';
                     if ($autolink_id) {
                         $this->taxopress_action_copy_autolink($autolink_id);
                     }

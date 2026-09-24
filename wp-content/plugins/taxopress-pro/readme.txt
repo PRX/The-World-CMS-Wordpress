@@ -3,7 +3,7 @@ Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojop
 Tags: category, tag, taxonomy, categories, tag cloud
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 3.51.0
+Stable tag: 3.54.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -225,7 +225,34 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 
 == Changelog ==
 
-= [3.51.0] - 21 July, 2026 =
+## [3.54.0] - 22 September, 2026
+* Security: Prevent reflected XSS in Terms row-action URLs
+* Fixed: Prevent creation of a destination term when merging terms and no source terms exist
+* Fixed: Preserve the destination term when it is included among the terms being merged
+* Fixed: Fix Auto Links excluded-term matching
+* Update: Add per-post Auto Terms status controls
+* Update: Add per-post Auto Links status controls and enable overrides
+
+## [3.53.0] - 01 September, 2026
+* Fixed: Mass Edit pagination is broken, #3014
+* Update: Enforce native taxonomy capabilities for term actions, #3013
+* Update: Bound Auto Terms existing-content processing, #3012
+* Update: Restrict administrative taxonomy term lookups, #3011
+* Update: Harden AI integrations and metabox mutations, #3010
+* Add a loco.xml file, #3009
+
+## [3.52.0] - 19 August, 2026 =
+* Update: Normalize Auto Terms specific-term values, #3001
+* Update: Add permission checks to Pro configuration copy actions, #3000
+* Update: Restrict synonym validation to TaxoPress managers, #2999
+* Add permission checks to term copy actions, #2998
+* Harden Linked Terms list and bulk actions, #2997
+* Strengthen Manage Terms request validation, #2995
+* Tighten access checks for term suggestion lookups, #2993
+* Add request validation to legacy tag creation, #2991
+* Harden TaxoPress AI term result rendering, #2989
+
+## [3.51.0] - 21 July, 2026 =
 * Fixed: Fatal memory exhaustion on Terms screen (st_terms) with hierarchical taxonomy — not related to term count, #2967
 * Fixed: Related Posts thumbnail image resolution setting is ignored, #2964
 * Fixed: Terms screen causes memory exhaustion on large sites, #2962
@@ -233,17 +260,5 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 * Fixed: Terms screen can run out of memory on large sites, #2961
 * Update: Remove the lock icon in the Pro version, #2963
 * Update: Include changelog in readme.txt for plugin update dialog box, #2959
-
-= [3.50.0] - 13 May, 2026 =
-* Update: Add CHANGELOG.md file, #2944
-* Update: Add Bundled Translations Library, #2943
-* Update: migrate to shared dev-workspace, #2941
-* Update: Move plugin structure to match PublishPress, #2940
-
-= [3.45.0] - 16 April, 2026 =
-* Fixed: Issue with metabox overlap in WordPress 7.0, #2929
-* Fixed: Uncaught TypeError: array_keys(): Argument #1 in class.admin.manage, #2921
-* Update: Related Posts settings, #2928
-* Update: Update readme file from WordPress.org #2936
 
 The full changelog can be found on [GitHub](https://github.com/taxopress/taxopress-pro/blob/master/CHANGELOG.md).

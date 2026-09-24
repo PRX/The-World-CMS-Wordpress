@@ -139,8 +139,9 @@ class PMXE_Helper {
 
 	public static function is_rapid_export_addon($cpt)
     {
+
         if (is_array($cpt)) {
-            $cpt = $cpt[0];
+            $cpt = $cpt[0] ?? '';
         }
 
         $is_rapid_addon_export = true;

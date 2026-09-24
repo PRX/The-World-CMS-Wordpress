@@ -49,7 +49,8 @@ if ( ! function_exists( 'wp_all_export_get_absolute_path' ) ) {
 	function wp_all_export_get_absolute_path( $path ) {
 		$uploads = wp_upload_dir();
 
-		return ( strpos( $path, $uploads['basedir'] ) === false and ! preg_match( '%^https?://%i', $path ) ) ? $uploads['basedir'] . $path : $path;
+        // If the path isn't http(s) and doesn't start with the basedir, add the basedir.
+		return ( strncmp($path, $uploads['basedir'], strlen($uploads['basedir'])) !== 0  and ! preg_match( '%^https?://%i', $path ) ) ? $uploads['basedir'] . $path : $path;
 	}
 }
 
@@ -66,7 +67,6 @@ if ( ! function_exists( 'wp_all_export_rrmdir' ) ) {
 					}
 				}
 			}
-			reset( $objects );
 			rmdir( $dir );
 		}
 	}
@@ -108,8 +108,9 @@ if ( ! function_exists( 'wp_all_export_get_existing_meta_by_cpt' ) ) {
 
 		$post_type_in = implode( ',', $post_type );
 
+        $meta_query_limit = apply_filters('wp_all_export_meta_query_limit', 1000);
 		// $wpdb->prepare isn't used as it's already covered above for the user provided values.
-		$meta_keys = $wpdb->get_results( "SELECT DISTINCT {$table_prefix}postmeta.meta_key FROM {$table_prefix}postmeta, {$table_prefix}posts WHERE {$table_prefix}postmeta.post_id = {$table_prefix}posts.ID AND {$table_prefix}posts.post_type IN ({$post_type_in}) AND {$table_prefix}postmeta.meta_key NOT LIKE '_edit%' AND {$table_prefix}postmeta.meta_key NOT LIKE '_oembed_%' LIMIT 1000" );
+		$meta_keys = $wpdb->get_results( "SELECT DISTINCT {$table_prefix}postmeta.meta_key FROM {$table_prefix}postmeta, {$table_prefix}posts WHERE {$table_prefix}postmeta.post_id = {$table_prefix}posts.ID AND {$table_prefix}posts.post_type IN ({$post_type_in}) AND {$table_prefix}postmeta.meta_key NOT LIKE '_edit%' AND {$table_prefix}postmeta.meta_key NOT LIKE '_oembed_%' LIMIT $meta_query_limit" );
 
 		$_existing_meta_keys = array();
 		if ( ! empty( $meta_keys ) ) {
@@ -280,5 +281,111 @@ if ( ! function_exists( 'wpae_wp_enqueue_code_editor' ) ) {
 
 		return $settings;
 	}
+
+    if(!function_exists('wp_all_export_is_array_nested')){
+	    function wp_all_export_is_array_nested($array) {
+		    if (!is_array($array)) {
+			    return false;
+		    }
+
+            $nested_count = 0;
+
+		    foreach ($array as $value) {
+			    if (is_array($value)) {
+				    $nested_count++;
+			    }
+		    }
+
+            if(count($array) === $nested_count){
+                return true;
+            }
+
+		    return false;
+	    }
+    }
+}
+
+if (!function_exists('pmxe_encode_parenthesis')) {
+	function pmxe_encode_parenthesis($input) {
+		return strtr($input, [
+			'(' => '&lpar;',
+			')' => '&rpar;',
+			'[' => '&lsqb;',
+			']' => '&rsqb;'
+		]);
+	}
+}
+
+if (!function_exists('pmxe_decode_parenthesis')) {
+	function pmxe_decode_parenthesis($input) {
+		return strtr($input, [
+			'&lpar;' => '(',
+			'&rpar;' => ')',
+			'&lsqb;' => '[',
+			'&rsqb;' => ']'
+		]);
+	}
+}
+
+if (!function_exists('pmxe_encode_parenthesis_within_strings')) {
+	function pmxe_encode_parenthesis_within_strings(string $code): string {
+		$tokens = token_get_all($code);
+		$result = '';
+
+		foreach ($tokens as $token) {
+			if (is_array($token) && $token[0] === T_CONSTANT_ENCAPSED_STRING) {
+				$token[1] = pmxe_encode_parenthesis($token[1]);
+			}
+			$result .= is_array($token) ? $token[1] : $token;
+		}
+
+		return $result;
+	}
+}
+
+if (!function_exists('pmxe_decode_parenthesis_within_strings')) {
+	function pmxe_decode_parenthesis_within_strings(string $code): string {
+		$tokens = token_get_all($code);
+		$result = '';
+
+		foreach ($tokens as $token) {
+			if (is_array($token) && $token[0] === T_CONSTANT_ENCAPSED_STRING) {
+				$token[1] = pmxe_decode_parenthesis($token[1]);
+			}
+			$result .= is_array($token) ? $token[1] : $token;
+		}
+
+		return $result;
+	}
+}
+
+if(!function_exists('pmxe_is_writable')){
+    function pmxe_is_writable($path){
+        if(apply_filters('pmxe_use_alternative_is_writable_check', false)){
+	        if(is_dir($path)) {
+		        $test_file = $path . '/test_file.tmp';
+		        $handle = @fopen($test_file, 'a');
+		        if($handle === false) {
+			        $result = false;
+		        } else {
+			        fclose($handle);
+			        unlink($test_file);
+			        $result = true;
+		        }
+	        } else {
+		        $handle = @fopen($path, 'a');
+		        if($handle === false) {
+			        $result = false;
+		        } else {
+			        fclose($handle);
+			        $result = true;
+		        }
+	        }
+        }else{
+            $result = is_writable($path);
+        }
+
+        return $result;
+    }
 }
 

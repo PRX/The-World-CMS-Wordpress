@@ -32,6 +32,21 @@
   $(document).ready(function () {
     var removed_tax = taxoPressAIRequestAction.removed_tax;
     var current_screen = taxoPressAIRequestAction.current_screen;
+    var renderedFiltersEnabled = null;
+
+    function showResponseMessage(previewWrapper, content, messageClass, allowHtml) {
+      var messageWrapper = previewWrapper.find('.taxopress-ai-fetch-result-msg');
+      var message = $('<p>');
+
+      if (allowHtml) {
+        message.html(content || '');
+      } else {
+        message.text(content || '');
+      }
+
+      messageWrapper.empty().append(message);
+      messageWrapper.removeClass('updated error').addClass(messageClass);
+    }
 
     // Remove built in tax for block editor
     if (removed_tax.length > 0 && typeof wp.data !== 'undefined' && typeof wp.data.dispatch === 'function') {
@@ -99,7 +114,7 @@
 
       $.post(ajaxurl, data, function (response) {
         if (response.status === 'error') {
-          preview_wrapper.find('.taxopress-ai-fetch-result-msg').html('<p>' + response.content + '</p>').removeClass('updated').addClass('error');
+          showResponseMessage(preview_wrapper, response.content, 'error');
         } else {
           preview_wrapper.find('.taxopress-ai-fetch-result').html(response.content);
           autoterm_option_select2();
@@ -162,7 +177,7 @@
 
       $.post(ajaxurl, data, function (response) {
         if (response.status === 'error') {
-          preview_wrapper.find('.taxopress-ai-fetch-result-msg').html('<p>' + response.content + '</p>').removeClass('updated').addClass('error');
+          showResponseMessage(preview_wrapper, response.content, 'error');
         } else {
           preview_wrapper.find('.taxopress-taxonomy-term-input').val('');
           preview_wrapper.find('.taxopress-ai-fetch-result').html(response.term_html);
@@ -176,6 +191,10 @@
     });
 
     function isFiltersEnabled() {
+      if (renderedFiltersEnabled !== null) {
+        return renderedFiltersEnabled;
+      }
+
       if (typeof taxoPressAIRequestAction === 'undefined') return false;
       const v = taxoPressAIRequestAction.metabox_filters_enabled;
       return v === true || v === 1 || v === '1' || v === 'true' || v === 'yes' || v === 'on';
@@ -193,9 +212,10 @@
     }
 
     function setTabUi(tabKey) {
+      const $all = $('.taxopress-tab-content-item');
+      const $wrap = $('.taxopress-tab-content-item.' + tabKey);
       const filtersEnabled = isFiltersEnabled();
 
-      const $all = $('.taxopress-tab-content-item');
       $all.find('.existing-term-item').hide();
       $all.find('.create-term-item').hide();
       $all.find('.taxopress-ai-fetch-taxonomy-select').hide();
@@ -203,8 +223,6 @@
       $all.find('.taxopress-autoterms-options').hide();
 
       // Pick the active container by tab key
-      const $wrap = $('.taxopress-tab-content-item.' + tabKey);
-
       if (tabKey === 'existing_terms') {
         if (filtersEnabled) {
           $wrap.find('.existing-term-item').show();
@@ -224,6 +242,21 @@
       }
     }
 
+    function fetchPreviewTab(tabKey) {
+      if (
+        current_screen !== 'st_taxopress_ai' ||
+        !['existing_terms', 'post_terms', 'suggest_local_terms'].includes(tabKey)
+      ) {
+        return;
+      }
+
+      var $button = $('.taxopress-preview-metabox-content .taxopress-ai-tab-content.' + tabKey)
+        .find('.taxopress-ai-fetch-button');
+      if ($button.length) {
+        $button.trigger('click');
+      }
+    }
+
     // -------------------------------------------------------------
     //   Show/hide search box for eligible tab
     // -------------------------------------------------------------
@@ -231,6 +264,7 @@
     $(document).on('click', 'ul.taxopress-tab.ai-integration-tab li', function () {
         const tabKey = resolveTabKey($(this));
         setTabUi(tabKey);
+        fetchPreviewTab(tabKey);
         
         // Get current post ID and update all tabs
         const selectedPost = $('.preview-post-select').val();
@@ -277,11 +311,11 @@
 
       if (button.hasClass('all-selected')) {
         button.removeClass('all-selected');
-        button.html(button.attr('data-select-all'));
+        button.text(button.attr('data-select-all'));
         button.closest('.previewed-tag-fieldset').find('.result-terms').addClass('used_term').trigger('click');
       } else {
         button.addClass('all-selected');
-        button.html(button.attr('data-deselect-all'));
+        button.text(button.attr('data-deselect-all'));
         button.closest('.previewed-tag-fieldset').find('.result-terms').removeClass('used_term').trigger('click');
       }
     });
@@ -307,7 +341,7 @@
       var this_result = term_button.find('.term-name');
       var this_selected = term_button.hasClass('used_term');
       var this_term_id = Number(this_result.attr('data-term_id'));
-      var this_term_name = this_result.html();
+      var this_term_name = this_result.text();
 
       term_button.addClass('disabled');
 
@@ -358,7 +392,16 @@
                     taxonomy_field_name = 'tax_input[' + taxonomy + ']';
                   }
 
-                  categoryList.prepend('<li id="' + taxonomy + '-' + term_data.term_id + '"><label class="selectit"><input value="' + term_data.term_id + '" type="checkbox" name="' + taxonomy_field_name + '[]" id="in-' + taxonomy + '-' + term_data.term_id + '" checked> ' + term_data.name + '</label></li>');
+                  var categoryItem = $('<li>').attr('id', taxonomy + '-' + term_data.term_id);
+                  var categoryLabel = $('<label>').addClass('selectit');
+                  var categoryInput = $('<input>', {
+                    value: term_data.term_id,
+                    type: 'checkbox',
+                    name: taxonomy_field_name + '[]',
+                    id: 'in-' + taxonomy + '-' + term_data.term_id
+                  }).prop('checked', true);
+                  categoryLabel.append(categoryInput).append(document.createTextNode(' ' + term_data.name));
+                  categoryList.prepend(categoryItem.append(categoryLabel));
 
                   this_result.attr('data-term_id', term_data.term_id);
                   term_button.toggleClass('used_term');
@@ -483,7 +526,7 @@
        * Reset selected post if post type changes
        */
       $(document).on("change", ".preview-post-types-select", function (event) {
-        var post_select = $(this).closest('.taxopress-tab-content-item').find('.preview-post-select');
+        var post_select = $(this).closest('.taxopress-preview-filters').find('.preview-post-select');
         post_select.val('').empty().ppma_select2('destroy');
         taxopressPostSelect2($('.taxopress-ai-post-search'));
       });
@@ -527,7 +570,7 @@
           this_result = $(this).find('.term-name');
           this_selected = $(this).hasClass('used_term');
           this_term_id = Number(this_result.attr('data-term_id'));
-          this_term_name = this_result.html();
+          this_term_name = this_result.text();
           term_data = {
             'term_id': this_term_id,
             'name': this_term_name
@@ -558,9 +601,9 @@
 
         $.post(ajaxurl, data, function (response) {
           if (response.status === 'error') {
-            preview_wrapper.find('.taxopress-ai-fetch-result-msg').html('<p>' + response.content + '</p>').removeClass('updated').addClass('error');
+            showResponseMessage(preview_wrapper, response.content, 'error');
           } else {
-            preview_wrapper.find('.taxopress-ai-fetch-result-msg').html('<p>' + response.content + '</p>').addClass('updated').removeClass('error');
+            showResponseMessage(preview_wrapper, response.content, 'updated', true);
           }
 
           button.prop('disabled', false);
@@ -846,7 +889,9 @@
         var selectedPostType = $('.preview-post-types-select').val();
         var selectedRole = $('.preview-user-role-select').val();
         var selectedPost = $('.preview-post-select').val();
-        var activeTab = $('ul.taxopress-tab.ai-integration-tab li.active').attr('class').match(/(existing_terms|post_terms|suggest_local_terms|create_terms)_tab/)[0];
+        var activeTabClass = $('ul.taxopress-tab.ai-integration-tab li.active').attr('class') || '';
+        var activeTabMatch = activeTabClass.match(/(existing_terms|post_terms|suggest_local_terms|create_terms)_tab/);
+        var activeTab = activeTabMatch ? activeTabMatch[0] : '';
 
         if (!selectedPost) {
             alert(taxoPressAIRequestAction.requiredSuffix);
@@ -857,119 +902,35 @@
         $button.prop('disabled', true);
         $button.append($spinner.css('visibility', 'visible'));
 
-        // First check permitted taxonomies for the selected role
-        $.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            data: {
-                action: 'taxopress_role_preview',
-                preview_role: selectedRole,
-                post_type: selectedPostType,  // Add post type to the request
-                nonce: taxoPressAIRequestAction.nonce
-            },
-            success: function(response) {
-                if (response.success && response.data.allowed_taxonomies) {
-                    // Hide all taxonomy options first
-                    $('.taxopress-ai-fetch-taxonomy-select option, .taxopress-ai-fetch-create-taxonomy option').hide();
-                    
-                    // Show only permitted taxonomies
-                    response.data.allowed_taxonomies.forEach(function(tax) {
-                        $('.taxopress-ai-fetch-taxonomy-select option[value="' + tax + '"], .taxopress-ai-fetch-create-taxonomy option[value="' + tax + '"]').show();
-                    });
-
-                    // Select first permitted taxonomy if current isn't permitted
-                    var currentTaxonomy = $('.taxopress-ai-fetch-taxonomy-select').val();
-                    if (!response.data.allowed_taxonomies.includes(currentTaxonomy)) {
-                        var $firstPermitted = $('.taxopress-ai-fetch-taxonomy-select option:visible:first');
-                        if ($firstPermitted.length) {
-                            $('.taxopress-ai-fetch-taxonomy-select').val($firstPermitted.val()).trigger('change');
-                        }
-                    }
-
-                    // Update all tab post IDs
-                    $('.taxopress-ai-tab-content').each(function() {
-                        $(this).attr('data-post_id', selectedPost);
-                    });
-
-                    // Only trigger fetch if taxonomy is permitted
-                    var $activeTab = $('.taxopress-ai-tab-content.' + activeTab.replace('_tab', ''));
-                    var currentTabTaxonomy = $activeTab.find('.taxopress-ai-fetch-taxonomy-select').val();
-                    
-                    if (response.data.allowed_taxonomies.includes(currentTabTaxonomy)) {
-                        setTimeout(function() {
-                            var $fetchButton = $activeTab.find('.taxopress-ai-fetch-button');
-                            if ($fetchButton.length) {
-                                $fetchButton.trigger('click');
-                            }
-                        }, 500);
-                    }
-                }
-
-                // After role preview, request the rendered metabox for the selected post / role / post_type
-                $.post(ajaxurl, {
-                    action: 'taxopress_preview_update',
-                    post_id: selectedPost,
-                    preview_role: selectedRole,
-                    post_type: selectedPostType,
-                    nonce: taxoPressAIRequestAction.nonce
-                }, function(previewResp) {
+        $.post(ajaxurl, {
+            action: 'taxopress_preview_update',
+            post_id: selectedPost,
+            preview_role: selectedRole,
+            post_type: selectedPostType,
+            nonce: taxoPressAIRequestAction.nonce
+        }, function(previewResp) {
                     // Replace the metabox content regardless; server decides what to show/hide
                     if (previewResp && previewResp.success && previewResp.data && previewResp.data.metabox_content) {
+                        renderedFiltersEnabled = previewResp.data.metabox_filters_enabled === true;
+
                         // Replace the editor metabox area in the preview pane
-                        $('#post-body-content').html(previewResp.data.metabox_content);
-
-                        // Re-initialize UI widgets inside replaced content
-                        // Re-init post search select2
-                        if ($.fn.ppma_select2) {
-                            $('.preview-post-select').ppma_select2({
-                                placeholder: $(this).data("placeholder"),
-                                allowClear: $(this).data("allow-clear"),
-                                ajax: {
-                                    url: window.ajaxurl + "?action=taxopress_ai_post_search&nonce=" + $('.preview-post-select').data("nonce"),
-                                    dataType: 'json',
-                                    data: function(params) {
-                                        return {
-                                            q: params.term,
-                                            ai_source: 'preview',
-                                            post_type: $('.preview-post-types-select').val()
-                                        };
-                                    }
-                                }
-                            });
-
-                            taxopressPostSelect2($('.taxopress-ai-post-search'));
-                        }
-
-                        // Re-init lightweight select2 for other selects
-                        $('.taxopress-ai-select2').each(function() {
-                            var $el = $(this);
-                            $el.ppma_select2({
-                                placeholder: $el.data("placeholder"),
-                                allowClear: $el.data("allow-clear")
-                            });
-                        });
-
-                        // Re-evaluate dependent fields visibility
-                        if (typeof initializeFieldDependencies === 'function') {
-                            initializeFieldDependencies();
-                        }
+                        $('.taxopress-preview-metabox-content').html(previewResp.data.metabox_content);
 
                         // Re-init any autoterm select2 options
                         if (typeof autoterm_option_select2 === 'function') {
                             autoterm_option_select2();
                         }
+
+                        var refreshedTab = activeTab || $('ul.taxopress-tab.ai-integration-tab li.active').attr('data-content');
+                        if (refreshedTab) {
+                            refreshedTab = refreshedTab.replace('_tab', '');
+                            setTabUi(refreshedTab);
+                            fetchPreviewTab(refreshedTab);
+                        }
                     }
-                }).always(function() {
-                    // Remove spinner and enable button
-                    $spinner.remove();
-                    $button.prop('disabled', false);
-                });
-            },
-            error: function() {
-                // Remove spinner and enable button on failure of role preview
-                $spinner.remove();
-                $button.prop('disabled', false);
-            }
+        }).always(function() {
+            $spinner.remove();
+            $button.prop('disabled', false);
         });
     });
 

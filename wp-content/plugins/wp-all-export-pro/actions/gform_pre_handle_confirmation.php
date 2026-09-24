@@ -1,12 +1,13 @@
 <?php
 
-function pmxe_gform_pre_handle_confirmation($lead)
+function pmxe_gform_pre_handle_confirmation($lead, $form)
 {
 
     if(!class_exists('GF_Export_Add_On')) {
         return;
     }
 
+	$form_id = $form['id'];
     $entry_id = $lead['id'];
 
     $list = new PMXE_Export_List();
@@ -18,7 +19,8 @@ function pmxe_gform_pre_handle_confirmation($lead)
             isset($export['options']['enable_real_time_exports']) &&
             $export['options']['enable_real_time_exports'] &&
             isset($export['options']['enable_real_time_exports_running']) &&
-            $export['options']['enable_real_time_exports_running']
+            $export['options']['enable_real_time_exports_running'] &&
+            $export['options']['sub_post_type_to_export'] == $form_id
         ) {
             if (strpos($export['options']['cpt'][0], 'custom_') === 0) {
 
@@ -31,6 +33,5 @@ function pmxe_gform_pre_handle_confirmation($lead)
             }
         }
     }
-
 
 }

@@ -4,7 +4,7 @@ Tags: GraphQL, ACF, API, NextJS, Headless
 Requires at least: 5.9
 Tested up to: 7.0
 Requires PHP: 7.3
-Stable tag: 2.7.1
+Stable tag: 3.0.0
 License: GPL-3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -28,7 +28,7 @@ WPGraphQL for ACF provides support for most built-in field types of ACF (free & 
 
 == Updating ==
 
-If you are updating from WPGraphQL for ACF v0.6.* or older, check out the [Upgrade Guide](https://acf.wpgraphql.com/upgrade-guide)
+If you are updating from WPGraphQL for ACF v0.6.* or older, check out the [Upgrade Guide](https://www.wpgraphql.com/docs/acf/upgrade-guide)
 
 For non-major version updates, automatic updates usually should work smoothly, but we still recommend you back up your site and test on a staging site.
 
@@ -71,7 +71,7 @@ Yes! WPGraphQL for ACF works great with ACF Free and Pro. The Pro version of ACF
 
 **Do I have to use Faust.js to use WPGraphQL for ACF?**
 
-No! While [wpgraphql.com](https://www.wpgraphql.com) and [acf.wpgraphql.com](https://acf.wpgraphql.com) are built using [Faust.js](https://faustjs.org/) and Next.js, you can use WPGraphQL for ACF with any GraphQL client, including Apollo, Relay, Urql, etc.
+No! You can use WPGraphQL for ACF with any GraphQL client, including Apollo, Relay, Urql, [Faust.js](https://faustjs.org/), etc.
 
 **I have an ACF Extension that adds a new field type, will it work with WPGraphQL for ACF?**
 
@@ -112,6 +112,14 @@ Learn more about how [Appsero collects and uses data](https://appsero.com/privac
 
 == Upgrade Notice ==
 
+= 3.0.0 =
+
+**⚠️ BREAKING CHANGES**: This release contains breaking changes that may require updates to your code.
+
+* **acf:** require explicit show_in_graphql opt-in for ACF options pages ([#4280](https://github.com/wp-graphql/wp-graphql/issues/4280))
+
+Please review these changes before upgrading.
+
 = 2.3.0 =
 
 This release refactored some internals regarding how Clone fields and Group fields behave. There was no intentional breaking changes to the Schema, but if you are using Clone and Group fields there is a chance that if you were benefiting from a "bug as a feature" there might be some changes that could impact your Schema and/or resolvers, we recommend testing this update on a staging site to ensure things are still working for you as expected. Should you run into any problems, please [open a new issue](https://github.com/wp-graphql/wpgraphql-acf/issues/new/choose) and provide as much detail as possible to help us reproduce the scenario. Thanks! 🙏
@@ -124,9 +132,34 @@ ACF Field Groups that did not have "graphql_types" defined AND were assigned to 
 
 = 2.0.0 =
 
-This release is a complete re-architecture of WPGraphQL for ACF, introducing breaking changes to the GraphQL Schema and PHP API. Please read the [upgrade guide](https://acf.wpgraphql.com/upgrade-guide/) before upgrading.
+This release is a complete re-architecture of WPGraphQL for ACF, introducing breaking changes to the GraphQL Schema and PHP API. Please read the [upgrade guide](https://www.wpgraphql.com/docs/acf/upgrade-guide) before upgrading.
 
 == Changelog ==
+
+= 3.0.0 =
+
+**⚠ BREAKING CHANGES**
+
+* **acf:** require explicit show_in_graphql opt-in for ACF options pages ([#4280](https://github.com/wp-graphql/wp-graphql/issues/4280))
+
+**Bug Fixes**
+
+* **acf:** require explicit show_in_graphql opt-in for ACF options pages ([#4280](https://github.com/wp-graphql/wp-graphql/issues/4280))
+* **deps-dev:** bump axepress/wp-graphql-stubs from 2.19.0 to 2.20.0 in /plugins/wp-graphql-acf in the wp-graphql-acf-composer-dev-minor-patch group across 1 directory ([#4244](https://github.com/wp-graphql/wp-graphql/issues/4244))
+
+= 2.8.0 =
+
+**New Features**
+
+* preview ACF field values under the request-level preview context ([#4222](https://github.com/wp-graphql/wp-graphql/issues/4222))
+* **wpgraphql.com:** field types in the ACF docs nav with provider badges ([#4237](https://github.com/wp-graphql/wp-graphql/issues/4237))
+
+**Bug Fixes**
+
+* **deps-dev:** bump axepress/wp-graphql-stubs from 2.18.0 to 2.19.0 in /plugins/wp-graphql-acf in the wp-graphql-acf-composer-dev-minor-patch group ([#4198](https://github.com/wp-graphql/wp-graphql/issues/4198))
+* **deps-dev:** bump the npm-dev-minor-patch group across 1 directory with 12 updates ([#4226](https://github.com/wp-graphql/wp-graphql/issues/4226))
+* point acf.wpgraphql.com links at the wpgraphql.com docs portal ([#4251](https://github.com/wp-graphql/wp-graphql/issues/4251))
+* **wpgraphql.com:** make docs cross-links resolve on the site ([#4230](https://github.com/wp-graphql/wp-graphql/issues/4230))
 
 = 2.7.1 =
 

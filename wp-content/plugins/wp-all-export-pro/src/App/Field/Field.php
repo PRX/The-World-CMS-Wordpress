@@ -23,9 +23,10 @@ abstract class Field
      * @var WooCommerceVersion
      */
     protected $wooCommerceVersion;
-    /**
-     * @var boolean $isCustomValue
-     */
+	/**
+	 * @var array
+	 */
+	protected $mappings = [];
 
     /**
      * Field constructor.
@@ -44,11 +45,17 @@ abstract class Field
 
     public function getFieldValue($snippetData)
     {
-        $value = strip_tags($this->getValue($snippetData));
+	    // Allow HTML in the description field.
+	    if( 'description' !== $this->getFieldName()) {
+		    $value = strip_tags( $this->getValue( $snippetData ) );
+	    }else{
+		    $value = $this->getValue( $snippetData );
+	    }
 
+		$functions = [];
 
-        $functions = array();
-        preg_match_all('%(\[[^\]\[]*\])%', $value, $functions);
+	    // Identify admin entered functions before replacing snippets to avoid Code Injection.
+	    preg_match_all('%(\[[^\]\[]*\])%', $value, $functions);
 
         if (is_array($functions) && isset($functions[0]) && !empty($functions[0])) {
             foreach ($functions[0] as $function) {
@@ -63,9 +70,13 @@ abstract class Field
                     $function = str_replace("' )", "\")", $function);
                     $function = str_replace(array("','", "', '", "' ,'", "',\"", "\",'"), "\",\"", $function);
 
-                    $function = $this->quoteParams($function);
                     $functionName = explode("(", $function);
                     $functionName = $functionName[0];
+
+	                // Replace any snippets in the function at this point to avoid Code Injection.
+	                $function = $this->replaceSnippetsInValue($function, $snippetData);
+					$function = $this->replaceMappings($this->mappings, $function);
+	                $function = $this->quoteParams($function);
 
                     global $wpaeGoogleMerchantsFieldName;
                     $wpaeGoogleMerchantsFieldName = $this->getFieldName();
@@ -79,6 +90,10 @@ abstract class Field
                 }
             }
         }
+
+		// Replace all remaining snippets after functions have been processed.
+		$value = $this->replaceSnippetsInValue($value, $snippetData);
+		$value = $this->replaceMappings($this->mappings, $value);
 
         if ($this->getFieldName() == 'sale_price') {
             $availabilityPriceData = $this->feed->getSectionFeedData(SalePrice::SECTION);

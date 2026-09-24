@@ -1,4 +1,7 @@
 <?php
+
+// phpcs:disable WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 if (!class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
 }
@@ -14,7 +17,6 @@ class Autoterms_Logs extends WP_List_Table
             'plural'   => __('autotermslogs', 'simple-tags'), //plural name of the listed records
             'ajax'     => false //does this table support ajax?
         ]);
-
     }
 
     /**
@@ -29,8 +31,8 @@ class Autoterms_Logs extends WP_List_Table
         $per_page = $this->get_items_per_page('st_autoterms_logs_per_page', 20);
         $current_page = $this->get_pagenum();
 
-        $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field($_REQUEST['orderby']) : 'ID'; //If no sort, default to role
-        $order   = (!empty($_REQUEST['order'])) ? sanitize_text_field($_REQUEST['order']) : 'desc'; //If no order, default to asc
+        $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : 'ID'; //If no sort, default to role
+        $order   = (!empty($_REQUEST['order'])) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'desc'; //If no order, default to asc
 
 
         return taxopress_autoterms_logs_data($per_page, $current_page, $orderby, $order);
@@ -80,7 +82,6 @@ class Autoterms_Logs extends WP_List_Table
             </div>
             <?php
         }
-
     }
 
     /**
@@ -92,8 +93,6 @@ class Autoterms_Logs extends WP_List_Table
     {
 
         if ('top' === $which) {
-
-
             $log_actions = [
                 'save_posts' => esc_html__('Manual post update', 'simple-tags'),
                 'existing_content' => esc_html__('Existing content', 'simple-tags'),
@@ -117,10 +116,10 @@ class Autoterms_Logs extends WP_List_Table
 
             $autoterm_settings = taxopress_get_autoterm_data();
 
-            $selected_source = (!empty($_REQUEST['log_source_filter'])) ? sanitize_text_field($_REQUEST['log_source_filter']) : '';
-            $selected_post_type = (!empty($_REQUEST['log_filter_post_type'])) ? sanitize_text_field($_REQUEST['log_filter_post_type']) : '';
-            $selected_taxonomy = (!empty($_REQUEST['log_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['log_filter_taxonomy']) : '';
-            $selected_status_message = (!empty($_REQUEST['log_filter_status_message'])) ? sanitize_text_field($_REQUEST['log_filter_status_message']) : '';
+            $selected_source = (!empty($_REQUEST['log_source_filter'])) ? sanitize_text_field(wp_unslash($_REQUEST['log_source_filter'])) : '';
+            $selected_post_type = (!empty($_REQUEST['log_filter_post_type'])) ? sanitize_text_field(wp_unslash($_REQUEST['log_filter_post_type'])) : '';
+            $selected_taxonomy = (!empty($_REQUEST['log_filter_taxonomy'])) ? sanitize_text_field(wp_unslash($_REQUEST['log_filter_taxonomy'])) : '';
+            $selected_status_message = (!empty($_REQUEST['log_filter_status_message'])) ? sanitize_text_field(wp_unslash($_REQUEST['log_filter_status_message'])) : '';
             $selected_settings = (!empty($_REQUEST['log_filter_settings'])) ? (int)$_REQUEST['log_filter_settings'] : 0;
             ?>
 
@@ -130,52 +129,52 @@ class Autoterms_Logs extends WP_List_Table
                 <select class="auto-terms-log-filter-select"  name="log_filter_select_post_type" id="log_filter_select_post_type">
                     <option value=""><?php esc_html_e('Post type', 'simple-tags'); ?></option>
                     <?php
-                   foreach ($post_types as $post_type) {
-                       echo '<option value="'. esc_attr($post_type->name) .'" '.selected($selected_post_type, $post_type->name, false).'>'. esc_html($post_type->label) .'</option>';
-                   }
-            ?>
+                    foreach ($post_types as $post_type) {
+                        echo '<option value="' . esc_attr($post_type->name) . '" ' . selected($selected_post_type, $post_type->name, false) . '>' . esc_html($post_type->label) . '</option>';
+                    }
+                    ?>
                 </select>
 
                 <select class="auto-terms-log-filter-select"  name="log_filter_select_taxonomy" id="log_filter_select_taxonomy">
                     <option value=""><?php esc_html_e('Taxonomy', 'simple-tags'); ?></option>
                     <?php
-            foreach ($taxonomies as $taxonomy) {
-                echo '<option value="'. esc_attr($taxonomy->name) .'" '.selected($selected_taxonomy, $taxonomy->name, false).'>'. esc_html($taxonomy->labels->name) .'</option>';
-            }
-            ?>
+                    foreach ($taxonomies as $taxonomy) {
+                        echo '<option value="' . esc_attr($taxonomy->name) . '" ' . selected($selected_taxonomy, $taxonomy->name, false) . '>' . esc_html($taxonomy->labels->name) . '</option>';
+                    }
+                    ?>
                 </select>
                 
                 <select class="auto-terms-log-filter-select" name="log_source_filter_select" id="log_source_filter_select">
                     <option value=""><?php esc_html_e('Source', 'simple-tags'); ?></option>
                     <?php
-            foreach ($log_actions as $key => $label) {
-                echo '<option value="'. esc_attr($key) .'" '.selected($selected_source, $key, false).'>'. esc_html($label) .'</option>';
-            }
-            ?>
+                    foreach ($log_actions as $key => $label) {
+                        echo '<option value="' . esc_attr($key) . '" ' . selected($selected_source, $key, false) . '>' . esc_html($label) . '</option>';
+                    }
+                    ?>
                 </select>
 
                 <select class="auto-terms-log-filter-select"  name="log_filter_select_status_message" id="log_filter_select_status_message">
                     <option value=""><?php esc_html_e('Status message', 'simple-tags'); ?></option>
                     <?php
-            foreach ($status_messages as $key => $label) {
-                echo '<option value="'. esc_attr($key) .'" '.selected($selected_status_message, $key, false).'>'. esc_html($label) .'</option>';
-            }
-            ?>
+                    foreach ($status_messages as $key => $label) {
+                        echo '<option value="' . esc_attr($key) . '" ' . selected($selected_status_message, $key, false) . '>' . esc_html($label) . '</option>';
+                    }
+                    ?>
                 </select>
 
                 <select class="auto-terms-log-filter-select"  name="log_filter_select_settings" id="log_filter_select_settings">
                     <option value=""><?php esc_html_e('Settings', 'simple-tags'); ?></option>
                     <?php
-            foreach ($autoterm_settings as $autoterm_setting) {
-                echo '<option value="'. esc_attr($autoterm_setting['ID']) .'" '.selected($selected_settings, $autoterm_setting['ID'], false).'>'. esc_html($autoterm_setting['title']) .'</option>';
-            }
-            ?>
+                    foreach ($autoterm_settings as $autoterm_setting) {
+                        echo '<option value="' . esc_attr($autoterm_setting['ID']) . '" ' . selected($selected_settings, $autoterm_setting['ID'], false) . '>' . esc_html($autoterm_setting['title']) . '</option>';
+                    }
+                    ?>
                 </select>
                 
                 <a href="javascript:void(0)" class="taxopress-logs-tablenav-filter button"><?php esc_html_e('Filter', 'simple-tags'); ?></a>
                 
             </div>
-        <?php
+            <?php
         }
     }
 
@@ -254,21 +253,20 @@ class Autoterms_Logs extends WP_List_Table
 
         $query_arg = '_wpnonce';
         $action = 'bulk-' . $this->_args['plural'];
-        $checked = $result = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key($_REQUEST[$query_arg]), $action) : false;
+        $checked = $result = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST[$query_arg])), $action) : false;
 
         if (!$checked || !current_user_can('simple_tags')) {
             return;
         }
 
         if ($this->current_action() === 'taxopress-autoterms-delete-logs') {
-            $taxopress_autoterms_logs = array_map('sanitize_text_field', (array)$_REQUEST['taxopress_autoterms_logs']);
+            $taxopress_autoterms_logs = array_map('sanitize_text_field', (array) wp_unslash($_REQUEST['taxopress_autoterms_logs']));
             if (!empty($taxopress_autoterms_logs)) {
                 foreach ($taxopress_autoterms_logs as $taxopress_autoterms_log) {
                     wp_delete_post($taxopress_autoterms_log, true);
                 }
             }
         }
-
     }
 
     /**
@@ -321,7 +319,7 @@ class Autoterms_Logs extends WP_List_Table
                     'action'                 => 'taxopress-delete-autoterm-log',
                     'taxopress_autoterms_log' => esc_attr($item->ID),
                     '_wpnonce'               => wp_create_nonce('autoterm-action-request-nonce')
-                ],
+                    ],
                     admin_url('admin.php')
                 ),
                 __('Delete Log', 'simple-tags')
@@ -370,7 +368,6 @@ class Autoterms_Logs extends WP_List_Table
         $auto_term_log_posttype = get_post_type_object(get_post_type($auto_term_log_post_id));
 
         return ($auto_term_log_posttype && !is_wp_error($auto_term_log_posttype)) ? $auto_term_log_posttype->labels->singular_name : '&mdash;';
-
     }
 
     /**
@@ -386,7 +383,6 @@ class Autoterms_Logs extends WP_List_Table
         $taxopress_log_taxonomy_data = get_taxonomy($taxopress_log_taxonomy);
 
         return ($taxopress_log_taxonomy_data && !is_wp_error($taxopress_log_taxonomy_data)) ? $taxopress_log_taxonomy_data->labels->singular_name : '&mdash;';
-
     }
 
     /**
@@ -414,7 +410,6 @@ class Autoterms_Logs extends WP_List_Table
         } else {
             return esc_html($taxopress_log_action);
         }
-
     }
 
     /**
@@ -429,9 +424,9 @@ class Autoterms_Logs extends WP_List_Table
         $taxopress_log_terms = get_post_meta($item->ID, '_taxopress_log_terms', true);
 
         if ($taxopress_log_terms && !empty(trim($taxopress_log_terms))) {
-            return '<font color="green"> '.esc_html(ucwords($taxopress_log_terms)).' </font>';
+            return '<font color="green"> ' . esc_html(ucwords($taxopress_log_terms)) . ' </font>';
         } else {
-            return '<font color="red"> '. esc_html__('None', 'simple-tags') .' </font>';
+            return '<font color="red"> ' . esc_html__('None', 'simple-tags') . ' </font>';
         }
     }
 
@@ -502,7 +497,6 @@ class Autoterms_Logs extends WP_List_Table
     {
 
         return get_the_date('l F j, Y h:i A', $item->ID);
-
     }
 
     /**
@@ -522,22 +516,22 @@ class Autoterms_Logs extends WP_List_Table
         $input_id = $input_id . '-search-input';
 
         if (!empty($_REQUEST['orderby'])) {
-            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />';
+            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
         }
         if (!empty($_REQUEST['order'])) {
-            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />';
+            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
         }
         if (!empty($_REQUEST['page'])) {
-            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />';
+            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))) . '" />';
         }
         if (!empty($_REQUEST['tab'])) {
-            echo '<input type="hidden" name="tab" value="' . esc_attr(sanitize_text_field($_REQUEST['tab'])) . '" />';
+            echo '<input type="hidden" name="tab" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['tab']))) . '" />';
         }
 
         $custom_filters = ['log_source_filter', 'log_filter_post_type', 'log_filter_taxonomy', 'log_filter_status_message', 'log_filter_settings'];
 
         foreach ($custom_filters as $custom_filter) {
-            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : '';
+            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field(wp_unslash($_REQUEST[$custom_filter])) : '';
             echo '<input type="hidden" name="' . esc_attr($custom_filter) . '" value="' . esc_attr($filter_value) . '" />';
         }
 
@@ -603,6 +597,4 @@ class Autoterms_Logs extends WP_List_Table
             'total_pages' => ceil($total_items / $per_page)   //calculate the total number of pages
         ]);
     }
-
-
 }

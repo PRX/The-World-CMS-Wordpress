@@ -24,16 +24,19 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
             global $wpdb;
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $search = (!empty($_REQUEST['s'])) ? '%' . $wpdb->esc_like(sanitize_text_field($_REQUEST['s'])) . '%' : '';
+            $search = (!empty($_REQUEST['s'])) ? '%' . $wpdb->esc_like(sanitize_text_field(wp_unslash($_REQUEST['s']))) . '%' : '';
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field($_REQUEST['orderby']) : 'id';
+            $allowed_orderby = ['id', 'term_name', 'linked_term_name', 'term_taxonomy', 'linked_term_taxonomy'];
+            $requested_orderby = (!empty($_REQUEST['orderby'])) ? sanitize_key(wp_unslash($_REQUEST['orderby'])) : 'id'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Sorting a read-only list table does not require a nonce.
+            $orderby = in_array($requested_orderby, $allowed_orderby, true) ? $requested_orderby : 'id';
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $order = (!empty($_REQUEST['order'])) ? sanitize_text_field($_REQUEST['order']) : 'desc';
+            $requested_order = (!empty($_REQUEST['order'])) ? strtoupper(sanitize_key(wp_unslash($_REQUEST['order']))) : 'DESC';
+            $order = in_array($requested_order, ['ASC', 'DESC'], true) ? $requested_order : 'DESC';
             $items_per_page = $this->get_items_per_page('st_linked_terms_per_page', 20);
             $page = $this->get_pagenum();
             $offset = ($page - 1) * $items_per_page;
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
+            $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field(wp_unslash($_REQUEST['terms_filter_taxonomy'])) : '';
             if ($count) {
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 $query = "SELECT COUNT(*) FROM $table_name WHERE 1 = 1";
@@ -54,7 +57,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                 $placeholders[] = $search;
             }
         
-            $query .= " ORDER BY {$orderby} {$order}"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Orderby/order are sanitized, column names are safe
+            $query .= " ORDER BY {$orderby} {$order}"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Values are restricted to fixed allowlists above.
             if (!$count) {
                 $query .= " LIMIT %d, %d";
                 $placeholders[] = $offset;
@@ -182,7 +185,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
             if ('top' === $which) {
                 $taxonomies = get_all_taxopress_taxonomies_request();
                 // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
+                $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field(wp_unslash($_REQUEST['terms_filter_taxonomy'])) : '';
                 ?>
 
 
@@ -213,11 +216,11 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
             $table_name = TaxoPress_Linked_Terms_Schema::tableName();
             $query_arg = '_wpnonce';
             $action = 'bulk-' . $this->_args['plural'];
-            $checked = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key($_REQUEST[$query_arg]), $action) : false;
+            $checked = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST[$query_arg])), $action) : false;
             if (!$checked || !current_user_can('simple_tags') || empty($_REQUEST['taxopress_linked_terms'])) {
                 return;
             }
-            $taxopress_linked_terms = array_map('sanitize_text_field', (array)$_REQUEST['taxopress_linked_terms']);
+            $taxopress_linked_terms = array_map('sanitize_text_field', (array) wp_unslash($_REQUEST['taxopress_linked_terms']));
             $action_acount = 0;
             $action_message = '';
             $message_sucess = false;
@@ -252,12 +255,36 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                             $new_term_taxonomy  = $linked_term_data->linked_term_taxonomy;
                         }
                         if (!empty($not_linked_posts)) {
-                            foreach ($not_linked_posts as $not_linked_post) {
-                                wp_set_object_terms($not_linked_post, [$new_term_name], $new_term_taxonomy, true);
+                            $taxonomy_object = get_taxonomy($new_term_taxonomy);
+                            if (
+                                !$taxonomy_object
+                                || empty($taxonomy_object->cap->assign_terms)
+                                || !current_user_can($taxonomy_object->cap->assign_terms)
+                            ) {
+                                $action_message = esc_html__('You do not have permission to assign terms in this taxonomy.', 'taxopress-pro');
+                                $message_sucess = false;
+                                continue;
                             }
-                            $action_acount = $action_acount + count($not_linked_posts);
-                            $action_message = sprintf(esc_html__('%d posts updated successfully.', 'taxopress-pro'), $action_acount);
-                            $message_sucess = true;
+
+                            $updated_posts = 0;
+                            foreach ($not_linked_posts as $not_linked_post) {
+                                if (!current_user_can('edit_post', $not_linked_post)) {
+                                    continue;
+                                }
+
+                                $updated = wp_set_object_terms($not_linked_post, [$new_term_name], $new_term_taxonomy, true);
+                                if (!is_wp_error($updated)) {
+                                    $updated_posts++;
+                                }
+                            }
+                            if ($updated_posts > 0) {
+                                $action_acount += $updated_posts;
+                                $action_message = sprintf(esc_html__('%d posts updated successfully.', 'taxopress-pro'), $action_acount);
+                                $message_sucess = true;
+                            } elseif (empty($action_message)) {
+                                $action_message = esc_html__('No authorized posts were updated.', 'taxopress-pro');
+                                $message_sucess = false;
+                            }
                         } elseif (empty($action_message)) {
                             $action_message = esc_html__('0 post update.', 'taxopress-pro');
                             $message_sucess = false;
@@ -278,7 +305,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
             $args = array(
                 'post_type'      => array_keys(get_post_types(array('public' => true), 'names')),
                 'post_status'    => 'any',
-                'posts_per_page' => -1,
+                
                 'fields'         => 'ids',
                 'tax_query'      => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                     'relation' => 'AND',
@@ -295,7 +322,7 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
                     ),
                 ),
             );
-            $post_ids = get_posts($args);
+            $post_ids = taxopress_get_post_ids_for_terms_action($args);
             return $post_ids;
         }
         
@@ -336,18 +363,18 @@ if (!class_exists('Taxopress_Linked_Terms_List')) {
 
             $input_id = $input_id . '-search-input';
             if (!empty($_REQUEST['orderby'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
             if (!empty($_REQUEST['order'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
             if (!empty($_REQUEST['page'])) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))) . '" />'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
             }
 
             $custom_filters = ['terms_filter_taxonomy'];
             foreach ($custom_filters as $custom_filter) {
-                $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field(wp_unslash($_REQUEST[$custom_filter])) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 echo '<input type="hidden" name="' . esc_attr($custom_filter) . '" value="' . esc_attr($filter_value) . '" />';
             }
             ?>

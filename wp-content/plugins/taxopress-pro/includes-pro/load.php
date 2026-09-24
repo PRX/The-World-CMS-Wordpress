@@ -56,6 +56,8 @@ if (!class_exists('TaxoPress_Pro_Init')) {
 
         public function init_pro_translation()
         {
+            // Bundled Pro translations are not provided by WordPress.org language packs.
+            // phpcs:ignore PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
             load_plugin_textdomain('taxopress-pro', false, basename(TAXOPRESS_PRO_ABSPATH) . '/languages');
         }  
 
@@ -250,7 +252,7 @@ if (!class_exists('TaxoPress_Pro_Init')) {
     
             if (
                 empty($_GET['nonce'])
-                || !wp_verify_nonce(sanitize_key($_GET['nonce']), 'taxopress-blocks-search')
+                || !wp_verify_nonce(sanitize_key(wp_unslash($_GET['nonce'])), 'taxopress-blocks-search')
             ) {
                 wp_send_json_error(null, 403);
             }
@@ -259,7 +261,7 @@ if (!class_exists('TaxoPress_Pro_Init')) {
                 wp_send_json_error(null, 403);
             }
 
-            $search = !empty($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
+            $search = !empty($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
             $blocks  = self::get_all_registered_blocks();
             $results = [];
             foreach ($blocks as $block_name => $block_object) {

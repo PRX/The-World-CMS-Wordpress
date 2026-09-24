@@ -38,10 +38,14 @@ if (!class_exists('TaxoPress_Pro_Tag_Clouds')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-tagcloud') {
+                if (!current_user_can('simple_tags')) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_termsdisplay'])) {
-                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
                     if (wp_verify_nonce($nonce, 'tagcloud-action-request-nonce')) {
-                        $this->taxopress_action_copy_tagcloud(sanitize_text_field($_REQUEST['taxopress_termsdisplay']));
+                        $this->taxopress_action_copy_tagcloud(sanitize_text_field(wp_unslash($_REQUEST['taxopress_termsdisplay'])));
                     }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_tagcloud_filter_removable_query_args']);

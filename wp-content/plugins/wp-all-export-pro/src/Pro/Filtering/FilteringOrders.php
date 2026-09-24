@@ -76,14 +76,14 @@ class FilteringOrders extends \Wpae\Pro\Filtering\FilteringCPT
                     break;
                 default:
                     $this->meta_query = true;
-                    if ($rule->condition == 'is_empty'){
+                    if ($rule->condition == 'is_empty') {
                         $item_alias = (count($this->queryJoin) > 0) ? 'order_item' . count($this->queryJoin) : 'order_item';
                         $item_meta_alias = (count($this->queryJoin) > 0) ? 'order_itemmeta' . count($this->queryJoin) : 'order_itemmeta';
                         $this->queryJoin[] = " LEFT JOIN {$table_prefix}woocommerce_order_items AS $item_alias ON ({$this->wpdb->posts}.ID = $item_alias.order_id) ";
                         $this->queryJoin[] = " LEFT JOIN {$table_prefix}woocommerce_order_itemmeta AS $item_meta_alias ON ($item_alias.order_item_id = $item_meta_alias.order_item_id AND $item_meta_alias.meta_key = '{$rule->element}') ";
                         $this->queryWhere .= "$item_meta_alias.meta_id " . $this->parse_condition($rule);
                     }
-                    else{
+                    else {
                         $item_alias = (count($this->queryJoin) > 0) ? 'order_item' . count($this->queryJoin) : 'order_item';
                         $item_meta_alias = (count($this->queryJoin) > 0) ? 'order_itemmeta' . count($this->queryJoin) : 'order_itemmeta';
                         $this->queryJoin[] = " INNER JOIN {$table_prefix}woocommerce_order_items AS $item_alias ON ({$this->wpdb->posts}.ID = $item_alias.order_id) ";
@@ -104,7 +104,6 @@ class FilteringOrders extends \Wpae\Pro\Filtering\FilteringCPT
             $this->recursion_parse_query($rule);
             return;
         }
-
         parent::parse_single_rule($rule);
     }
 

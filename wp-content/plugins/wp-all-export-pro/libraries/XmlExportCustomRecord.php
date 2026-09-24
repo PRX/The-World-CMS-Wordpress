@@ -17,7 +17,13 @@ if (!class_exists('XmlExportCustomRecord')) {
         public static $is_active = true;
 
         public function __construct() {
-            if (XmlExportEngine::$exportOptions['export_type'] == 'specific' and strpos(XmlExportEngine::$exportOptions['cpt'][0], 'custom_') !== 0) {
+
+            $cpt = XmlExportEngine::$exportOptions['cpt'];
+
+            if(!is_array($cpt)) {
+                $cpt = [$cpt];
+            }
+            if (XmlExportEngine::$exportOptions['export_type'] == 'specific' and strpos($cpt[0], 'custom_') !== 0) {
                 self::$is_active = false;
                 return;
             }
@@ -123,12 +129,8 @@ if (!class_exists('XmlExportCustomRecord')) {
 
                     $articleData = self::prepare_data($record, $snippets, $xmlWriter, $implode_delimiter, $preview);
 
-                    $functions = $snippetParser->parseFunctions($combineMultipleFieldsValue);
-                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($functions, $combineMultipleFieldsValue, $articleData);
+                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($articleData, true, $combineMultipleFieldsValue, $preview);
 
-                    if ($preview) {
-                        $combineMultipleFieldsValue = trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($combineMultipleFieldsValue)));
-                    }
 
 
                     wp_all_export_write_article($article, $element_name, pmxe_filter($combineMultipleFieldsValue, $fieldSnipped));

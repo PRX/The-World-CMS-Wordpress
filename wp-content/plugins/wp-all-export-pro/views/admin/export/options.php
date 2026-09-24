@@ -113,7 +113,30 @@ $l10n = array(
 					<?php \Wpae\Pro\Filtering\FilteringFactory::render_filtering_block( $engine, $this->isWizard, $post ); ?>
                     <?php
                     if(current_user_can(PMXE_Plugin::$capabilities)) {
-                        include(__DIR__ . "/../../../src/Scheduling/views/SchedulingOptions.php");
+                    ?>
+                    <div class="wpallexport-collapsed wpallexport-section wpallexport-file-options closed wpallexport-scheduling" style="margin-top: -10px; margin-bottom: 10px; <?php if($post['enable_real_time_exports']) { ?> display: none; <?php } ?>">
+                        <div id="scheduling-form-container">
+
+                            <div class="wpallexport-content-section" style="padding-bottom: 15px; margin-bottom: 10px;">
+                                <div class="wpallexport-collapsed-header" id="scheduling-options-header" style="padding-left: 25px;">
+                                    <h3 id="scheduling-title" style="position: relative;">
+										<?php esc_html_e('Scheduling Options', 'wp_all_export_plugin'); ?>
+                                    </h3>
+                                </div>
+
+                                <div class="wpallexport-collapsed-content" style="padding: 0; height: auto; display: none;">
+                                    <div class="wpallexport-collapsed-content-inner" style="padding-bottom: 0; overflow: auto;">
+                        <?php
+                        include(__DIR__ . "/../../../src/Scheduling/views/SchedulingUI.php");
+                        ?>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                        <?php
                     } else {
                         ?>
                         <script type="text/javascript">
@@ -132,14 +155,14 @@ $l10n = array(
                 </form>
                 <div style="color: #425F9A; font-size: 14px; font-weight: bold; margin: 0 0 15px; line-height: 25px; text-align: center;">
                     <div id="no-subscription" style="display: none;">
-                        <?php echo esc_html_e("Looks like you're trying out Automatic Scheduling!");?><br/>
-                        <?php echo esc_html_e("Your Automatic Scheduling settings won't be saved without a subscription.");?>
+                        <?php esc_html_e("Looks like you're trying out Automatic Scheduling!");?><br/>
+                        <?php esc_html_e("Your Automatic Scheduling settings won't be saved without a subscription.");?>
                     </div>
                 </div>
 					<div class="wpallexport-submit-buttons" style="text-align: center; <?php if ($this->isWizard) { ?> height: 60px; <?php } ?> ">
 
 						<?php if ($this->isWizard): ?>
-							<a href="<?php echo esc_url(apply_filters('pmxi_options_back_link', esc_url_raw(add_query_arg('action', 'template', $this->baseUrl), $this->isWizard))); ?>" class="back rad3"><?php esc_html_e('Back', 'wp_all_export_plugin') ?></a>
+                            <a href="<?php echo esc_url(apply_filters('pmxi_options_back_link', add_query_arg(['action'=>'template','_wpnonce_template' => wp_create_nonce('template')], $this->baseUrl), $this->isWizard)); ?>" class="back rad3"><?php esc_html_e('Back', 'wp_all_export_plugin') ?></a>
                             <?php include(__DIR__ . "/../../../src/Scheduling/views/SaveSchedulingButton.php"); ?>
 						<?php else: ?>		
 							<a href="<?php echo esc_url(apply_filters('pmxi_options_back_link', esc_url_raw(remove_query_arg('id', remove_query_arg('action', $this->baseUrl)), $this->isWizard))); ?>" class="back rad3"><?php esc_html_e('Back to Manage Exports', 'wp_all_export_plugin') ?></a>

@@ -40,7 +40,7 @@ class FilteringComments extends FilteringBase
      */
     public function getExcludeQueryWhere($postsToExclude){
 
-        return " AND ({$this->wpdb->comments}.comment_ID NOT IN (" . implode(',', $postsToExclude) . "))";
+        return " AND ({$this->wpdb->comments}.comment_ID NOT IN (" . $postsToExclude . "))";
     }
 
 

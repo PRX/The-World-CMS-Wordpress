@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Squiz.PHP.CommentedOutCode.Found,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_query,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 /**
  * Fetch our TAXOPRESS Autoterms option.
  *
@@ -55,7 +57,7 @@ function taxopress_get_current_autoterm()
     $autoterms = false;
 
     if (!empty($_GET) && isset($_GET['taxopress_autoterms'])) {
-        $autoterms = sanitize_text_field($_GET['taxopress_autoterms']);
+        $autoterms = sanitize_text_field(wp_unslash($_GET['taxopress_autoterms']));
     } else {
         $autoterms = taxopress_get_autoterm_data();
         if (!empty($autoterms)) {
@@ -91,7 +93,6 @@ function taxopress_post_type_autoterms()
 
     if (count($autoterms) > 0) {
         foreach ($autoterms as $autoterm) {
-
             $post_types = (isset($autoterm['post_types']) && is_array($autoterm['post_types']) && count($autoterm['post_types']) > 0) ? $autoterm['post_types'] : false;
 
             if (!$post_types) {
@@ -178,21 +179,21 @@ function taxopress_process_autoterm()
             exit();
         }
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-delete-autoterm') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
-            taxopress_action_delete_autoterm(sanitize_text_field($_REQUEST['taxopress_autoterms']));
+            taxopress_action_delete_autoterm(sanitize_text_field(wp_unslash($_REQUEST['taxopress_autoterms'])));
             add_action('admin_notices', "taxopress_autoterms_delete_autoterm_admin_notice");
         }
         add_filter('removable_query_args', 'taxopress_delete_autoterm_filter_removable_query_args');
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-delete-autoterm-log') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
             wp_delete_post((int)$_REQUEST['taxopress_autoterms_log'], true);
             add_action('admin_notices', "taxopress_autoterms_delete_autoterm_log_admin_notice");
         }
         add_filter('removable_query_args', 'taxopress_delete_autoterm_log_filter_removable_query_args');
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-delete-autoterm-logs') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
             global $wpdb;
             $result = $wpdb->query(
@@ -211,21 +212,21 @@ function taxopress_process_autoterm()
         }
         add_filter('removable_query_args', 'taxopress_delete_autoterm_log_filter_removable_query_args');
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-enable-autoterm-logs') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
             delete_option('taxopress_autoterms_logs_disabled');
             add_action('admin_notices', "taxopress_autoterms_enable_log_admin_notice");
         }
         add_filter('removable_query_args', 'taxopress_delete_autoterm_log_filter_removable_query_args');
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-disable-autoterm-logs') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
             update_option('taxopress_autoterms_logs_disabled', 1);
             add_action('admin_notices', "taxopress_autoterms_disable_log_admin_notice");
         }
         add_filter('removable_query_args', 'taxopress_delete_autoterm_log_filter_removable_query_args');
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-update-autoterm-limit') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
             $limit = (int)$_REQUEST['limit'];
             if ($limit > 0) {
@@ -280,7 +281,7 @@ function taxopress_create_default_autoterm()
                     $taxonomy = get_taxonomy($options_taxonomy);
                     $default                                                   = [];
                     $default['taxopress_autoterm']['autoterm_from']            = 'posts';
-                    $default['taxopress_autoterm']['title']                    = ''. (is_object($taxonomy) ? $taxonomy->labels->name : $options_taxonomy) .' '. ucwords($options_post_type) .' Auto term';
+                    $default['taxopress_autoterm']['title']                    = '' . (is_object($taxonomy) ? $taxonomy->labels->name : $options_taxonomy) . ' ' . ucwords($options_post_type) . ' Auto term';
                     $default['taxopress_autoterm']['taxonomy']                 = $options_taxonomy;
                     $default['post_types']                                     = [];
                     $default['post_status']                                    = ['publish'];
@@ -289,7 +290,7 @@ function taxopress_create_default_autoterm()
                     $default['taxopress_autoterm']['autoterm_target']          = isset($options_taxonomy_data['at_empty']) ? $options_taxonomy_data['at_empty'] : 0;
                     $default['taxopress_autoterm']['autoterm_word']            = isset($options_taxonomy_data['only_full_word']) ? $options_taxonomy_data['only_full_word'] : 0;
                     $default['taxopress_autoterm']['autoterm_hash']            = isset($options_taxonomy_data['allow_hashtag_format']) ? $options_taxonomy_data['allow_hashtag_format'] : 0;
-                    $default['specific_terms']            = isset($options_taxonomy_data['auto_list']) ? (array) maybe_unserialize($options_taxonomy_data['auto_list']) : [];
+                    $default['specific_terms']            = isset($options_taxonomy_data['auto_list']) ? taxopress_sanitize_specific_terms($options_taxonomy_data['auto_list']) : [];
                     $default['taxopress_autoterm']['terms_limit']              = '5';
                     $default['taxopress_autoterm']['synonyms_term']            = 1;
 
@@ -336,6 +337,42 @@ add_action('admin_init', 'taxopress_create_default_autoterm', 8);
 
 
 /**
+ * Normalize Auto Terms' specific-term setting without accepting serialized data.
+ *
+ * @param mixed $terms Specific terms from a request or saved option.
+ * @return array
+ */
+function taxopress_sanitize_specific_terms($terms)
+{
+    if (!is_array($terms)) {
+        if (!is_scalar($terms)) {
+            return [];
+        }
+
+        $terms = wp_unslash((string) $terms);
+        if (is_serialized($terms)) {
+            return [];
+        }
+
+        $terms = taxopress_change_to_array($terms);
+    }
+
+    $sanitized_terms = [];
+    foreach ($terms as $term) {
+        if (!is_scalar($term)) {
+            continue;
+        }
+
+        $term = sanitize_text_field(wp_unslash((string) $term));
+        if ($term !== '') {
+            $sanitized_terms[] = $term;
+        }
+    }
+
+    return array_values(array_unique($sanitized_terms));
+}
+
+/**
  * Add to or update our TAXOPRESS option with new data.
  *
  *
@@ -348,7 +385,9 @@ function taxopress_update_autoterm($data = [])
 {
     $sanitized_data = [];
     foreach ($data as $key => $value) {
-        if (!is_array($value)) {
+        if ($key === 'specific_terms') {
+            $sanitized_data[$key] = taxopress_sanitize_specific_terms($value);
+        } elseif (!is_array($value)) {
             $sanitized_data[$key] = taxopress_sanitize_text_field($value);
         } else {
             $new_value = [];
@@ -372,6 +411,34 @@ function taxopress_update_autoterm($data = [])
     $data = $sanitized_data;
 
     $autoterms = taxopress_get_autoterm_data();
+
+    // API credentials are write-only and may only be changed by plugin administrators.
+    // A blank submitted value intentionally preserves the existing secret.
+    $protected_fields = [
+        'open_ai_api_key',
+        'ibm_watson_api_key',
+        'dandelion_api_token',
+        'open_calais_api_key',
+        'ibm_watson_api_url',
+    ];
+    $edited_autoterm = isset($data['edited_autoterm']) ? (int) $data['edited_autoterm'] : 0;
+    $existing_autoterm = $edited_autoterm && isset($autoterms[$edited_autoterm])
+        ? $autoterms[$edited_autoterm]
+        : [];
+
+    foreach ($protected_fields as $protected_field) {
+        $submitted_value = isset($data['taxopress_autoterm'][$protected_field])
+            ? trim($data['taxopress_autoterm'][$protected_field])
+            : '';
+
+        if (!current_user_can('admin_simple_tags') || $submitted_value === '') {
+            if (isset($existing_autoterm[$protected_field])) {
+                $data['taxopress_autoterm'][$protected_field] = $existing_autoterm[$protected_field];
+            } else {
+                unset($data['taxopress_autoterm'][$protected_field]);
+            }
+        }
+    }
 
     $title                               = $data['taxopress_autoterm']['title'];
     $title                               = str_replace('"', '', htmlspecialchars_decode($title));
@@ -631,7 +698,7 @@ function taxopress_autoterms_logs_data($per_page = 20, $current_page = 1, $order
         if (!empty($_REQUEST[$filter])) {
             $meta_query[] = array(
                 'key' => sanitize_key($option),
-                'value' => sanitize_text_field($_REQUEST[$filter]),
+                'value' => sanitize_text_field(wp_unslash($_REQUEST[$filter])),
             );
         }
     }
@@ -657,7 +724,7 @@ function taxopress_autoterms_logs_data($per_page = 20, $current_page = 1, $order
     /**
      * Handle search
      */
-    if ((!empty($_REQUEST['s'])) && $search = sanitize_text_field($_REQUEST['s'])) {
+    if ((!empty($_REQUEST['s'])) && $search = sanitize_text_field(wp_unslash($_REQUEST['s']))) {
         $logs_arg['s'] = $search;
     }
 

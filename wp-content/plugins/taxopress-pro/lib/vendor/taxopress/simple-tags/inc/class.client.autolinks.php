@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Squiz.PHP.CommentedOutCode.Found,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.Security.NonceVerification.Missing -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 class SimpleTags_Client_Autolinks
 {
     public static $posts = array();
@@ -15,27 +17,20 @@ class SimpleTags_Client_Autolinks
     public function __construct()
     {
 
+        // Register frontend filters regardless of the global setting so a post-level
+        // "enabled" status can force Auto Links on.
+        add_filter('the_posts', array(__CLASS__, 'the_posts'), 10);
+        add_filter('the_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
+        add_filter('the_title', array(__CLASS__, 'taxopress_autolinks_the_title'), 5);
+
+        // Elementor compatibility: elementor outputs content through its own filters,
+        // so also run our autolinks on those outputs.
+        if (defined('ELEMENTOR_VERSION') || class_exists('\Elementor\Plugin')) {
+            add_filter('elementor/frontend/the_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
+            add_filter('elementor/frontend/builder_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
+        }
+
         if (1 === (int) SimpleTags_Plugin::get_option_value('active_auto_links')) {
-
-            $auto_link_priority = SimpleTags_Plugin::get_option_value('auto_link_priority');
-            if (0 === (int) $auto_link_priority) {
-                $auto_link_priority = 12;
-            }
-
-            // Auto link tags
-            add_filter('the_posts', array(__CLASS__, 'the_posts'), 10);
-
-            //new UI
-            add_filter('the_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
-            add_filter('the_title', array(__CLASS__, 'taxopress_autolinks_the_title'), 5);
-
-            // Elementor compatibility: elementor outputs content through its own filters,
-            // so also run our autolinks on those outputs.
-            if (defined('ELEMENTOR_VERSION') || class_exists('\Elementor\Plugin')) {
-                add_filter('elementor/frontend/the_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
-                add_filter('elementor/frontend/builder_content', array(__CLASS__, 'taxopress_autolinks_the_content'), 5);
-            }
-
             add_action('admin_init', [$this, 'taxopress_customurl_taxonomies_fields']);
         }
     }
@@ -226,32 +221,32 @@ class SimpleTags_Client_Autolinks
         $taxopress_custom_url = get_term_meta($term->term_id, 'taxopress_custom_url', true);
 
         ?>
-		<tr class="form-field">
-			<th scope="row" valign="top">
-				<label for="taxopress_custom_url"><?php esc_html_e('Custom URL', 'simple-tags'); ?></label>
-			</th>
-			<td>
-				<input type="text" name="taxopress_custom_url" id="taxopress_custom_url" value="<?php echo esc_attr($taxopress_custom_url); ?>" size="40">
-				<p class="description">
-					<?php esc_html_e('Enter a custom URL for this term. This URL will only be used for auto-linked terms. If left empty, the term will link to its archive page.', 'simple-tags'); ?>
-				</p>
+        <tr class="form-field">
+            <th scope="row" valign="top">
+                <label for="taxopress_custom_url"><?php esc_html_e('Custom URL', 'simple-tags'); ?></label>
+            </th>
+            <td>
+                <input type="text" name="taxopress_custom_url" id="taxopress_custom_url" value="<?php echo esc_attr($taxopress_custom_url); ?>" size="40">
+                <p class="description">
+                    <?php esc_html_e('Enter a custom URL for this term. This URL will only be used for auto-linked terms. If left empty, the term will link to its archive page.', 'simple-tags'); ?>
+                </p>
 
-			</td>
-		</tr>
-		<?php
+            </td>
+        </tr>
+        <?php
     }
 
     public function taxopress_add_custom_url_field_new()
     {
         ?>
-		<div class="form-field">
-			<label for="taxopress_custom_url"><?php esc_html_e('Custom URL', 'simple-tags'); ?></label>
-			<input type="text" name="taxopress_custom_url" id="taxopress_custom_url" value="" size="40">
-			<p class="description">
-				<?php esc_html_e('Enter a custom URL for this term. This URL will only be used if the term is auto-linked. If left empty, the term will link to its archive page.', 'simple-tags'); ?>
-			</p>
-		</div>
-		<?php
+        <div class="form-field">
+            <label for="taxopress_custom_url"><?php esc_html_e('Custom URL', 'simple-tags'); ?></label>
+            <input type="text" name="taxopress_custom_url" id="taxopress_custom_url" value="" size="40">
+            <p class="description">
+                <?php esc_html_e('Enter a custom URL for this term. This URL will only be used if the term is auto-linked. If left empty, the term will link to its archive page.', 'simple-tags'); ?>
+            </p>
+        </div>
+        <?php
     }
 
     public function taxopress_save_custom_url_field($term_id)
@@ -262,7 +257,6 @@ class SimpleTags_Client_Autolinks
         } else {
             delete_term_meta($term_id, 'taxopress_custom_url');
         }
-
     }
 
     /**
@@ -316,7 +310,6 @@ class SimpleTags_Client_Autolinks
         }
 
         foreach ((array) $terms as $term) {
-
             //hidden terms should not be auto linked
             if ((int) SimpleTags_Plugin::get_option_value('enable_hidden_terms') === 1) {
                 $min_usage = (int) SimpleTags_Plugin::get_option_value('hide-rarely');
@@ -386,6 +379,24 @@ class SimpleTags_Client_Autolinks
             }
         }
         return true;
+    }
+
+    private static function prepare_excluded_terms($exclude_terms)
+    {
+        $prepared_terms = [];
+        $exclude_terms  = explode(',', (string) $exclude_terms);
+
+        foreach ($exclude_terms as $exclude_term) {
+            $exclude_term = trim(stripslashes($exclude_term));
+
+            if ('' === $exclude_term) {
+                continue;
+            }
+
+            $prepared_terms[] = $exclude_term;
+        }
+
+        return array_unique($prepared_terms);
     }
 
     /**
@@ -577,30 +588,29 @@ class SimpleTags_Client_Autolinks
         $replaced_count = 0;
 
         $replaced_tags_counts = [];
-        $option_limits    	  = [];
-        $term_limits    	  = [];
-        $option_remaining 	  = [];
+        $option_limits        = [];
+        $term_limits          = [];
+        $option_remaining     = [];
         $option_tagged_counts = [];
         $node_text            = [];
 
         foreach ($search_lists as $search_details) {
-
             $search  = $search_details['term_name'];
             $replace = $search_details['term_link'];
-            $case 	 = $search_details['case'];
-            $rel 	 = $search_details['rel'];
+            $case    = $search_details['case'];
+            $rel     = $search_details['rel'];
             $options = $search_details['options'];
 
             $search = str_replace('&amp;', 'taxopressamp', $search); // https://github.com/TaxoPress/TaxoPress/issues/1638
 
             if (is_array($options)) {
-                $autolink_case 	 = $options['autolink_case'];
+                $autolink_case   = $options['autolink_case'];
                 $html_exclusion  = $options['html_exclusion'];
                 $html_exclusion_customs  = isset($options['html_exclusion_customs']) ? $options['html_exclusion_customs'] : [];
-                $exclude_class 	 = $options['autolink_exclude_class'];
+                $exclude_class   = $options['autolink_exclude_class'];
                 $title_attribute = $options['autolink_title_attribute'];
                 $title_attribute_custom_url = $options['autolink_title_attribute_when_using_custom_url'];
-                $link_class 	 = isset($options['link_class']) ? taxopress_format_class($options['link_class']) : '';
+                $link_class      = isset($options['link_class']) ? taxopress_format_class($options['link_class']) : '';
             } else {
                 $autolink_case = 'lowercase';
                 $html_exclusion = [];
@@ -788,7 +798,6 @@ class SimpleTags_Client_Autolinks
         // replace <taxopressnotag> added to skip certain elements
         $content = str_replace('<taxopressnotag>', '', $content);
         $content = str_replace('</taxopressnotag>', '', $content);
-
     }
 
     /**
@@ -876,12 +885,9 @@ class SimpleTags_Client_Autolinks
             $ancestor = '';
             foreach ($tokens as $token) {
                 if (++$i % 2 && $token !== '') { // this token is (non-markup) text
-
-
                     $pass_check = true;
 
                     if (!empty(trim($ancestor))) {
-
                         //auto link exclusion
                         if (count($html_exclusion) > 0) {
                             foreach ($html_exclusion as $exclude_ancestor) {
@@ -979,24 +985,24 @@ class SimpleTags_Client_Autolinks
 
         $post_tags = taxopress_get_autolink_data();
 
-        // user preference for this post ?
-        $meta_value = get_post_meta($post->ID, '_exclude_autolinks', true);
-        if (!empty($meta_value)) {
+        // User preference for this post?
+        $feature_status = self::get_post_feature_status($post->ID);
+        if (
+            'disabled' === $feature_status
+            || ('default' === $feature_status && 1 !== (int) SimpleTags_Plugin::get_option_value('active_auto_links'))
+        ) {
             return $content;
         }
+
+        $force_enabled = 'enabled' === $feature_status;
 
         if (count($post_tags) > 0) {
             $auto_link_replace = [];
             foreach ($post_tags as $post_tag) {
-
                 // Get option
                 $embedded = (isset($post_tag['embedded']) && is_array($post_tag['embedded']) && count($post_tag['embedded']) > 0) ? $post_tag['embedded'] : false;
 
-                if (!$embedded) {
-                    continue;
-                }
-
-                if (!in_array($post->post_type, $embedded)) {
+                if (!$force_enabled && (!$embedded || !in_array($post->post_type, $embedded, true))) {
                     continue;
                 }
 
@@ -1027,14 +1033,7 @@ class SimpleTags_Client_Autolinks
                     $case       = (1 === (int) $post_tag['ignore_case']) ? 'i' : '';
                     $strpos_fnc = ('i' === $case) ? 'stripos' : 'strpos';
 
-                    // Prepare exclude terms array
-                    $excludes_terms = explode(',', $post_tag['auto_link_exclude']);
-                    if (empty($excludes_terms)) {
-                        $excludes_terms = array();
-                    } else {
-                        $excludes_terms = array_filter($excludes_terms, '_delete_empty_element');
-                        $excludes_terms = array_unique($excludes_terms);
-                    }
+                    $excludes_terms = self::prepare_excluded_terms($post_tag['auto_link_exclude']);
 
                     $z = 0;
 
@@ -1099,24 +1098,23 @@ class SimpleTags_Client_Autolinks
         $post_tags = taxopress_get_autolink_data();
 
 
-        // user preference for this post ?
-        $meta_value = get_post_meta($post->ID, '_exclude_autolinks', true);
-        if (!empty($meta_value)) {
+        // User preference for this post?
+        $feature_status = self::get_post_feature_status($post->ID);
+        if (
+            'disabled' === $feature_status
+            || ('default' === $feature_status && 1 !== (int) SimpleTags_Plugin::get_option_value('active_auto_links'))
+        ) {
             return $title;
         }
 
+        $force_enabled = 'enabled' === $feature_status;
+
         if (count($post_tags) > 0) {
-
             foreach ($post_tags as $post_tag) {
-
                 // Get option
                 $embedded = (isset($post_tag['embedded']) && is_array($post_tag['embedded']) && count($post_tag['embedded']) > 0) ? $post_tag['embedded'] : false;
 
-                if (!$embedded) {
-                    continue;
-                }
-
-                if (!in_array($post->post_type, $embedded)) {
+                if (!$force_enabled && (!$embedded || !in_array($post->post_type, $embedded, true))) {
                     continue;
                 }
 
@@ -1142,19 +1140,11 @@ class SimpleTags_Client_Autolinks
                 }
 
                 if ($can_continue) {
-
                     // Case option ?
                     $case       = (1 === (int) $post_tag['ignore_case']) ? 'i' : '';
                     $strpos_fnc = ('i' === $case) ? 'stripos' : 'strpos';
 
-                    // Prepare exclude terms array
-                    $excludes_terms = explode(',', $post_tag['auto_link_exclude']);
-                    if (empty($excludes_terms)) {
-                        $excludes_terms = array();
-                    } else {
-                        $excludes_terms = array_filter($excludes_terms, '_delete_empty_element');
-                        $excludes_terms = array_unique($excludes_terms);
-                    }
+                    $excludes_terms = self::prepare_excluded_terms($post_tag['auto_link_exclude']);
 
                     $z = 0;
                     $auto_link_replace = [];
@@ -1198,5 +1188,20 @@ class SimpleTags_Client_Autolinks
 
 
         return $title;
+    }
+
+    private static function get_post_feature_status($post_id)
+    {
+        $status = get_post_meta($post_id, '_taxopress_autolinks_status', true);
+
+        if (in_array($status, ['default', 'enabled', 'disabled'], true)) {
+            return $status;
+        }
+
+        if (get_post_meta($post_id, '_exclude_autolinks', true)) {
+            return 'disabled';
+        }
+
+        return 'default';
     }
 }

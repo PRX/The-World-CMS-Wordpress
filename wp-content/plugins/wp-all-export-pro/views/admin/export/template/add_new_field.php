@@ -396,7 +396,7 @@ if(!defined('ABSPATH')) {
             <label><input type="radio" name="combine_multiple_fields" value="1" /> <?php esc_html_e('Custom export field', 'wp_all_export_plugin') ?></label>
         </div>
         <div class="elements export-multiple" id="combine_multiple_fields_value_container" style="margin-top: 10px; margin-left: 25px; display: none;">
-            <textarea placeholder="<?php esc_html_e('You can drag and drop fields from Available Data, add static text, and use PHP functions', PMXE_Plugin::LANGUAGE_DOMAIN); ?>" id="combine_multiple_fields_value" style="width: 100%;" rows="7"></textarea>
+            <textarea placeholder="<?php esc_html_e('You can drag and drop fields from Available Data, add static text, and use PHP functions', 'wp_all_export_plugin'); ?>" id="combine_multiple_fields_value" style="width: 100%;" rows="7"></textarea>
         </div>
 
         <!-- Functions editor -->

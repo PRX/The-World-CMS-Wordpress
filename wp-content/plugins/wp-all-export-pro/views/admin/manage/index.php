@@ -9,6 +9,8 @@ if (class_exists('GF_Export_Add_On')) {
     $addon = GF_Export_Add_On::get_instance();
 }
 
+$datetime_format = get_option( 'date_format', 'm/d/Y' ).' '.get_option( 'time_format', 'g:i a' );
+
 function is_real_time_exports($item) {
     return isset($item['options']['enable_real_time_exports']) && $item['options']['enable_real_time_exports'];
 }
@@ -206,13 +208,8 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                     <strong><?php echo wp_all_export_clear_xss($item['friendly_name']); ?></strong> <br>
                                     <div class="row-actions">
                                         <?php if (current_user_can(PMXE_Plugin::$capabilities)) { ?>
-                                            <span class="edit">
-                                                <a class="edit"
-                                                   href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'template'), $this->baseUrl)) ?>"><?php esc_html_e('Edit Template', 'wp_all_export_plugin') ?></a></span>
-                                            |
-                                            <span class="edit">
-                                                <a class="edit"
-                                                   href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"><?php esc_html_e('Settings', 'wp_all_export_plugin') ?></a></span>
+                                            <span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'template','_wpnonce_template' => wp_create_nonce('template')), $this->baseUrl)) ?>"><?php esc_html_e('Edit Template', 'wp_all_export_plugin') ?></a></span> |
+                                            <span class="edit"><a class="edit" href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options','_wpnonce_options' => wp_create_nonce('options')), $this->baseUrl)) ?>"><?php esc_html_e('Settings', 'wp_all_export_plugin') ?></a></span>
 
                                         <?php } ?>
                                         <?php if (!$is_secure_import and $item['attch_id']): ?>
@@ -277,7 +274,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                                 ($item['options']['export_type'] == 'advanced' && $item['options']['wp_query_selector'] == 'wp_user_query' && !$addons->isUserAddonActive())
                                             ) {
                                                 ?>
-                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"
+                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options','_wpnonce_options' => wp_create_nonce('options')), $this->baseUrl)) ?>"
                                                 <?php
                                                 // Disable scheduling options for WooCo exports if WooCo Export Add-On isn't enabled and the relevant free add-on isn't enabled
                                             } else if (
@@ -297,7 +294,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                                 ($item['options']['export_type'] == 'advanced' && isset($item['options']['exportquery']) && in_array($item['options']['exportquery']->query['post_type'], array(array('product', 'product_variation'),)) && !$addons->isWooCommerceAddonActive() && !$addons->isWooCommerceProductAddonActive())
                                             ) {
                                                 ?>
-                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"
+                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options','_wpnonce_options' => wp_create_nonce('options')), $this->baseUrl)) ?>"
                                                 <?php
                                                 // Disable scheduling options for ACF exports if ACF Export Add-On isn't enabled
                                             } else if (
@@ -305,7 +302,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                                 ($item['options']['export_type'] == 'advanced' && $item['options']['wp_query_selector'] != 'wp_comment_query' && in_array('acf', $item['options']['cc_type']) && !$addons->isAcfAddonActive())
                                             ) {
                                                 ?>
-                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options'), $this->baseUrl)) ?>"
+                                                href="<?php echo esc_url(add_query_arg(array('id' => $item['id'], 'action' => 'options','_wpnonce_options' => wp_create_nonce('options')), $this->baseUrl)) ?>"
                                                 <?php
                                             } else {
 
@@ -353,7 +350,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 
                                     }
                                     ?>
-                                    <?php if (current_user_can(PMXE_Plugin::$capabilities && $item['client_mode_enabled'])) { ?>
+                                    <?php if (current_user_can(PMXE_Plugin::$capabilities) && $item['client_mode_enabled']) { ?>
                                         <span>Client mode enabled</span>
                                         <?php if (is_real_time_exports($item)) { ?>
                                             <br/>
@@ -430,9 +427,13 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                         echo '<strong>' . __('Post Types: ') . '</strong> <br/>';
 
                                         if ($is_rapid_addon_export) {
-                                            $form = GFAPI::get_form($item['options']['sub_post_type_to_export']);
-                                            echo 'Gravity Form Entries:<br/>';
-                                            echo $form['title'];
+                                            if(class_exists('GFAPI')) {
+	                                            $form = GFAPI::get_form( $item['options']['sub_post_type_to_export'] );
+	                                            echo 'Gravity Form Entries:<br/>';
+	                                            echo $form['title'];
+                                            }else{
+                                                echo '<b>Error:</b> Gravity Forms must be installed.';
+                                            }
                                         } else {
                                             echo implode(', ', $item['options']['cpt']);
                                         }
@@ -455,7 +456,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                     <?php if ('0000-00-00 00:00:00' == $item['registered_on']): ?>
                                         <em>never</em>
                                     <?php else: ?>
-                                        <?php echo mysql2date(__('Y/m/d g:i a', 'wp_all_export_plugin'), $item['registered_on']) ?>
+                                        <?php echo mysql2date($datetime_format, $item['registered_on']) ?>
                                     <?php endif ?>
                                 </td>
                                 <?php
@@ -506,11 +507,11 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                             <?php
                                         }
                                     } elseif ($item['canceled'] and $item['canceled_on'] != '0000-00-00 00:00:00') {
-                                        printf(esc_html__('Export Attempt at %s', 'wp_all_export_plugin'), get_date_from_gmt($item['canceled_on'], "m/d/Y g:i a"));
+                                        printf(esc_html__('Export Attempt at %s', 'wp_all_export_plugin'), get_date_from_gmt($item['canceled_on'], $datetime_format));
                                         echo '<br/>';
                                         esc_html_e('Export canceled', 'wp_all_export_plugin');
                                     } else {
-                                        printf(esc_html__('Last run: %s', 'wp_all_export_plugin'), ($item['registered_on'] == '0000-00-00 00:00:00') ? __('never', 'wp_all_export_plugin') : get_date_from_gmt($item['registered_on'], "m/d/Y g:i a"));
+                                        printf(esc_html__('Last run: %s', 'wp_all_export_plugin'), ($item['registered_on'] == '0000-00-00 00:00:00') ? __('never', 'wp_all_export_plugin') : get_date_from_gmt($item['registered_on'], $datetime_format));
                                         echo '<br/>';
 
                                         if (is_real_time_exports($item)) {
@@ -518,7 +519,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                             echo "<br/>";
 
 
-                                            echo get_date_from_gmt($item['created_at_gmt'], "m/d/Y g:i a");
+                                            echo get_date_from_gmt($item['created_at_gmt'], $datetime_format);
                                         } else {
                                             printf(esc_html__('%d Records Exported', 'wp_all_export_plugin'), $item['exported']);
                                         }
@@ -634,15 +635,3 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 
 
 <div class="wpallexport-super-overlay"></div>
-
-<fieldset class="optionsset column rad4 wp-all-export-scheduling-help">
-
-    <div class="title">
-        <span style="font-size:1.5em;"
-              class="wpallexport-add-row-title"><?php esc_html_e('Automatic Scheduling', 'wp_all_export_plugin'); ?></span>
-    </div>
-
-    <?php
-    include_once __DIR__ . '/../../../src/Scheduling/views/SchedulingHelp.php';
-    ?>
-</fieldset>

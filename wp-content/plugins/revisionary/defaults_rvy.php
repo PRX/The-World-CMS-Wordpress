@@ -1,5 +1,5 @@
 <?php
-if (!empty($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_url_raw($_SERVER['SCRIPT_FILENAME'])) )
+if (!empty($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_url_raw(wp_unslash($_SERVER['SCRIPT_FILENAME']))) )
 	die();
 
 /**
@@ -84,6 +84,7 @@ function rvy_default_options_sitewide() {
 		'front_end_indicator' => true,
 		'admin_menu_pending_count_icon' => true,
 		'approve_capability' => true,
+		'visual_compare' => true,
 	);
 
 	if ( $other_options = array_diff_key( rvy_default_options(), $def ) ) {
@@ -166,7 +167,8 @@ function rvy_default_options() {
 		'enable_classic_metaboxes' => 0,
 		'front_end_indicator' => 1,
 		'admin_menu_pending_count_icon' => 0,
-		'approve_capability' => defined('REVISIONARY_REQUIRE_APPROVE_CAP') && REVISIONARY_REQUIRE_APPROVE_CAP
+		'approve_capability' => defined('REVISIONARY_REQUIRE_APPROVE_CAP') && REVISIONARY_REQUIRE_APPROVE_CAP,
+		'visual_compare' => 1,
 	);
 
 	return $def;

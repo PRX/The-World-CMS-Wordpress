@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Squiz.PHP.CommentedOutCode.Found,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared,WordPress.Security.NonceVerification.Recommended -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 /**
  * trim and remove empty element
  *
@@ -247,7 +249,7 @@ function taxopress_suppress_tag_groups_notice_on_taxopress_screens()
             }
 
             if (! $isTaxoPressScreen) {
-                $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
+                $page = isset($_GET['page']) ? sanitize_key(wp_unslash($_GET['page'])) : '';
 
                 if (
                     $page !== ''
@@ -874,7 +876,6 @@ function can_manage_taxopress_metabox($user_id = false)
                 break;
             }
         }
-
     }
 
     return $can_manage;
@@ -906,7 +907,6 @@ function can_manage_taxopress_metabox_taxonomy($taxonomy, $user_id = false, $pre
                 break;
             }
         }
-
     }
 
     return $can_manage;
@@ -960,7 +960,6 @@ function taxopress_user_role_removed_taxonomy($user_id = false)
                 }
             }
         }
-
     }
 
     $removed_taxonomies = [

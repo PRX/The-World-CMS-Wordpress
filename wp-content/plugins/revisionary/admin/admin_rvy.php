@@ -11,7 +11,7 @@
  * Selectively load other classes based on URL
  */
 
-if( isset($_SERVER['SCRIPT_FILENAME']) && (basename(__FILE__) == basename(esc_url_raw($_SERVER['SCRIPT_FILENAME']))) )
+if( isset($_SERVER['SCRIPT_FILENAME']) && (basename(__FILE__) == basename(esc_url_raw(wp_unslash($_SERVER['SCRIPT_FILENAME'])))) )
 	die();
 
 define ('RVY_URLPATH', plugins_url('', REVISIONARY_FILE));
@@ -21,7 +21,7 @@ class RevisionaryAdmin
 	function __construct() {
 		global $pagenow, $post;
 
-		$script_name = (isset($_SERVER['SCRIPT_NAME'])) ? esc_url_raw($_SERVER['SCRIPT_NAME']) : '';
+		$script_name = (isset($_SERVER['SCRIPT_NAME'])) ? esc_url_raw(wp_unslash($_SERVER['SCRIPT_NAME'])) : '';
 
 		add_action('admin_head', [$this, 'admin_head']);
 		add_filter('admin_body_class', [$this, 'fltAdminBodyClass'], 20);
@@ -53,7 +53,7 @@ class RevisionaryAdmin
 
 		// ===== Special early exit if this is a plugin install script
 		if ( strpos($script_name, 'p-admin/plugins.php') || strpos($script_name, 'p-admin/plugin-install.php') || strpos($script_name, 'p-admin/plugin-editor.php') ) {
-			if (strpos($script_name, 'p-admin/plugin-install.php') && !empty($_SERVER['HTTP_REFERER']) && strpos(esc_url_raw($_SERVER['HTTP_REFERER']), '=rvy')) {
+			if (strpos($script_name, 'p-admin/plugin-install.php') && !empty($_SERVER['HTTP_REFERER']) && strpos(esc_url_raw(wp_unslash($_SERVER['HTTP_REFERER'])), '=rvy')) {
 				add_action('admin_print_scripts', function(){
 					echo '<style type="text/css">#plugin_update_from_iframe {display:none;}</style>';
 				});
@@ -311,7 +311,7 @@ class RevisionaryAdmin
 	function admin_head() {
 		global $pagenow;
 
-		if ( isset($_SERVER['REQUEST_URI']) && (false !== strpos( urldecode(esc_url_raw($_SERVER['REQUEST_URI'])), 'admin.php?page=rvy-revisions' ))) {
+		if ( isset($_SERVER['REQUEST_URI']) && (false !== strpos( urldecode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']))), 'admin.php?page=rvy-revisions' ))) {
 			// legacy revision management UI for past revisions
 			require_once( dirname(__FILE__).'/revision-ui_rvy.php' );
 		}
@@ -359,13 +359,13 @@ class RevisionaryAdmin
 	function build_menu() {
 		global $current_user, $revisionary, $wpdb;
 
-		if ( isset($_SERVER['REQUEST_URI']) && (strpos( esc_url_raw($_SERVER['REQUEST_URI']), 'wp-admin/network/' )) )
+		if ( isset($_SERVER['REQUEST_URI']) && (strpos( esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])), 'wp-admin/network/' )) )
 			return;
 
 		$path = RVY_ABSPATH;
 
 		// For Revisions Manager access, satisfy WordPress' demand that all admin links be properly defined in menu
-		if (isset($_SERVER['REQUEST_URI']) && (false !== strpos( urldecode(esc_url_raw($_SERVER['REQUEST_URI'])), 'admin.php?page=rvy-revisions' )) ) {
+		if (isset($_SERVER['REQUEST_URI']) && (false !== strpos( urldecode(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI']))), 'admin.php?page=rvy-revisions' )) ) {
 			add_submenu_page( 'none', esc_html__('Revisions', 'revisionary'), esc_html__('Revisions', 'revisionary'), 'read', 'rvy-revisions', 'rvy_include_admin_revisions' );
 		}
 
@@ -431,21 +431,23 @@ class RevisionaryAdmin
 				}
 			}
 
-			$type_csv = implode("','", $post_types);
+			$type_csv = implode("','", array_map('sanitize_key', $post_types));
 
-			$post_status_csv = implode( "','", apply_filters('revisionary_menu_count_post_statuses', array_diff(get_post_stati(), ['trash', 'auto-draft', 'inherit'])));
+			$post_status_csv = implode( "','", array_map('sanitize_key', apply_filters('revisionary_menu_count_post_statuses', array_diff(get_post_stati(), ['trash', 'auto-draft', 'inherit']))));
 
 			if ($post_types && $post_status_csv && rvy_get_option('admin_menu_pending_count_icon')) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$revision_count = $wpdb->get_var(
+					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					apply_filters(
 						'revisionary_menu_count', 
-						"SELECT COUNT(r.ID) FROM $wpdb->posts r INNER JOIN $wpdb->posts p ON r.comment_count = p.ID WHERE p.post_status IN ('$post_status_csv') AND r.post_type IN ('$type_csv') AND r.post_mime_type IN ('pending-revision')"
+						"SELECT COUNT(r.ID) FROM $wpdb->posts r INNER JOIN $wpdb->posts p ON r.comment_count = p.ID WHERE p.post_status IN ('$post_status_csv') AND r.post_type IN ('$type_csv') AND r.post_mime_type IN ('pending-revision')"  // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					)
 				);
 			}
 
 			if (!empty($revision_count)) {
-				$count_html = ' <span class="update-plugins count-' . $revision_count . '" style="vertical-align:baseline"><span class="plugin-count">' . $revision_count . '</span></span>';	
+				$count_html = ' <span class="update-plugins count-' . intval($revision_count) . '" style="vertical-align:baseline"><span class="plugin-count">' . intval($revision_count) . '</span></span>';	
 			} else {
 				$count_html = '';
 			}

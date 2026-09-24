@@ -1,4 +1,7 @@
 <?php
+
+// phpcs:disable WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotValidated,WordPressVIPMinimum.Functions.CheckReturnValue.NonCheckedVariable -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 if (! class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
 }
@@ -14,7 +17,6 @@ class Termcloud_List extends WP_List_Table
             'plural'   => __('Tags Cloud', 'simple-tags'), //plural name of the listed records
             'ajax'     => false //does this table support ajax?
         ]);
-
     }
 
     /**
@@ -219,29 +221,26 @@ class Termcloud_List extends WP_List_Table
 
         //Detect when a bulk action is being triggered...
         if ('delete' === $this->current_action()) {
-
             // In our file that handles the request, verify the nonce.
-            $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+            $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
 
             if (! wp_verify_nonce($nonce, 'sp_delete_stterm')) {
                 die('Go get a life script kiddies');
             } else {
-                self::delete_stterm(absint(sanitize_text_field($_GET['stterm'])));
+                self::delete_stterm(absint(sanitize_text_field(wp_unslash($_GET['stterm']))));
             }
-
         }
 
         // If the delete bulk action is triggered
-        if ((isset($_POST['action']) && $_POST['action'] == 'st-bulk-delete-term')
+        if (
+            (isset($_POST['action']) && $_POST['action'] == 'st-bulk-delete-term')
              || (isset($_POST['action2']) && $_POST['action2'] == 'st-bulk-delete-term')
         ) {
-
-            $delete_ids = array_map('sanitize_text_field', $_POST['st-bulk-delete-term']);
+            $delete_ids = array_map('sanitize_text_field', wp_unslash($_POST['st-bulk-delete-term']));
 
             // loop over the array of record IDs and delete them
             foreach ($delete_ids as $id) {
                 self::delete_stterm($id);
-
             }
         }
     }
@@ -280,19 +279,19 @@ class Termcloud_List extends WP_List_Table
         $input_id = $input_id . '-search-input';
 
         if (!empty($_REQUEST['orderby'])) {
-            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />';
+            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
         }
         if (!empty($_REQUEST['order'])) {
-            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />';
+            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
         }
         if (!empty($_REQUEST['page'])) {
-            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />';
+            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))) . '" />';
         }
         if (!empty($_REQUEST['cpt'])) {
-            echo '<input type="hidden" name="cpt" value="' . esc_attr(sanitize_text_field($_REQUEST['cpt'])) . '" />';
+            echo '<input type="hidden" name="cpt" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['cpt']))) . '" />';
         }
         if (!empty($_REQUEST['taxo'])) {
-            echo '<input type="hidden" name="taxo" value="' . esc_attr(sanitize_text_field($_REQUEST['taxo'])) . '" />';
+            echo '<input type="hidden" name="taxo" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['taxo']))) . '" />';
         }
         $searchbox_search =  (empty($_REQUEST['s']) && !$this->has_items()) ? 'visibility:hidden;' : '';
         ?>
@@ -332,7 +331,7 @@ class Termcloud_List extends WP_List_Table
         /**
          * Handle search
          */
-        if ((!empty($_REQUEST['s'])) && $search = sanitize_text_field($_REQUEST['s'])) {
+        if ((!empty($_REQUEST['s'])) && $search = sanitize_text_field(wp_unslash($_REQUEST['s']))) {
             $data_filtered = [];
             foreach ($data as $item) {
                 if ($this->str_contains($item->slug, $search, false) || $this->str_contains($item->name, $search, false)) {
@@ -347,8 +346,8 @@ class Termcloud_List extends WP_List_Table
          */
         function usort_reorder($a, $b)
         {
-            $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field($_REQUEST['orderby']) : 'name'; //If no sort, default to role
-            $order = (!empty($_REQUEST['order'])) ? sanitize_text_field($_REQUEST['order']) : 'asc'; //If no order, default to asc
+            $orderby = (!empty($_REQUEST['orderby'])) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : 'name'; //If no sort, default to role
+            $order = (!empty($_REQUEST['order'])) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'asc'; //If no order, default to asc
             $result = strnatcasecmp($a->$orderby, $b->$orderby); //Determine sort order, case insensitive, natural order
 
             return ($order === 'asc') ? $result : -$result; //Send final sort direction to usort
@@ -384,6 +383,4 @@ class Termcloud_List extends WP_List_Table
             'total_pages' => ceil($total_items / $per_page)   //calculate the total number of pages
         ]);
     }
-
-
 }

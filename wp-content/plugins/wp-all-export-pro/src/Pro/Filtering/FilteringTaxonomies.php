@@ -39,7 +39,7 @@ class FilteringTaxonomies extends FilteringBase
      *
      */
     protected function getExcludeQueryWhere($postsToExclude) {
-        $this->queryWhere = " AND ({$this->wpdb->terms}.term_id NOT IN (" . implode(',', $postsToExclude) . "))";
+        $this->queryWhere = " AND ({$this->wpdb->terms}.term_id NOT IN (" . $postsToExclude . "))";
     }
 
     /**

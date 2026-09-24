@@ -74,6 +74,51 @@ if(!defined('ABSPATH')) {
                        style="width: 100%;"/>
             </div>
         </div>
+        <!-- Options for Time field -->
+        <div class="input cc_field time_field_type">
+            <div class="input pmxe_time_format_wrapper">
+                <label
+                    style="padding:4px; display: block;"><?php esc_html_e("date() Format", "wp_all_export_plugin"); ?></label>
+                <input type="text" class="pmxe_time_format" value="" placeholder="H:i:s" style="width: 100%;"/>
+            </div>
+        </div>
+        <!-- Options for Media Field -->
+        <div class="input cc_field media_field_type">
+            <div class="input pmxe_media_format_wrapper">
+                <label
+                    style="padding:4px; display: block;"><?php esc_html_e("Value Format", "wp_all_export_plugin"); ?></label>
+                <select class="media_field_export_data" style="width: 100%; height: 30px;">
+                    <option value="url"><?php esc_html_e("Media URL", "wp_all_export_plugin"); ?></option>
+                    <option value="id"><?php esc_html_e("Media ID", "wp_all_export_plugin"); ?></option>
+                    <option value="filename"><?php esc_html_e("File Name", "wp_all_export_plugin"); ?></option>
+                </select>
+            </div>
+        </div>
+        <!-- Options for Post Field -->
+        <div class="input cc_field post_field_type">
+            <div class="input pmxe_post_format_wrapper">
+                <label
+                    style="padding:4px; display: block;"><?php esc_html_e("Value Format", "wp_all_export_plugin"); ?></label>
+                <select class="post_field_export_data" style="width: 100%; height: 30px;">
+                    <option value="id"><?php esc_html_e("Post ID", "wp_all_export_plugin"); ?></option>
+                    <option value="permalink"><?php esc_html_e("Post Permalink", "wp_all_export_plugin"); ?></option>
+                    <option value="title"><?php esc_html_e("Post Title", "wp_all_export_plugin"); ?></option>
+                    <option value="slug"><?php esc_html_e("Post Slug", "wp_all_export_plugin"); ?></option>
+                </select>
+            </div>
+        </div>
+        <!-- Options for User Field -->
+        <div class="input cc_field user_field_type">
+            <div class="input pmxe_user_format_wrapper">
+                <label
+                        style="padding:4px; display: block;"><?php esc_html_e("Value Format", "wp_all_export_plugin"); ?></label>
+                <select class="user_field_export_data" style="width: 100%; height: 30px;">
+                    <option value="id"><?php esc_html_e("User ID", "wp_all_export_plugin"); ?></option>
+                    <option value="email"><?php esc_html_e("User Email", "wp_all_export_plugin"); ?></option>
+                    <option value="login"><?php esc_html_e("User Login", "wp_all_export_plugin"); ?></option>
+                </select>
+            </div>
+        </div>
         <!-- Options for Up/Cross sells products -->
         <div class="input cc_field linked_field_type">
             <select class="linked_field_export_data" style="width: 100%; height: 30px;">

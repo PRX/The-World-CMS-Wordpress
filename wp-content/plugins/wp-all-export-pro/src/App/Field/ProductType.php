@@ -27,7 +27,7 @@ class ProductType extends Field
             return $categories;
 
         } else if($productCategoriesData['productType'] == self::CUSTOM_VALUE_TEXT) {
-            return $this->replaceSnippetsInValue($productCategoriesData['productTypeCV'], $snippetData);
+            return $productCategoriesData['productTypeCV'];
         } else {
             throw new \Exception('Unknown product type value '.$productCategoriesData['productType']);
         }

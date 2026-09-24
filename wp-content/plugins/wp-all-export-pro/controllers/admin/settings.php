@@ -334,7 +334,7 @@ class PMXE_Admin_Settings extends PMXE_Controller_Admin
 
                 $role = get_role($role_id);
 
-                if ($role->has_cap('manage_options')) {
+                if ($role->has_cap(PMXE_Plugin::$capabilities)) {
                     continue;
                 }
 

@@ -12,7 +12,7 @@ class CostOfGoodsSold extends Field
         $availabilityPrice = $this->feed->getSectionFeedData(self::SECTION);
 
         if(isset($availabilityPrice['costOfGoodsSold'])) {
-            return $this->replaceSnippetsInValue($availabilityPrice['costOfGoodsSold'], $snippetData);
+            return $availabilityPrice['costOfGoodsSold'];
         } else {
             return '';
         }

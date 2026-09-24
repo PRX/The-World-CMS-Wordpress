@@ -291,8 +291,8 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
             wp_enqueue_style('taxopress-linked-terms-css', plugins_url('', __FILE__) . '/assets/css/taxonomy-linked-terms.css', [], STAGS_VERSION, 'all');
             wp_enqueue_script('taxopress-linked-terms-js', plugins_url('', __FILE__) . '/assets/js/taxonomy-linked-terms.js', ['jquery', 'jquery-ui-sortable', 'jquery-ui-autocomplete'], STAGS_VERSION);
             wp_localize_script('taxopress-linked-terms-js', 'linkedTermsRequestAction', array(
-                    'taxonomy' => !empty($_GET['taxonomy']) ? sanitize_key($_GET['taxonomy']) : 'post_tag', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                    'term_id'  => !empty($_GET['tag_ID']) ? sanitize_key($_GET['tag_ID']) : 0, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    'taxonomy' => !empty($_GET['taxonomy']) ? sanitize_key(wp_unslash($_GET['taxonomy'])) : 'post_tag', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+                    'term_id'  => !empty($_GET['tag_ID']) ? sanitize_key(wp_unslash($_GET['tag_ID'])) : 0, // phpcs:ignore WordPress.Security.NonceVerification.Recommended
                 ));
         }
 
@@ -378,20 +378,20 @@ if (!class_exists('TaxoPress_Linked_Terms')) {
         public function save_term_fields($term_id)
         {
 
-            if (!isset($_POST['taxopress_linked_terms_nonce']) || !wp_verify_nonce(sanitize_key($_POST['taxopress_linked_terms_nonce']), 'taxopress_linked_terms')) {
+            if (!isset($_POST['taxopress_linked_terms_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['taxopress_linked_terms_nonce'])), 'taxopress_linked_terms')) {
                 return;
             }
 
             if (!empty($_POST['taxopress_linked_term_id'])) {
-                $taxopress_linked_term_id       = array_map('sanitize_text_field', $_POST['taxopress_linked_term_id']);
+                $taxopress_linked_term_id       = array_map('sanitize_text_field', wp_unslash($_POST['taxopress_linked_term_id']));
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                $taxopress_linked_term_name     = isset($_POST['taxopress_linked_term_name']) ? array_map('sanitize_text_field', $_POST['taxopress_linked_term_name']) : [];
+                $taxopress_linked_term_name     = isset($_POST['taxopress_linked_term_name']) ? array_map('sanitize_text_field', wp_unslash($_POST['taxopress_linked_term_name'])) : [];
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                $taxopress_linked_term_taxonomy = isset($_POST['taxopress_linked_term_taxonomy']) ? array_map('sanitize_text_field', $_POST['taxopress_linked_term_taxonomy']) : [];
+                $taxopress_linked_term_taxonomy = isset($_POST['taxopress_linked_term_taxonomy']) ? array_map('sanitize_text_field', wp_unslash($_POST['taxopress_linked_term_taxonomy'])) : [];
                 $existing_linked_term_ids       = [0];
                 if (!empty($_POST['taxopress_existing_linked_term_id'])) {
                 // delete removed linked term
-                    $existing_linked_term_ids = array_map('sanitize_text_field', $_POST['taxopress_existing_linked_term_id']);
+                    $existing_linked_term_ids = array_map('sanitize_text_field', wp_unslash($_POST['taxopress_existing_linked_term_id']));
                     $old_removed_relations = array_diff($existing_linked_term_ids, $taxopress_linked_term_id);
                     if (!empty($old_removed_relations)) {
                         foreach ($old_removed_relations as $old_removed_relation) {

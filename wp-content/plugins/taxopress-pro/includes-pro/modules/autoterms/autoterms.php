@@ -32,10 +32,31 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
             return self::$instance;
         }
 
+        /**
+         * Render a non-secret status for credential settings the current user cannot edit.
+         *
+         * @param string $label Field label.
+         * @param string $class Visibility classes used by the integration UI.
+         * @param bool   $configured Whether the protected setting has a saved value.
+         */
+        private function render_protected_setting_notice($label, $class, $configured)
+        {
+            $message = $configured
+                ? esc_html__('Configured by an administrator.', 'taxopress-pro')
+                : esc_html__('Not configured. Ask an administrator to configure this integration.', 'taxopress-pro');
+            ?>
+            <tr class='<?php echo esc_attr($class); ?>'>
+                <th scope='row'><?php echo esc_html($label); ?></th>
+                <td><p class='description'><?php echo esc_html($message); ?></p></td>
+            </tr>
+            <?php
+        }
+
         public function taxopress_autoterms_after_autoterm_terms_to_use_field($current)
         {
             $taxopress_ai_settings = admin_url('admin.php?page=st_taxopress_ai');
             $ui = new taxopress_admin_ui();
+            $can_manage_credentials = current_user_can('admin_simple_tags');
             
             ?>
             <tr class="autoterm-description-tr">
@@ -73,16 +94,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 'selections' => $select,
             ]);
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-            echo $ui->get_text_input([
+            if ($can_manage_credentials) {
+                // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                echo $ui->get_text_input([
                     'namearray' => 'taxopress_autoterm',
                     'name'      => 'open_ai_api_key',
                     'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-openai',
-                    'textvalue' => isset($current['open_ai_api_key']) ? esc_attr($current['open_ai_api_key']) : '',
+                    'textvalue' => '',
                     'labeltext' => esc_html__('API Key', 'taxopress-pro'),
-                    'helptext' => esc_html__('Enter your OpenAI API Key.', 'taxopress-pro'),
+                    'helptext' => esc_html__('Enter a new OpenAI API Key, or leave blank to keep the saved key.', 'taxopress-pro'),
                     'required'  => false,
-            ]);
+                ]);
+            } else {
+                $this->render_protected_setting_notice(
+                    esc_html__('API Key', 'taxopress-pro'),
+                    'autoterm-terms-to-use-field autoterm-terms-use-openai',
+                    !empty($current['open_ai_api_key'])
+                );
+            }
             
             $options = [];
             $open_ai_models = [
@@ -246,27 +275,43 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'selections' => $select,
                 ]);
 
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo $ui->get_text_input([
-                'namearray' => 'taxopress_autoterm',
-                'name'      => 'ibm_watson_api_url',
-                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
-                'textvalue' => isset($current['ibm_watson_api_url']) ? esc_attr($current['ibm_watson_api_url']) : '',
-                'labeltext' => esc_html__('API URL', 'taxopress-pro'),
-                'helptext' => esc_html__('Enter your IBM Watson API URL.', 'taxopress-pro'),
-                'required'  => false,
-                ]);
+                if ($can_manage_credentials) {
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo $ui->get_text_input([
+                    'namearray' => 'taxopress_autoterm',
+                    'name'      => 'ibm_watson_api_url',
+                    'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
+                    'textvalue' => isset($current['ibm_watson_api_url']) ? esc_attr($current['ibm_watson_api_url']) : '',
+                    'labeltext' => esc_html__('API URL', 'taxopress-pro'),
+                    'helptext' => esc_html__('Enter your IBM Watson API URL.', 'taxopress-pro'),
+                    'required'  => false,
+                    ]);
+                } else {
+                    $this->render_protected_setting_notice(
+                        esc_html__('API URL', 'taxopress-pro'),
+                        'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
+                        !empty($current['ibm_watson_api_url'])
+                    );
+                }
 
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo $ui->get_text_input([
-                'namearray' => 'taxopress_autoterm',
-                'name'      => 'ibm_watson_api_key',
-                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
-                'textvalue' => isset($current['ibm_watson_api_key']) ? esc_attr($current['ibm_watson_api_key']) : '',
-                'labeltext' => esc_html__('API Key', 'taxopress-pro'),
-                'helptext' => esc_html__('Enter your IBM Watson API Key.', 'taxopress-pro'),
-                'required'  => false,
-                ]);
+                if ($can_manage_credentials) {
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo $ui->get_text_input([
+                    'namearray' => 'taxopress_autoterm',
+                    'name'      => 'ibm_watson_api_key',
+                    'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
+                    'textvalue' => '',
+                    'labeltext' => esc_html__('API Key', 'taxopress-pro'),
+                    'helptext' => esc_html__('Enter a new IBM Watson API Key, or leave blank to keep the saved key.', 'taxopress-pro'),
+                    'required'  => false,
+                    ]);
+                } else {
+                    $this->render_protected_setting_notice(
+                        esc_html__('API Key', 'taxopress-pro'),
+                        'autoterm-terms-to-use-field autoterm-terms-use-ibm-watson',
+                        !empty($current['ibm_watson_api_key'])
+                    );
+                }
 
                 $select             = [
                 'options' => [
@@ -369,16 +414,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'selections' => $select,
                 ]);
 
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo $ui->get_text_input([
-                'namearray' => 'taxopress_autoterm',
-                'name'      => 'dandelion_api_token',
-                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
-                'textvalue' => isset($current['dandelion_api_token']) ? esc_attr($current['dandelion_api_token']) : '',
-                'labeltext' => esc_html__('API Token', 'taxopress-pro'),
-                'helptext' => esc_html__('Enter your Dandelion API Key.', 'taxopress-pro'),
-                'required'  => false,
-                ]);
+                if ($can_manage_credentials) {
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo $ui->get_text_input([
+                    'namearray' => 'taxopress_autoterm',
+                    'name'      => 'dandelion_api_token',
+                    'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
+                    'textvalue' => '',
+                    'labeltext' => esc_html__('API Token', 'taxopress-pro'),
+                    'helptext' => esc_html__('Enter a new Dandelion API Token, or leave blank to keep the saved token.', 'taxopress-pro'),
+                    'required'  => false,
+                    ]);
+                } else {
+                    $this->render_protected_setting_notice(
+                        esc_html__('API Token', 'taxopress-pro'),
+                        'autoterm-terms-to-use-field autoterm-terms-use-dandelion',
+                        !empty($current['dandelion_api_token'])
+                    );
+                }
 
             // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 echo $ui->get_number_input([
@@ -494,16 +547,24 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
                 'selections' => $select,
                 ]);
 
-            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-                echo $ui->get_text_input([
-                'namearray' => 'taxopress_autoterm',
-                'name'      => 'open_calais_api_key',
-                'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
-                'textvalue' => isset($current['open_calais_api_key']) ? esc_attr($current['open_calais_api_key']) : '',
-                'labeltext' => esc_html__('API Key', 'taxopress-pro'),
-                'helptext' => esc_html__('Enter your LSEG / Refinitiv API Key.', 'taxopress-pro'),
-                'required'  => false,
-                ]);
+                if ($can_manage_credentials) {
+                    // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                    echo $ui->get_text_input([
+                    'namearray' => 'taxopress_autoterm',
+                    'name'      => 'open_calais_api_key',
+                    'class'      => 'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
+                    'textvalue' => '',
+                    'labeltext' => esc_html__('API Key', 'taxopress-pro'),
+                    'helptext' => esc_html__('Enter a new LSEG / Refinitiv API Key, or leave blank to keep the saved key.', 'taxopress-pro'),
+                    'required'  => false,
+                    ]);
+                } else {
+                    $this->render_protected_setting_notice(
+                        esc_html__('API Key', 'taxopress-pro'),
+                        'autoterm-terms-to-use-field autoterm-terms-use-lseg-refinitiv',
+                        !empty($current['open_calais_api_key'])
+                    );
+                }
 
                 $select             = [
                 'options' => [
@@ -668,11 +729,15 @@ if (!class_exists('TaxoPress_Pro_Auto_Terms')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-autoterm') {
+                if (!current_user_can('simple_tags')) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field($_REQUEST['_wpnonce']) : '';
+                $nonce = isset($_REQUEST['_wpnonce']) ? sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])) : '';
                 if ($nonce && wp_verify_nonce($nonce, 'autoterm-action-request-nonce')) {
                     // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-                    $autoterm_id = isset($_REQUEST['taxopress_autoterm']) ? sanitize_text_field($_REQUEST['taxopress_autoterm']) : '';
+                    $autoterm_id = isset($_REQUEST['taxopress_autoterm']) ? sanitize_text_field(wp_unslash($_REQUEST['taxopress_autoterm'])) : '';
                     if ($autoterm_id) {
                         $this->taxopress_action_copy_autoterm($autoterm_id);
                     }

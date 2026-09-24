@@ -40,43 +40,66 @@ function pmxe_init()
 
         if ($slug) {
 
-            add_action('rest_after_insert_' . $slug, function ($post) {
+	        // The 'wp_insert_post-type' hook fires after all metadata is saved.
+	        add_action('wp_insert_' . $slug, function ($post_id) {
 
-                $post_id = $post->ID;
-                if (wp_is_post_revision($post_id)) {
-                    return;
-                }
+		        if (wp_is_post_revision($post_id)) {
+			        return;
+		        }
 
-                $post = get_post($post_id);
+		        // If it's not published, don't proceed
+		        if (get_post_status($post_id) != 'publish') {
+			        return;
+		        }
 
-                if ($post->post_type === 'shop_order' || ($post->post_type === 'property' && class_exists('Easy_Real_Estate'))) {
-                    return;
-                }
+		        $post = get_post($post_id);
 
-                $list = new PMXE_Export_List();
+		        // Calculate difference between post date and modified date
+		        $post_date = strtotime($post->post_date_gmt);
+		        $modified_date = strtotime($post->post_modified_gmt);
+		        $date_diff = abs($post_date - $modified_date);
 
-                $exportList = $list->setColumns($list->getTable() . '.*')->getBy();
+		        // If the difference is 5 seconds or less, we can consider it as a newly published post.
+		        if ($date_diff > 5) {
+			        return;
+		        }
 
-                foreach ($exportList as $export) {
-                    if (
-                        isset($export['options']['enable_real_time_exports']) &&
-                        $export['options']['enable_real_time_exports'] &&
-                        isset($export['options']['enable_real_time_exports_running']) &&
-                        $export['options']['enable_real_time_exports_running']
-                    ) {
-                        if (in_array($post->post_type, $export['options']['cpt'])) {
+		        if ($post->post_type === 'shop_order' || ($post->post_type === 'property' && class_exists('Easy_Real_Estate'))) {
+			        return;
+		        }
 
-                            if ($post_id) {
+		        if ($post->post_type === 'product' || $post->post_type === 'product_variation') {
+			        $addonsService = new \Wpae\App\Service\Addons\AddonService();
 
-                                $exportRecord = new PMXE_Export_Record();
-                                $exportRecord->getById($export['id']);
-                                $exportRecord->execute(false, true, $post_id);
-                            }
-                        }
-                    }
-                }
+			        if(!$addonsService->isWooCommerceProductAddonActive() && !$addonsService->isWooCommerceAddonActive()) {
+				        return;
+			        }
+		        }
 
-            });
+		        $list = new PMXE_Export_List();
+
+		        $exportList = $list->setColumns($list->getTable() . '.*')->getBy();
+
+		        foreach ($exportList as $export) {
+			        if (
+				        isset($export['options']['enable_real_time_exports']) &&
+				        $export['options']['enable_real_time_exports'] &&
+				        isset($export['options']['enable_real_time_exports_running']) &&
+				        $export['options']['enable_real_time_exports_running']
+			        ) {
+				        if (in_array($post->post_type, $export['options']['cpt'])) {
+
+					        if ($post_id) {
+
+						        $exportRecord = new PMXE_Export_Record();
+						        $exportRecord->getById($export['id']);
+						        $exportRecord->execute(false, true, $post_id);
+					        }
+				        }
+			        }
+		        }
+
+	        });
         }
     }
 

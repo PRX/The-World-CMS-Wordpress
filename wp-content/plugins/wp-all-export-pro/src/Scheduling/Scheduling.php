@@ -48,12 +48,15 @@ class Scheduling
         }
     }
 
+    /**
+     * @return array
+     */
     public function checkLicense()
     {
         $options = \PMXE_Plugin::getInstance()->getOption();
 
         if (empty($options['scheduling_license'])) {
-            return false;
+            return ['success' => false];
         }
 
         return $this->licensingManager->checkLicense($options['scheduling_license'], \PMXE_Plugin::getSchedulingName());
@@ -66,7 +69,7 @@ class Scheduling
 
     public function deleteScheduleIfExists($id) {
 
-        if(!$this->checkLicense()) {
+        if(empty($this->checkLicense()['success'])) {
             return true;
         }
 
@@ -84,7 +87,7 @@ class Scheduling
     public function handleScheduling($id, $post)
     {
 
-        if (!$this->checkLicense()) {
+        if (empty($this->checkLicense()['success'])) {
             return false;
         }
 
@@ -193,7 +196,7 @@ class Scheduling
                 }
 
                 $timeParts = explode(':', $time);
-                $hour = $timeParts[0];
+                $hour = (int)$timeParts[0];
                 $min = (int)$timeParts[1];
 
                 if (strpos($time, 'pm') !== false && $hour < 12) {

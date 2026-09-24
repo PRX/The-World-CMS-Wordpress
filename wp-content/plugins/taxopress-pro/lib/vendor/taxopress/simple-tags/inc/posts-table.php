@@ -1,4 +1,7 @@
 <?php
+
+// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_tax_query,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 if (!class_exists('WP_List_Table')) {
     require_once(ABSPATH . 'wp-admin/includes/class-wp-list-table.php');
 }
@@ -61,12 +64,12 @@ class Taxopress_Posts_List extends WP_List_Table
     public function get_all_posts()
     {
 
-        $search            = (!empty($_REQUEST['s'])) ? sanitize_text_field($_REQUEST['s']) : '';
+        $search            = (!empty($_REQUEST['s'])) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : '';
         $term_filter        = (!empty($_REQUEST['posts_term_filter'])) ? (int) $_REQUEST['posts_term_filter'] : '';
-        $post_types        = (!empty($_REQUEST['posts_post_type_filter'])) ? sanitize_text_field($_REQUEST['posts_post_type_filter']) : '';
+        $post_types        = (!empty($_REQUEST['posts_post_type_filter'])) ? sanitize_text_field(wp_unslash($_REQUEST['posts_post_type_filter'])) : '';
 
-        $orderby           = (!empty($_REQUEST['orderby'])) ? sanitize_text_field($_REQUEST['orderby']) : 'date';
-        $order             = (!empty($_REQUEST['order'])) ? sanitize_text_field($_REQUEST['order']) : 'DESC';
+        $orderby           = (!empty($_REQUEST['orderby'])) ? sanitize_text_field(wp_unslash($_REQUEST['orderby'])) : 'date';
+        $order             = (!empty($_REQUEST['order'])) ? sanitize_text_field(wp_unslash($_REQUEST['order'])) : 'DESC';
 
 
         $posts_per_page    = $this->get_items_per_page('st_posts_per_page', 20);
@@ -150,11 +153,10 @@ class Taxopress_Posts_List extends WP_List_Table
     {
 
         if ('top' === $which) {
-
             $post_types = get_post_types(['public' => true], 'objects');
 
             $posts_term_filter = (!empty($_REQUEST['posts_term_filter'])) ? (int) $_REQUEST['posts_term_filter'] : '';
-            $posts_post_type_filter = (!empty($_REQUEST['posts_post_type_filter'])) ? sanitize_text_field($_REQUEST['posts_post_type_filter']) : '';
+            $posts_post_type_filter = (!empty($_REQUEST['posts_post_type_filter'])) ? sanitize_text_field(wp_unslash($_REQUEST['posts_post_type_filter'])) : '';
             ?>
 
 
@@ -167,14 +169,13 @@ class Taxopress_Posts_List extends WP_List_Table
                     >
                     <option value=""><?php esc_html_e('', 'simple-tags'); ?></option>
                     <?php
-                                if (!empty($posts_term_filter)) {
-                                    $posts_term_filter_data = get_term($posts_term_filter);
-                                    if (is_object($posts_term_filter_data) && !is_wp_error($posts_term_filter_data) && isset($posts_term_filter_data->term_id)) {
-                                        echo '<option value="' . esc_attr($posts_term_filter_data->term_id) . '" selected>' . esc_html($posts_term_filter_data->name) . '</option>';
-                                    }
-
-                                }
-            ?>
+                    if (!empty($posts_term_filter)) {
+                        $posts_term_filter_data = get_term($posts_term_filter);
+                        if (is_object($posts_term_filter_data) && !is_wp_error($posts_term_filter_data) && isset($posts_term_filter_data->term_id)) {
+                            echo '<option value="' . esc_attr($posts_term_filter_data->term_id) . '" selected>' . esc_html($posts_term_filter_data->name) . '</option>';
+                        }
+                    }
+                    ?>
                 </select>
 
                 <select class="posts-post-type-filter-select taxopress-select2 taxopress-simple-select2"
@@ -183,16 +184,16 @@ class Taxopress_Posts_List extends WP_List_Table
                     data-placeholder="<?php esc_attr_e('Post Types Filter', 'simple-tags'); ?>">
                     <option value=""><?php esc_html_e('All Post Types', 'simple-tags'); ?></option>
                     <?php
-            foreach ($post_types as $post_type) {
-                echo '<option value="' . esc_attr($post_type->name) . '" ' . selected($posts_post_type_filter, $post_type->name, false) . '>' . esc_html($post_type->label) . '</option>';
-            }
-            ?>
+                    foreach ($post_types as $post_type) {
+                        echo '<option value="' . esc_attr($post_type->name) . '" ' . selected($posts_post_type_filter, $post_type->name, false) . '>' . esc_html($post_type->label) . '</option>';
+                    }
+                    ?>
                 </select>
 
                 <a href="javascript:void(0)" class="taxopress-posts-tablenav-filter button"><?php esc_html_e('Filter', 'simple-tags'); ?></a>
 
             </div>
-        <?php
+            <?php
         }
     }
 
@@ -232,19 +233,19 @@ class Taxopress_Posts_List extends WP_List_Table
         $input_id = $input_id . '-search-input';
 
         if (!empty($_REQUEST['orderby'])) {
-            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />';
+            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
         }
         if (!empty($_REQUEST['order'])) {
-            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />';
+            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
         }
         if (!empty($_REQUEST['page'])) {
-            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />';
+            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))) . '" />';
         }
 
         $custom_filters = ['posts_term_filter', 'posts_post_type_filter'];
 
         foreach ($custom_filters as $custom_filter) {
-            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : '';
+            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field(wp_unslash($_REQUEST[$custom_filter])) : '';
             echo '<input type="hidden" name="' . esc_attr($custom_filter) . '" value="' . esc_attr($filter_value) . '" />';
         }
         ?>
@@ -253,7 +254,7 @@ class Taxopress_Posts_List extends WP_List_Table
             <input type="search" id="<?php echo esc_attr($input_id); ?>" name="s" value="<?php _admin_search_query(); ?>" />
             <?php submit_button($text, '', '', false, ['id' => 'taxopress-posts-search-submit']); ?>
         </p>
-    <?php
+        <?php
     }
 
     /**
@@ -320,7 +321,7 @@ class Taxopress_Posts_List extends WP_List_Table
                 esc_html(get_the_title($post))
             );
         } else {
-            $title = '<strong><span class="row-title">'. get_the_title($post) .'</span></strong>';
+            $title = '<strong><span class="row-title">' . get_the_title($post) . '</span></strong>';
         }
 
         return $title;
@@ -367,7 +368,7 @@ class Taxopress_Posts_List extends WP_List_Table
             $post_type = $post_type_object->label;
         }
 
-        $out = '<a href="'. $this->update_or_add_url_parameter('posts_post_type_filter', $post->post_type) .'">'. $post_type .'</a>';
+        $out = '<a href="' . $this->update_or_add_url_parameter('posts_post_type_filter', $post->post_type) . '">' . $post_type . '</a>';
 
         return $out;
     }
@@ -427,7 +428,7 @@ class Taxopress_Posts_List extends WP_List_Table
     protected function update_or_add_url_parameter($param_name, $param_value)
     {
 
-        $url = sanitize_text_field($_SERVER['REQUEST_URI']);
+        $url = sanitize_text_field(wp_unslash($_SERVER['REQUEST_URI']));
 
         // Check if the parameter already exists in the URL
         $existing_param = get_query_var($param_name);

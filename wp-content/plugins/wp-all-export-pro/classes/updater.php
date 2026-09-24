@@ -53,7 +53,19 @@ if (!class_exists('PMXE_Updater')) {
             add_action('after_plugin_row_' . $this->name, array($this, 'show_update_notification'), 11, 2);
             add_filter('plugin_row_meta', array($this, 'plugin_row_meta'), 10, 2);
 
+	        add_action( 'in_plugin_update_message-'.$this->name, [$this, 'custom_update_note'], 10, 2);
         }
+
+	    public function custom_update_note( $data, $response ){
+
+		    // Only show a custom note if one was included in the update data.
+		    if ( is_object($response) && !empty($response->custom_update_note) && !empty($response->update_note_version)){
+			    // Ensure that this version is the same or older than the note's target version.
+			    if( version_compare($this->version, $response->update_note_version, '<=')) {
+				    echo wp_kses( $response->custom_update_note, 'post' );
+			    }
+		    }
+	    }
 
         /**
          * Show row meta on the plugin screen.
@@ -299,6 +311,7 @@ if (!class_exists('PMXE_Updater')) {
                     <div class="update-message <?php echo $update_msg_classes; ?>">
                         <p>
                             <?php echo $new_version; ?>
+                            <?php do_action('in_plugin_update_message-'.$this->name, [], $version_info);?>
                         </p>
                     </div>
                 </td>
@@ -414,7 +427,8 @@ if (!class_exists('PMXE_Updater')) {
          *
          * @param array $args
          * @param string $url
-         * @return object $array
+         *
+         * @return array|object
          */
         function http_request_args($args, $url)
         {
@@ -447,7 +461,7 @@ if (!class_exists('PMXE_Updater')) {
             $data = array_merge($this->api_data, $_data);
 
             if ($data['slug'] != $this->slug)
-                return;
+                return false;
 
             /*if ( empty( $data['license'] ) )
                 return;*/
@@ -475,7 +489,7 @@ if (!class_exists('PMXE_Updater')) {
             //     file_put_contents($uploads['basedir'] . "/log.txt", date("d-m-Y H:i:s") . ' - ' .json_encode($api_params) . "\n", FILE_APPEND);
             // }
 
-            $request = wp_remote_post($this->api_url, array('timeout' => 15, 'sslverify' => true, 'body' => $api_params));
+            $request = wp_remote_get( esc_url_raw(add_query_arg($api_params, $this->api_url.'check_version/?')), array( 'timeout' => 15, 'sslverify' => true ) );
 
             if (!is_wp_error($request)) {
                 $request = json_decode(wp_remote_retrieve_body($request));

@@ -98,7 +98,7 @@ class VariationOptions implements VariationOptionsInterface
                             FROM $wpdb->posts $join
                             WHERE $where )";
 
-        return $result;
+        return apply_filters('wp_all_export_product_variation_where', $result, \XmlExportEngine::$exportID);
     }
 
     private function getWpmlAlias()

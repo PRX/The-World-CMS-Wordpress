@@ -214,7 +214,7 @@ class ReviewsUI
             <div style="" class="notice notice-info wpae-reviews-notice">
                 <button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button>
                 <div id="wpae-ask-for-review">
-                    <h1><?php printf(esc_html_e($this->reviewLogic->getModalText()), 'wp-all-export-plugin'); ?></h1>
+                    <h1><?php esc_html_e($this->reviewLogic->getModalText(), 'wp-all-export-plugin'); ?></h1>
 
                     <div class="wpae-buttons-container wpae-review-buttons">
                         <button data-review="good"><?php esc_html_e('Good', 'wp-all-export-plugin'); ?></button>

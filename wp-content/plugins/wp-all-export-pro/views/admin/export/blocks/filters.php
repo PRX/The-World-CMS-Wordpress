@@ -42,7 +42,7 @@ if(!defined('ABSPATH')) {
 			$filter_rules = $post['filter_rules_hierarhy'];
 			$filter_rules_hierarhy = json_decode($filter_rules);											
 			?>
-			<p id="date_field_notice" style="margin: 5px 0px 20px; text-align: center;"><?php wp_kses_post(__('Date filters use natural language.<br>For example, to return records created in the last week: <i>date ▸ newer than ▸ last week</i>.<br>For all records created in 2016: <i>date ▸ older than ▸ 1/1/2017</i> AND <i>date ▸ newer than ▸ 12/31/2015</i>', 'wp_all_export_plugin'));?>.</p>
+			<p id="date_field_notice" style="margin: 5px 0px 20px; text-align: center;"><?php echo wp_kses_post(__('Date filters use natural language.<br>For example, to return records created in the last week: <i>date ▸ newer than ▸ last week</i>.<br>For all records created in 2016: <i>date ▸ older than ▸ 1/1/2017</i> AND <i>date ▸ newer than ▸ 12/31/2015</i>', 'wp_all_export_plugin'));?>.</p>
 			<p id="no_options_notice" style="margin:20px 0 5px; text-align:center; <?php if ( ! empty($filter_rules_hierarhy) and is_array($filter_rules_hierarhy) ) echo 'display:none;';?>"><?php esc_html_e('No filtering options. Add filtering options to only export records matching some specified criteria.', 'wp_all_export_plugin');?></p>
 			<ol class="wp_all_export_filtering_rules">
 				<?php							
