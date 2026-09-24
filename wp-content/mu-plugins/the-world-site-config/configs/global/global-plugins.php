@@ -58,6 +58,7 @@ define(
 		'wp-graphql/wp-graphql.php',
 		'wpgraphql-acf/wpgraphql-acf.php',
 		'wp-mail-smtp/wp_mail_smtp.php',
+		'wp-all-export-pro/wp-all-export-pro.php',
 		'add-wpgraphql-seo/wp-graphql-yoast-seo.php',
 		'custom-post-type-permalinks/custom-post-type-permalinks.php',
 		'faustwp/faustwp.php',
