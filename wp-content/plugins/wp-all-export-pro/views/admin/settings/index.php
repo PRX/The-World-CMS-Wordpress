@@ -39,7 +39,7 @@ if(!defined('ABSPATH')) {
                             <?php } ?>
 
                         <?php } ?>
-                        <p class="description"><?php wp_kses_post(_e('A license key is required to access plugin updates. You can use your license key on an unlimited number of websites. Do not distribute your license key to 3rd parties. You can get your license key in the <a target="_blank" href="http://www.wpallimport.com/portal">customer portal</a>.', 'wp_all_export_plugin')); ?></p>
+                        <p class="description"><?php echo wp_kses_post(__('A license key is required to access plugin updates. You can use your license key on an unlimited number of websites. Do not distribute your license key to 3rd parties. You can get your license key in the <a target="_blank" href="http://www.wpallimport.com/portal">customer portal</a>.', 'wp_all_export_plugin')); ?></p>
                         <p class="submit-buttons">
                             <?php wp_nonce_field('edit-license', '_wpnonce_edit-license') ?>
                             <input type="hidden" name="is_license_submitted" value="1"/>
@@ -72,15 +72,17 @@ if(!defined('ABSPATH')) {
                                    value="<?php esc_html_e('Activate License', 'wp_all_export_plugin'); ?>"/>
                             <?php if ( !empty( $_POST['scheduling_license'] ) ) { ?>
                                 <div class="license-status inline error"><?php echo esc_html($post['scheduling_license_status']); ?></div>
+                                <input type="hidden" name="scheduling_license_limit" value="<?php echo get_option('wpai_wpae_scheduling_license_site_limit', 0); ?>">
                             <?php } ?>
                         <?php } ?>
 
                     <?php } ?>
                     <?php
                     $scheduling = \Wpae\Scheduling\Scheduling::create();
-                    if (!($scheduling->checkLicense())) {
+                    if (!($scheduling->checkLicense()['success'] ?? false)) {
+	                    require_once(PMXE_Plugin::ROOT_DIR . '/src/Scheduling/views/SchedulingActiveSitesLimitUI.php');
                         ?>
-                        <p class="description"><?php wp_kses_post(_e('A license key is required to use Automatic Scheduling. If you have already subscribed, <a href="https://www.wpallimport.com/portal/automatic-scheduling/" target="_blank">click here to access your license key</a>.<br>If you don\'t have a license, <a href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=515704" target="_blank">click here to subscribe</a>.', 'wp_all_export_plugin')); ?></p>
+                        <p class="description"><?php echo wp_kses_post(__('A license key is required to use Automatic Scheduling. If you have already subscribed, <a href="https://www.wpallimport.com/portal/automatic-scheduling/" target="_blank">click here to access your license key</a>.<br>If you don\'t have a license, <a class="scheduling-subscribe-link" href="#">click here to subscribe</a>.', 'wp_all_export_plugin')); ?></p>
                         <?php
                     }
                     ?>
@@ -289,15 +291,17 @@ if(!defined('ABSPATH')) {
                         <?php } else { ?>
                             <?php if ( !empty( $_POST['scheduling_license'] ) ) { ?>
                                 <div class="license-status inline error"><?php echo $post['scheduling_license_status']; ?></div>
+                                <input type="hidden" name="scheduling_license_limit" value="<?php echo get_option('wpai_wpae_scheduling_license_site_limit', 0); ?>">
                             <?php } ?>
                         <?php } ?>
 
                     <?php } ?>
                     <?php
                     $scheduling = \Wpae\Scheduling\Scheduling::create();
-                    if (!($scheduling->checkLicense())) {
+                    if (!($scheduling->checkLicense()['success'] ?? false)) {
+	                    require_once(PMXE_Plugin::ROOT_DIR . '/src/Scheduling/views/SchedulingActiveSitesLimitUI.php');
                         ?>
-                        <p class="description"><?php echo wp_kses_post(__('A license key is required to use Automatic Scheduling. If you have already subscribed, <a href="https://www.wpallimport.com/portal/automatic-scheduling/" target="_blank">click here to access your license key</a>.<br>If you don\'t have a license, <a href="https://www.wpallimport.com/checkout/?edd_action=add_to_cart&download_id=515704" target="_blank">click here to subscribe</a>.', 'wp_all_export_plugin')); ?></p>
+                        <p class="description"><?php echo wp_kses_post(__('A license key is required to use Automatic Scheduling. If you have already subscribed, <a href="https://www.wpallimport.com/portal/automatic-scheduling/" target="_blank">click here to access your license key</a>.<br>If you don\'t have a license, <a class="scheduling-subscribe-link" href="#">click here to subscribe</a>.', 'wp_all_export_plugin')); ?></p>
                         <?php
                     }
                     ?>
@@ -316,30 +320,15 @@ if(!defined('ABSPATH')) {
 <?php
 $uploads = wp_upload_dir();
 $functions = $uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
+$functions = apply_filters( 'wp_all_export_functions_file_path', $functions );
 $functions_content = file_get_contents($functions);
 ?>
 <hr/>
 <div class="function-editor">
     <h3><?php esc_html_e('Function Editor', 'pmxe_plugin') ?></h3>
 
-    <textarea id="wp_all_export_code"
-            name="wp_all_export_code"><?php echo (empty($functions_content)) ? "<?php\n\n?>" : esc_textarea($functions_content); ?></textarea>
-
-    <div class="input" style="margin-top: 10px;">
-
-        <div class="input" style="display:inline-block; margin-right: 20px;">
-            <input type="button" class="button-primary wp_all_export_save_functions"
-                value="<?php esc_html_e("Save Functions", 'wp_all_export_plugin'); ?>"/>
-            <a href="#help" class="wpallexport-help"
-            title="<?php printf(__("Add functions here for use during your export. You can access this file at %s", "wp_all_export_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions)); ?>"
-            style="top: 0;">?</a>
-            <div class="wp_all_export_functions_preloader"></div>
-        </div>
-        <div class="input wp_all_export_saving_status">
-
-        </div>
-
-    </div>
+	<?php require_once(PMXE_Plugin::ROOT_DIR . '/views/admin/shared/function_editor.php');?>
+    
 </div>
 <hr/>
 <form name="client-mode-settings" method="post" action="" class="client-mode-settings">
@@ -357,7 +346,7 @@ $functions_content = file_get_contents($functions);
                 <input type="checkbox" id="role-<?php echo $key; ?>"
                        value="<?php echo $key; ?>"
                     <?php if(is_array($post['client_mode_roles']) && in_array($key, $post['client_mode_roles'])) {?> checked="checked" <?php } ?>
-                    <?php if($roleObject->has_cap('manage_options')) {?> disabled="disabled" checked="checked" <?php }?>
+                    <?php if($roleObject->has_cap(PMXE_Plugin::$capabilities)) {?> disabled="disabled" checked="checked" <?php }?>
                        name="client_mode_roles[]"/>
                 <label
                         for="role-<?php echo $key; ?>"><?php echo $role['name']; ?> <br/></label>
@@ -370,5 +359,14 @@ $functions_content = file_get_contents($functions);
         </div>
     </div>
 </form>
+<div class="wpallexport-overlay"></div>
+<div class="wpallexport-loader"
+     style="border-radius: 5px; z-index: 999999; display:none; position: fixed;top: 200px;    left: 50%; width: 100px;height: 100px;background-color: #fff; text-align: center;">
+    <img style="margin-top: 45%;" src="<?php echo PMXE_ROOT_URL; ?>/static/img/preloader.gif"/>
+</div>
+
+
+<div class="wpallexport-super-overlay"></div>
+
 <a href="http://soflyy.com/" target="_blank"
    class="wpallexport-created-by"><?php esc_html_e('Created by', 'wp_all_export_plugin'); ?> <span></span></a>

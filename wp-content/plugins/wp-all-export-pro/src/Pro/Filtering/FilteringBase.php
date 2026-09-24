@@ -226,9 +226,19 @@ abstract class FilteringBase implements FilteringInterface
                 if ($table_alias) $q .= " OR $table_alias.meta_value IS NULL";
                 break;
             case 'is_not_empty':
-                $q = "IS NOT NULL ";
-                if ($table_alias) $q .= " AND $table_alias.meta_value <> '' ";
+                $q = "<> '' ";
+                if ($table_alias) $q .= " AND $table_alias.meta_value IS NOT NULL ";
                 break;
+	        case 'is_in_list':
+		        $values = array_map('trim', explode(',', $value));
+		        $values = array_map('esc_sql', $values);
+		        $q = "IN ('" . implode("','", $values) . "')";
+		        break;
+	        case 'is_not_in_list':
+		        $values = array_map('trim', explode(',', $value));
+		        $values = array_map('esc_sql', $values);
+		        $q = "NOT IN ('" . implode("','", $values) . "')";
+		        break;
             default:
                 # code...
                 break;
@@ -278,7 +288,7 @@ abstract class FilteringBase implements FilteringInterface
     public function getExportId(){
         $input  = new \PMXE_Input();
 		// Don't use the GET value if it's a real time export as it is probably wrong.
-	    if( ! (isset(\XmlExportEngine::$exportOptions['do_not_generate_file_on_new_records']) && ! \XmlExportEngine::$exportOptions['do_not_generate_file_on_new_records']) ){
+	    if( ! (isset(\XmlExportEngine::$exportOptions['do_not_generate_file_on_new_records']) &&  \XmlExportEngine::$exportOptions['do_not_generate_file_on_new_records']) ){
 		    $export_id = $input->get('id', 0);
 	    }
 
@@ -307,19 +317,12 @@ abstract class FilteringBase implements FilteringInterface
 
                 if($export->iteration > 0) {
                     global $wpdb;
-                    $postsToExclude = array();
                     $postList = new \PMXE_Post_List();
 
                     $postsToExcludeSql = 'SELECT post_id FROM ' . $postList->getTable() . ' WHERE export_id = %d AND iteration < %d';
-                    $results = $wpdb->get_results($wpdb->prepare($postsToExcludeSql, $this->exportId, $export->iteration));
+                    $postsToExcludeSql = $wpdb->prepare($postsToExcludeSql, $this->exportId, $export->iteration);
 
-                    foreach ($results as $result) {
-                        $postsToExclude[] = $result->post_id;
-                    }
-
-                    if (count($postsToExclude)) {
-                        $this->queryWhere .= $this->getExcludeQueryWhere($postsToExclude);
-                    }
+                    $this->queryWhere .= $this->getExcludeQueryWhere($postsToExcludeSql);
                 }
             }
 
@@ -351,6 +354,36 @@ abstract class FilteringBase implements FilteringInterface
      * @return mixed value of session variable
      */
     public function get( $key, $default = null ) {
+
+		switch( $key ){
+			case 'queryWhere':
+				if( ! empty($this->queryWhere) && apply_filters('pmxe_clean_query_where', true)) {
+					$this->queryWhere = $this->cleanWhere( $this->queryWhere );
+					$this->queryWhere = $this->insertMissingAndClauses( $this->queryWhere );
+					return $this->queryWhere;
+				}
+				break;
+		}
+
         return isset( $this->{$key} ) ? $this->{$key} : $default;
     }
+
+	public function cleanWhere($query) {
+		// Pattern to match AND/OR followed by a closing parenthesis with optional spaces.
+		$pattern = '/\s*(AND|OR)\s*(?=\))/i';
+
+		return preg_replace($pattern, '', $query);
+	}
+
+	public function insertMissingAndClauses($query) {
+		// Pattern for ensuring there is an AND between certain fragments.
+		$pattern = '/\(\s*([^()]+?)\s*\)(\s*\()/';
+		$replacement = '($1) AND $2';
+
+		while (preg_match($pattern, $query)) {
+			$query = preg_replace($pattern, $replacement, $query);
+		}
+
+		return $query;
+	}
 }

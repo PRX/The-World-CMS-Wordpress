@@ -196,15 +196,15 @@ if (!class_exists('XmlExportComment')) {
             //unset($sections['other']);
             unset($sections['cf']);
 
-            $sections['author_info']['title'] = __('Author Info', PMXE_Plugin::LANGUAGE_DOMAIN);
+            $sections['author_info']['title'] = __('Author Info', 'wp_all_export_plugin');
             $sections['author_info']['content'] = 'author_fields';
 
-            $sections['parent']['title'] = __('Parent', PMXE_Plugin::LANGUAGE_DOMAIN);
+            $sections['parent']['title'] = __('Parent', 'wp_all_export_plugin');
             $sections['parent']['content'] = 'parent_fields';
 
-            $sections['default']['title'] = __("Comment Data", PMXE_Plugin::LANGUAGE_DOMAIN);
+            $sections['default']['title'] = __("Comment Data", 'wp_all_export_plugin');
 
-            $sections['other']['title'] = __('Other', PMXE_Plugin::LANGUAGE_DOMAIN);
+            $sections['other']['title'] = __('Other', 'wp_all_export_plugin');
             $sections['other']['content'] = 'other_fields';
 
             $other = $sections['other'];
@@ -330,7 +330,7 @@ if (!class_exists('XmlExportComment')) {
 
                     $combineMultipleFieldsValue = $exportOptions['cc_combine_multiple_fields_value'][$ID];
 
-                    $combineMultipleFieldsValue = stripslashes($combineMultipleFieldsValue);
+					$combineMultipleFieldsValue = stripslashes($combineMultipleFieldsValue);
                     $snippetParser = new \Wpae\App\Service\SnippetParser();
                     $snippets = $snippetParser->parseSnippets($combineMultipleFieldsValue);
 
@@ -345,14 +345,10 @@ if (!class_exists('XmlExportComment')) {
 
                     $snippets = self::$engine->get_fields_options($snippets);
 
-                    $articleData = self::prepare_data($comment, $snippets, $xmlWriter = false, $implode_delimiter, $preview);
+                    $articleData = self::prepare_data($comment, $snippets, false, $implode_delimiter, $preview);
 
-                    $functions = $snippetParser->parseFunctions($combineMultipleFieldsValue);
-                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($functions, $combineMultipleFieldsValue, $articleData);
+                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($articleData,true,$combineMultipleFieldsValue, $preview);
 
-                    if ($preview) {
-                        $combineMultipleFieldsValue = trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($combineMultipleFieldsValue)));
-                    }
 
                     wp_all_export_write_article($article, $element_name, pmxe_filter($combineMultipleFieldsValue, $fieldSnipped));
 
@@ -368,6 +364,10 @@ if (!class_exists('XmlExportComment')) {
 
                     switch ($fieldType) {
                         case 'comment_ID':
+                            if ($element_name == 'ID' && !$ID && isset($exportOptions['export_to']) && $exportOptions['export_to'] == 'csv' && isset($exportOptions['export_to_sheet']) && $exportOptions['export_to_sheet'] != 'csv') {
+                                $element_name = 'id';
+                            }
+
                             wp_all_export_write_article($article, $element_name, apply_filters('pmxe_comment_id', pmxe_filter($comment->comment_ID, $fieldSnipped), $comment->comment_ID));
                             break;
                         case 'comment_post_ID':

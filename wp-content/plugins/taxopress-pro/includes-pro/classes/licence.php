@@ -122,12 +122,12 @@ class TaxoPress_License
             return;
         }
 
-        if (empty($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_key($_POST['_wpnonce']), 'updateresetoptions-simpletags')) {
+        if (empty($_POST['_wpnonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['_wpnonce'])), 'updateresetoptions-simpletags')) {
             return;
         }
 
         $license = $this->get_license_key();
-        $licence_key_save = isset($_POST['taxopress_licence_key_input']) ? sanitize_text_field($_POST['taxopress_licence_key_input']) : '';
+        $licence_key_save = isset($_POST['taxopress_licence_key_input']) ? sanitize_text_field(wp_unslash($_POST['taxopress_licence_key_input'])) : '';
 
         if (isset($_POST['edd_license_activate'])) {
             update_option('taxopress_license_key', $licence_key_save);

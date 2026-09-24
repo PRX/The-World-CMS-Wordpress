@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable PSR2.Methods.MethodDeclaration.Underscore,Squiz.PHP.CommentedOutCode.Found,VariableAnalysis.CodeAnalysis.VariableAnalysis.UndefinedUnsetVariable,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared,WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize,WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_exclude -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 class SimpleTags_Client_TagCloud
 {
     /**
@@ -9,7 +11,6 @@ class SimpleTags_Client_TagCloud
      */
     public function __construct()
     {
-
     }
 
     /**
@@ -754,18 +755,27 @@ class SimpleTags_Client_TagCloud
         }
 
         if (!empty($args['limit_days'])) {
-            $recent_posts = get_posts([
+            $recent_posts_args = [
                 'post_type'      => $post_type ?: 'any',
                 'post_status'    => 'publish',
                 'date_query'     => [
                     [
-                        'after' => $args['limit_days'] . ' days ago',
+                        'after'     => $args['limit_days'] . ' days ago',
                         'inclusive' => false,
                     ],
                 ],
                 'fields'         => 'ids',
-                'posts_per_page' => -1,
-            ]);
+                'posts_per_page' => 100,
+            ];
+            $recent_posts      = [];
+            $page              = 1;
+
+            do {
+                $recent_posts_args['paged'] = $page;
+                $recent_posts_batch         = get_posts($recent_posts_args);
+                $recent_posts               = array_merge($recent_posts, $recent_posts_batch);
+                $page++;
+            } while (count($recent_posts_batch) === $recent_posts_args['posts_per_page']);
             if (!empty($recent_posts)) {
                 $terms = get_terms([
                     'taxonomy'   => $taxonomy,
@@ -919,7 +929,8 @@ class SimpleTags_Client_TagCloud
         $args['limit_days'] = absint($args['limit_days']);
         $args['min_usage']  = absint($args['min_usage']);
 
-        if (! $single_taxonomy || ! is_taxonomy_hierarchical($taxonomies[0]) ||
+        if (
+            ! $single_taxonomy || ! is_taxonomy_hierarchical($taxonomies[0]) ||
              '' !== $args['parent']
         ) {
             $args['child_of']     = 0;
@@ -1015,9 +1026,10 @@ class SimpleTags_Client_TagCloud
         if (! empty($exclude_tree)) {
             $excluded_trunks = wp_parse_id_list($exclude_tree);
             foreach ($excluded_trunks as $extrunk) {
-                $excluded_children   = (array) get_terms($taxonomies[0], array(
-                    'child_of' => intval($extrunk),
-                    'fields'   => 'ids'
+                $excluded_children   = (array) get_terms(array(
+                    'taxonomy' => $taxonomies[0],
+                    'child_of'  => intval($extrunk),
+                    'fields'    => 'ids',
                 ));
                 $excluded_children[] = $extrunk;
                 foreach ($excluded_children as $exterm) {
@@ -1087,7 +1099,7 @@ class SimpleTags_Client_TagCloud
                 $post_type = '';
             }
             $where .= " AND tr.object_id IN ( ";
-            $where .= "SELECT DISTINCT ID FROM $wpdb->posts AS p WHERE p.post_date_gmt > '" . date('Y-m-d H:i:s', time() - $limit_days * 86400) . "' $post_type";
+            $where .= "SELECT DISTINCT ID FROM $wpdb->posts AS p WHERE p.post_date_gmt > '" . gmdate('Y-m-d H:i:s', time() - $limit_days * 86400) . "' $post_type";
             $where .= " ) ";
             $join_relation = true;
             unset($limit_days);
@@ -1116,23 +1128,19 @@ class SimpleTags_Client_TagCloud
 
         // ST Features : Another way to search
         if (strpos($st_name__like, ' ') !== false) {
-
             $st_terms_formatted = array();
             $st_terms           = preg_split('/[\s,]+/', $st_name_like);
             foreach ((array) $st_terms as $st_term) {
                 if (empty($st_term)) {
                     continue;
                 }
-                $st_terms_formatted[] = "t.name LIKE '%" . like_escape($st_term) . "%'";
+                $st_terms_formatted[] = "t.name LIKE '%" . $wpdb->esc_like($st_term) . "%'";
             }
 
             $where .= " AND ( " . explode(' OR ', $st_terms_formatted) . " ) ";
             unset($st_term, $st_terms_formatted, $st_terms);
-
         } elseif (! empty($st_name__like)) {
-
             $where .= " AND t.name LIKE '%{$st_name__like}%'";
-
         }
 
         if (in_array($taxonomies[0], ['post_tag', 'category'])) {
@@ -1149,7 +1157,7 @@ class SimpleTags_Client_TagCloud
 
 
         if (! empty($search)) {
-            $search = like_escape($search);
+            $search = $wpdb->esc_like($search);
             $where  .= " AND (t.name LIKE '%$search%')";
         }
 

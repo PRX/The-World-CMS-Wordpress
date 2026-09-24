@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable Squiz.PHP.CommentedOutCode.Found,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.SlowDBQuery.slow_db_query_tax_query,WordPress.Security.NonceVerification.Missing,WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 class SimpleTags_Admin_Manage
 {
     public const MENU_SLUG = 'st_options';
@@ -31,7 +33,6 @@ class SimpleTags_Admin_Manage
         add_action('wp_ajax_taxopress_merge_terms_preflight', [$this, 'taxopress_merge_terms_preflight']);
         add_action('wp_ajax_taxopress_merge_terms_batch', [$this, 'taxopress_merge_terms_batch']);
         add_action('wp_ajax_taxopress_merge_suggestions', [$this, 'handle_taxopress_merge_suggestions']);
-
     }
 
     /**
@@ -89,60 +90,58 @@ class SimpleTags_Admin_Manage
         if (isset($_POST['term_action'])) {
             if (!current_user_can('simple_tags')) {
                 add_settings_error(__CLASS__, __CLASS__, esc_html__('Permission denied!', 'simple-tags'), 'error taxopress-notice');
-            } elseif (! wp_verify_nonce(sanitize_text_field($_POST['term_nonce']), 'simpletags_admin')) { // Origination and intention
-
+            } elseif (! wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['term_nonce'])), 'simpletags_admin')) { // Origination and intention
                 add_settings_error(__CLASS__, __CLASS__, esc_html__('Security problem. Try again.', 'simple-tags'), 'error taxopress-notice');
             } elseif (! isset(SimpleTags_Admin::$taxonomy) || ! taxonomy_exists(SimpleTags_Admin::$taxonomy)) { // Valid taxo ?
-
                 add_settings_error(__CLASS__, __CLASS__, esc_html__('Missing valid taxonomy for work. Try again.', 'simple-tags'), 'error taxopress-notice');
             } elseif ($_POST['term_action'] == 'renameterm') {
-                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field($_POST['current_taxo']) : 'post_tag';
-                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field($_POST['current_cpt']) : 'post';
+                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field(wp_unslash($_POST['current_taxo'])) : 'post_tag';
+                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field(wp_unslash($_POST['current_cpt'])) : 'post';
 
                 SimpleTags_Admin::$taxonomy = $taxonomy;
                 SimpleTags_Admin::$post_type = $post_type;
 
-                $oldtag = isset($_POST['renameterm_old']) ? sanitize_text_field($_POST['renameterm_old']) : '';
-                $newtag = isset($_POST['renameterm_new']) ? sanitize_text_field($_POST['renameterm_new']) : '';
+                $oldtag = isset($_POST['renameterm_old']) ? sanitize_text_field(wp_unslash($_POST['renameterm_old'])) : '';
+                $newtag = isset($_POST['renameterm_new']) ? sanitize_text_field(wp_unslash($_POST['renameterm_new'])) : '';
                 self::renameTerms($taxonomy, $oldtag, $newtag);
                 $default_tab = '.st-rename-terms';
             } elseif ($_POST['term_action'] == 'mergeterm') {
-                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field($_POST['current_taxo']) : 'post_tag';
-                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field($_POST['current_cpt']) : 'post';
+                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field(wp_unslash($_POST['current_taxo'])) : 'post_tag';
+                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field(wp_unslash($_POST['current_cpt'])) : 'post';
 
                 SimpleTags_Admin::$taxonomy = $taxonomy;
                 SimpleTags_Admin::$post_type = $post_type;
 
-                $oldtag = isset($_POST['renameterm_old']) ? sanitize_text_field($_POST['renameterm_old']) : '';
-                $newtag = isset($_POST['renameterm_new']) ? sanitize_text_field($_POST['renameterm_new']) : '';
-                $merge_type = isset($_POST['mergeterm_type']) ? sanitize_text_field($_POST['mergeterm_type']) : '';
+                $oldtag = isset($_POST['renameterm_old']) ? sanitize_text_field(wp_unslash($_POST['renameterm_old'])) : '';
+                $newtag = isset($_POST['renameterm_new']) ? sanitize_text_field(wp_unslash($_POST['renameterm_new'])) : '';
+                $merge_type = isset($_POST['mergeterm_type']) ? sanitize_text_field(wp_unslash($_POST['mergeterm_type'])) : '';
                 self::mergeTerms($taxonomy, $oldtag, $newtag, $merge_type);
                 $default_tab = '.st-merge-terms';
             } elseif ($_POST['term_action'] == 'addterm') {
-                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field($_POST['current_taxo']) : 'post_tag';
-                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field($_POST['current_cpt']) : 'post';
+                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field(wp_unslash($_POST['current_taxo'])) : 'post_tag';
+                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field(wp_unslash($_POST['current_cpt'])) : 'post';
 
                 SimpleTags_Admin::$taxonomy = $taxonomy;
                 SimpleTags_Admin::$post_type = $post_type;
 
-                $oldtag = isset($_POST['addterm_match']) ? sanitize_text_field($_POST['addterm_match']) : '';
-                $newtag = isset($_POST['addterm_new']) ? sanitize_text_field($_POST['addterm_new']) : '';
+                $oldtag = isset($_POST['addterm_match']) ? sanitize_text_field(wp_unslash($_POST['addterm_match'])) : '';
+                $newtag = isset($_POST['addterm_new']) ? sanitize_text_field(wp_unslash($_POST['addterm_new'])) : '';
                 self::addMatchTerms($taxonomy, $oldtag, $newtag);
                 $default_tab = '.st-add-terms';
             } elseif ($_POST['term_action'] == 'removeterm') {
-                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field($_POST['current_taxo']) : 'post_tag';
-                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field($_POST['current_cpt']) : 'post';
+                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field(wp_unslash($_POST['current_taxo'])) : 'post_tag';
+                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field(wp_unslash($_POST['current_cpt'])) : 'post';
 
                 SimpleTags_Admin::$taxonomy = $taxonomy;
                 SimpleTags_Admin::$post_type = $post_type;
 
-                $matchtag = isset($_POST['removeterm_match']) ? sanitize_text_field($_POST['removeterm_match']) : '';
-                $removetag = isset($_POST['remove_term']) ? sanitize_text_field($_POST['remove_term']) : '';
+                $matchtag = isset($_POST['removeterm_match']) ? sanitize_text_field(wp_unslash($_POST['removeterm_match'])) : '';
+                $removetag = isset($_POST['remove_term']) ? sanitize_text_field(wp_unslash($_POST['remove_term'])) : '';
                 self::removeMatchTerms($taxonomy, $matchtag, $removetag);
                 $default_tab = '.st-remove-terms';
             } elseif ($_POST['term_action'] == 'remove-rarelyterms') {
-                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field($_POST['current_taxo']) : 'post_tag';
-                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field($_POST['current_cpt']) : 'post';
+                $taxonomy = isset($_POST['current_taxo']) ? sanitize_text_field(wp_unslash($_POST['current_taxo'])) : 'post_tag';
+                $post_type = isset($_POST['current_cpt']) ? sanitize_text_field(wp_unslash($_POST['current_cpt'])) : 'post';
 
                 SimpleTags_Admin::$taxonomy = $taxonomy;
                 SimpleTags_Admin::$post_type = $post_type;
@@ -160,9 +159,9 @@ class SimpleTags_Admin_Manage
 
         if ($default_tab && !empty($default_tab)) {
             //trigger default tab click on load
-            echo '<div class="load-st-default-tab" data-page="'.esc_attr($default_tab).'"></div>';
+            echo '<div class="load-st-default-tab" data-page="' . esc_attr($default_tab) . '"></div>';
         }
-        $active_tab_slug = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'add-terms';
+        $active_tab_slug = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'add-terms';
 
         // Default order
         if (! isset($_GET['order'])) {
@@ -174,40 +173,40 @@ class SimpleTags_Admin_Manage
 <div class="taxopress-block-wrap">
 <div class="wrap st_wrap tagcloudui st-manage-terms-page admin-settings wrap st_wrap">
 
-	<h1><?php _e('Manage Terms', 'simple-tags'); ?>
-	</h1>
+    <h1><?php _e('Manage Terms', 'simple-tags'); ?>
+    </h1>
     <div class="taxopress-description"><?php esc_html_e('This feature allows you to manage your content terms by adding, renaming, merging and deleting unused terms.', 'simple-tags'); ?></div>
 
-	<div class="clear"></div>
+    <div class="clear"></div>
 
-		<hr class="wp-header-end">
-		<div class="clear"></div>
+        <hr class="wp-header-end">
+        <div class="clear"></div>
 
-		<div id="col-container" class="wp-clearfix">
-			<div class="col-wrap">
-				<div class="form-wrap">
-					<ul class="simple-tags-nav-tab-wrapper">
+        <div id="col-container" class="wp-clearfix">
+            <div class="col-wrap">
+                <div class="form-wrap">
+                    <ul class="simple-tags-nav-tab-wrapper">
                         <li class="nav-tab <?php echo $active_tab_slug === 'add-terms' ? 'nav-tab-active' : ''; ?>" data-page=".st-add-terms">
-							<?php echo esc_html__('Add terms', 'simple-tags'); ?>
-						</li>
+                            <?php echo esc_html__('Add terms', 'simple-tags'); ?>
+                        </li>
                         <li class="nav-tab <?php echo $active_tab_slug === 'remove-terms' ? 'nav-tab-active' : ''; ?>" data-page=".st-remove-terms">
-							<?php echo esc_html__('Remove terms', 'simple-tags'); ?>
-						</li>
+                            <?php echo esc_html__('Remove terms', 'simple-tags'); ?>
+                        </li>
                         <li class="nav-tab <?php echo $active_tab_slug === 'rename-terms' ? 'nav-tab-active' : ''; ?>" data-page=".st-rename-terms">
-							<?php echo esc_html__('Rename terms', 'simple-tags'); ?>
-						</li>
+                            <?php echo esc_html__('Rename terms', 'simple-tags'); ?>
+                        </li>
                         <li class="nav-tab <?php echo $active_tab_slug === 'merge-terms' ? 'nav-tab-active' : ''; ?>" data-page=".st-merge-terms">
-							<?php echo esc_html__('Merge terms', 'simple-tags'); ?>
-						</li>
+                            <?php echo esc_html__('Merge terms', 'simple-tags'); ?>
+                        </li>
                         <li class="nav-tab <?php echo $active_tab_slug === 'delete-unuused-terms' ? 'nav-tab-active' : ''; ?>" data-page=".st-delete-unuused-terms">
-							<?php echo esc_html__('Delete unused terms', 'simple-tags'); ?>
-						</li>
-					</ul>
-					<div class="clear"></div>
+                            <?php echo esc_html__('Delete unused terms', 'simple-tags'); ?>
+                        </li>
+                    </ul>
+                    <div class="clear"></div>
 
 
 
-					<table class="form-table">
+                    <table class="form-table">
 
                     <tr valign="top" class="auto-terms-content st-add-terms" style="<?php echo $active_tab_slug === 'add-terms' ? '' : 'display:none;'; ?>">
                             <td>
@@ -297,7 +296,7 @@ class SimpleTags_Admin_Manage
                             </td>
                         </tr>
 
-						<tr valign="top" class="auto-terms-content st-rename-terms" style="<?php echo $active_tab_slug === 'rename-terms' ? '' : 'display:none;'; ?>">
+                        <tr valign="top" class="auto-terms-content st-rename-terms" style="<?php echo $active_tab_slug === 'rename-terms' ? '' : 'display:none;'; ?>">
                             <td>
                             <?php SimpleTags_Admin::tabSelectorTaxonomy('rename-terms', 'st_manage'); ?>
                                 <h2><?php _e('Rename Terms', 'simple-tags'); ?></h2>
@@ -326,7 +325,7 @@ class SimpleTags_Admin_Manage
                             </td>
                         </tr>
 
-						<tr valign="top" class="auto-terms-content st-merge-terms" style="<?php echo $active_tab_slug === 'merge-terms' ? '' : 'display:none;'; ?>">
+                        <tr valign="top" class="auto-terms-content st-merge-terms" style="<?php echo $active_tab_slug === 'merge-terms' ? '' : 'display:none;'; ?>">
                             <td>
                             <?php SimpleTags_Admin::tabSelectorTaxonomy('merge-terms', 'st_manage'); ?>
                                 <h2><?php _e('Merge Terms', 'simple-tags'); ?></h2>
@@ -363,7 +362,7 @@ class SimpleTags_Admin_Manage
                             </td>
                         </tr>
 
-						<tr valign="top" class="auto-terms-content st-delete-unuused-terms" style="<?php echo $active_tab_slug === 'delete-unuused-terms' ? '' : 'display:none;'; ?>">
+                        <tr valign="top" class="auto-terms-content st-delete-unuused-terms" style="<?php echo $active_tab_slug === 'delete-unuused-terms' ? '' : 'display:none;'; ?>">
                             <td>
                             <?php SimpleTags_Admin::tabSelectorTaxonomy('delete-unuused-terms', 'st_manage'); ?>
                                 <h2><?php esc_html_e('Remove rarely used terms', 'simple-tags'); ?></h2>
@@ -398,7 +397,7 @@ class SimpleTags_Admin_Manage
                             </td>
                         </tr>
 
-						<?php /*
+                        <?php /*
                 <tr valign="top">
                     <th scope="row"><strong><?php _e('Edit Term Slug', 'simple-tags'); ?></strong></th>
                     <td>
@@ -430,9 +429,9 @@ class SimpleTags_Admin_Manage
                     </td>
                 </tr>
                 */
-                ?>
+                        ?>
 
-					</table>
+                    </table>
 
                     <div class="remodal" data-remodal-id="taxopress-modal-merge-warning"
                         data-remodal-options="hashTracking: false, closeOnOutsideClick: false">
@@ -456,26 +455,26 @@ class SimpleTags_Admin_Manage
 
 
 
-				</div>
-			</div>
+                </div>
+            </div>
 
 
-			<div class="clear"></div>
+            <div class="clear"></div>
 
-		</div>
+        </div>
 </div>
 <div class="taxopress-right-sidebar admin-settings-sidebar">
-	<?php do_action('taxopress_admin_after_sidebar'); ?>
+        <?php do_action('taxopress_admin_after_sidebar'); ?>
 </div>
 
 </div>
 
 
-	<?php SimpleTags_Admin::printAdminFooter(); ?>
+        <?php SimpleTags_Admin::printAdminFooter(); ?>
 
 
 
-<?php
+        <?php
         do_action('simpletags-manage_terms', SimpleTags_Admin::$taxonomy);
     }
 
@@ -491,6 +490,17 @@ class SimpleTags_Admin_Manage
      */
     public static function mergeTerms($taxonomy = 'post_tag', $old = '', $new = '', $merge_type = '')
     {
+        $taxonomy = sanitize_key($taxonomy);
+        if (
+            !taxopress_current_user_can_for_taxonomy(
+                $taxonomy,
+                ['edit_terms', 'delete_terms', 'assign_terms']
+            )
+        ) {
+            add_settings_error(__CLASS__, __CLASS__, esc_html__('Permission denied for this taxonomy.', 'simple-tags'), 'error taxopress-notice');
+            return false;
+        }
+
         // Helper function to extract term name (ignoring slug in brackets)
         $extractTermName = function ($term) {
             return trim(preg_replace('/\s*\(.*?\)$/', '', $term));
@@ -501,7 +511,7 @@ class SimpleTags_Admin_Manage
             $old_terms = array_map($extractTermName, $old_terms);
             $old_terms = array_filter($old_terms, '_delete_empty_element');
             $old_terms = array_values(array_unique(array_map('sanitize_text_field', $old_terms)));
-            $retained_slug_param = isset($_POST['retained_slug']) ? sanitize_title($_POST['retained_slug']) : '';
+            $retained_slug_param = isset($_POST['retained_slug']) ? sanitize_title(wp_unslash($_POST['retained_slug'])) : '';
 
             if (empty($old_terms)) {
                 add_settings_error(__CLASS__, __CLASS__, esc_html__('No terms provided for merging!', 'simple-tags'), 'error taxopress-notice');
@@ -572,6 +582,9 @@ class SimpleTags_Admin_Manage
 
             $objects_id = get_objects_in_term($terms_id, $taxonomy, ['fields' => 'ids']);
             foreach ($objects_id as $object_id) {
+                if (!current_user_can('edit_post', $object_id)) {
+                    continue;
+                }
                 // Check if the object already has the term assigned
                 $current_terms = wp_get_object_terms($object_id, $taxonomy, ['fields' => 'ids']);
                 if (!in_array($retained_id, $current_terms)) {
@@ -595,9 +608,7 @@ class SimpleTags_Admin_Manage
                 'post_ids' => $objects_id,
                 'terms_merged' => count($terms_to_delete) + 1,
             ];
-
         } else {
-
             if (trim(str_replace(',', '', stripslashes($new))) == '' && $merge_type !== 'same_name') {
                 add_settings_error(__CLASS__, __CLASS__, esc_html__('No new term specified!', 'simple-tags'), 'error taxopress-notice');
 
@@ -643,36 +654,52 @@ class SimpleTags_Admin_Manage
                     return false;
                 }
 
-                // Ensure the new term exists or create it
+                // Resolve the source terms before creating the destination term.
+                $source_terms = [];
+                foreach ((array) $old_terms as $old_tag) {
+                    $old_tag = sanitize_text_field($old_tag);
+                    $term = get_term_by('name', $old_tag, $taxonomy);
+                    if (!$term || is_wp_error($term)) {
+                        $term = get_term_by('slug', sanitize_title($old_tag), $taxonomy);
+                    }
+
+                    if ($term && !is_wp_error($term)) {
+                        $source_terms[(int) $term->term_id] = $term;
+                    }
+                }
+
+                if (empty($source_terms)) {
+                    add_settings_error(__CLASS__, __CLASS__, esc_html__('No matching terms found to merge.', 'simple-tags'), 'error taxopress-notice');
+                    return false;
+                }
+
+                // Ensure the destination term exists only after valid source terms are found.
                 $new_term = get_term_by('name', $new_tag, $taxonomy);
-                if (!$new_term) {
+                if (!$new_term || is_wp_error($new_term)) {
+                    $new_term = get_term_by('slug', sanitize_title($new_tag), $taxonomy);
+                }
+
+                if (!$new_term || is_wp_error($new_term)) {
                     $new_term_info = wp_insert_term($new_tag, $taxonomy);
                     if (is_wp_error($new_term_info)) {
                         add_settings_error(__CLASS__, __CLASS__, esc_html__('Failed to create the new term.', 'simple-tags'), 'error taxopress-notice');
                         return false;
                     }
-                    $new_term_id = $new_term_info['term_id'];
-                    $new_term_slug = isset($new_term_info['slug']) ? $new_term_info['slug'] : sanitize_title($new_tag);
+                    $new_term_id = (int) $new_term_info['term_id'];
                 } else {
-                    $new_term_id = $new_term->term_id;
-                    $new_term_slug = $new_term->slug;
+                    $new_term_id = (int) $new_term->term_id;
                 }
 
-                // Get terms ID from old terms names
-                $terms_id = array();
-                $found_terms = array();
-                foreach ((array) $old_terms as $old_tag) {
-                    $term       = get_term_by('name', addslashes(sanitize_text_field($old_tag)), $taxonomy);
-                    if ($term) {
-                        $terms_id[] = (int) $term->term_id;
-                        $found_terms[] = $term->name;
-                    }
-                }
+                // Never delete the destination when it was also selected as a source term.
+                unset($source_terms[$new_term_id]);
 
-                if (empty($terms_id)) {
-                    add_settings_error(__CLASS__, __CLASS__, esc_html__('No matching terms found to merge.', 'simple-tags'), 'error taxopress-notice');
+                if (empty($source_terms)) {
+                    add_settings_error(__CLASS__, __CLASS__, esc_html__('No other matching terms found to merge.', 'simple-tags'), 'error taxopress-notice');
                     return false;
                 }
+
+                $terms_id = array_keys($source_terms);
+                $found_terms = wp_list_pluck(array_values($source_terms), 'name');
 
                 // Get objects from terms ID
                 $objects_id = get_objects_in_term($terms_id, $taxonomy, ['fields' => 'ids']);
@@ -682,10 +709,13 @@ class SimpleTags_Admin_Manage
 
                 // Assign the new term to all posts associated with the old terms
                 foreach ((array) $objects_id as $object_id) {
+                    if (!current_user_can('edit_post', $object_id)) {
+                        continue;
+                    }
                     // Check if the object already has the term assigned
                     $current_terms = wp_get_object_terms($object_id, $taxonomy, ['fields' => 'ids']);
                     if (!in_array($new_term_id, $current_terms)) {
-                        wp_set_object_terms($object_id, $new_term_slug, $taxonomy, true);
+                        wp_set_object_terms($object_id, $new_term_id, $taxonomy, true);
                     }
                     $unique_objects[$object_id] = true; // Add to unique set
                 }
@@ -735,8 +765,6 @@ class SimpleTags_Admin_Manage
                 'post_ids' => array_keys($unique_objects),
                 'terms_merged' => count($terms_id) + 1,
             ];
-
-
         }
     }
 
@@ -848,7 +876,6 @@ class SimpleTags_Admin_Manage
                     // let's make sure suggested name is different from both original terms
                     $suggested_clean = strtolower(trim($suggested_name));
                     if ($suggested_clean === $term1_clean || $suggested_clean === $term2_clean) {
-
                         if (!empty($common_words)) {
                             $suggested_name = ucfirst($common_words[0]);
                         } else {
@@ -869,7 +896,6 @@ class SimpleTags_Admin_Manage
                         'reasons' => implode(', ', $reasons),
                         'suggested_name' => $suggested_name
                     ];
-
                 }
             }
         }
@@ -890,12 +916,15 @@ class SimpleTags_Admin_Manage
             wp_send_json_error('Permission denied');
         }
 
-        if (!wp_verify_nonce($_POST['nonce'], 'simpletags_admin')) {
+        if (!wp_verify_nonce(wp_unslash($_POST['nonce']), 'simpletags_admin')) {
             wp_send_json_error('Invalid nonce');
         }
 
         $taxonomy = get_option('merge-terms_taxo', 'post_tag');
-        $merge_type = sanitize_text_field($_POST['merge_type']);
+        if (!taxopress_current_user_can_for_taxonomy($taxonomy, 'manage_terms')) {
+            wp_send_json_error('Permission denied', 403);
+        }
+        $merge_type = sanitize_text_field(wp_unslash($_POST['merge_type']));
 
         if ($merge_type === 'same_name') {
             $suggestions = self::getSameNameMergeSuggestions($taxonomy);
@@ -991,8 +1020,8 @@ class SimpleTags_Admin_Manage
 
         $term_taxonomy_ids = array_values(array_unique(array_map('intval', $term_taxonomy_ids)));
         $term_taxonomy_id_placeholders = implode(',', array_fill(0, count($term_taxonomy_ids), '%d'));
-        // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
         $object_count_query = $wpdb->prepare(
+            // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
             "SELECT COUNT(DISTINCT object_id) FROM {$wpdb->term_relationships} WHERE term_taxonomy_id IN ({$term_taxonomy_id_placeholders})",
             $term_taxonomy_ids
         );
@@ -1018,9 +1047,19 @@ class SimpleTags_Admin_Manage
             wp_die();
         }
 
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field(wp_unslash($_POST['taxonomy'])) : '';
+        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
         if (empty($taxonomy) || !taxonomy_exists($taxonomy)) {
             wp_send_json_error(['message' => __('Invalid taxonomy.', 'simple-tags')], 400);
+            wp_die();
+        }
+
+        if (
+            !taxopress_current_user_can_for_taxonomy(
+                $taxonomy,
+                ['edit_terms', 'delete_terms', 'assign_terms']
+            )
+        ) {
+            wp_send_json_error(['message' => __('Permission denied for this taxonomy.', 'simple-tags')], 403);
             wp_die();
         }
 
@@ -1042,7 +1081,7 @@ class SimpleTags_Admin_Manage
 
     public static function taxopress_merge_terms_batch()
     {
-        $nonce = isset($_POST['nonce']) ? sanitize_text_field($_POST['nonce']) : '';
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
         if (empty($nonce) || !wp_verify_nonce($nonce, 'st-admin-js')) {
             wp_send_json_error(['message' => __('Security check failed.', 'simple-tags')], 403);
             wp_die();
@@ -1053,10 +1092,20 @@ class SimpleTags_Admin_Manage
             wp_die();
         }
 
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : '';
-        $new_term = isset($_POST['new_term']) ? sanitize_text_field($_POST['new_term']) : '';
-        $merge_type = isset($_POST['merge_type']) ? sanitize_text_field($_POST['merge_type']) : 'different_name';
-        $old_terms_input = isset($_POST['old_terms']) ? array_map('sanitize_text_field', (array) $_POST['old_terms']) : [];
+        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : '';
+        $new_term = isset($_POST['new_term']) ? sanitize_text_field(wp_unslash($_POST['new_term'])) : '';
+        $merge_type = isset($_POST['merge_type']) ? sanitize_text_field(wp_unslash($_POST['merge_type'])) : 'different_name';
+        $old_terms_input = isset($_POST['old_terms']) ? array_map('sanitize_text_field', (array) wp_unslash($_POST['old_terms'])) : [];
+
+        if (
+            !taxopress_current_user_can_for_taxonomy(
+                $taxonomy,
+                ['edit_terms', 'delete_terms', 'assign_terms']
+            )
+        ) {
+            wp_send_json_error(['message' => __('Permission denied for this taxonomy.', 'simple-tags')], 403);
+            wp_die();
+        }
 
         $extractTermName = function ($term) {
             return trim(preg_replace('/\s*\(.*?\)$/', '', $term));
@@ -1138,6 +1187,12 @@ class SimpleTags_Admin_Manage
      */
     public static function removeTerms($taxonomy = 'post_tag', $post_type = 'posts', $new = '')
     {
+        $taxonomy = sanitize_key($taxonomy);
+        if (!taxopress_current_user_can_for_taxonomy($taxonomy, 'assign_terms')) {
+            add_settings_error(__CLASS__, __CLASS__, esc_html__('Permission denied for this taxonomy.', 'simple-tags'), 'error taxopress-notice');
+            return false;
+        }
+
         if (trim(str_replace(',', '', stripslashes($new))) == '') {
             add_settings_error(__CLASS__, __CLASS__, esc_html__('No term specified!', 'simple-tags'), 'error taxopress-notice');
 
@@ -1168,21 +1223,34 @@ class SimpleTags_Admin_Manage
                 $term = $term->term_id;
 
                 $args = array(
-                'post_type' => $post_type, // post_type
-                'posts_per_page' => -1,
-                'tax_query' => array(
-                    array(
-                        'taxonomy' => $taxonomy,
-                        'field' => 'id',
-                        'terms' => $term
-                    )
-                )
-            );
-                $posts = get_posts($args);
-                foreach ($posts as $post) {
-                    $remove = wp_remove_object_terms($post->ID, $term, $taxonomy);
+                    'post_type'      => $post_type,
+                    'posts_per_page' => 100,
+                    'fields'         => 'ids',
+                    'tax_query'      => array(
+                        array(
+                            'taxonomy' => $taxonomy,
+                            'field'    => 'id',
+                            'terms'    => $term,
+                        ),
+                    ),
+                );
+
+                $post_ids = array();
+                $page     = 1;
+                do {
+                    $args['paged'] = $page;
+                    $batch         = get_posts($args);
+                    $post_ids      = array_merge($post_ids, $batch);
+                    $page++;
+                } while (count($batch) === $args['posts_per_page']);
+
+                foreach ($post_ids as $post_id) {
+                    if (!current_user_can('edit_post', $post_id)) {
+                        continue;
+                    }
+                    $remove = wp_remove_object_terms($post_id, $term, $taxonomy);
                     if ($remove) {
-                        clean_object_term_cache($post->ID, $taxonomy);
+                        clean_object_term_cache($post_id, $taxonomy);
                         clean_term_cache($term, $taxonomy);
                         $counter++;
                     }
@@ -1213,6 +1281,17 @@ class SimpleTags_Admin_Manage
      */
     public static function renameTerms($taxonomy = 'post_tag', $old = '', $new = '')
     {
+        $taxonomy = sanitize_key($taxonomy);
+        if (
+            !taxopress_current_user_can_for_taxonomy(
+                $taxonomy,
+                ['edit_terms', 'delete_terms', 'assign_terms']
+            )
+        ) {
+            add_settings_error(__CLASS__, __CLASS__, esc_html__('Permission denied for this taxonomy.', 'simple-tags'), 'error taxopress-notice');
+            return false;
+        }
+
         // Helper function to extract term name (ignoring slug in brackets)
         $extractTermName = function ($term) {
             return trim(preg_replace('/\s*\(.*?\)$/', '', $term));
@@ -1273,6 +1352,9 @@ class SimpleTags_Admin_Manage
 
                 // Set objects to new term ! (Append no replace)
                 foreach ((array) $objects_id as $object_id) {
+                    if (!current_user_can('edit_post', $object_id)) {
+                        continue;
+                    }
                     wp_set_object_terms($object_id, $new_name, $taxonomy, true);
                 }
 
@@ -1307,6 +1389,12 @@ class SimpleTags_Admin_Manage
      */
     public static function deleteTermsByTermList($taxonomy = 'post_tag', $delete = '')
     {
+        $taxonomy = sanitize_key($taxonomy);
+        if (!taxopress_current_user_can_for_taxonomy($taxonomy, 'delete_terms')) {
+            add_settings_error(__CLASS__, __CLASS__, esc_html__('Permission denied for this taxonomy.', 'simple-tags'), 'error taxopress-notice');
+            return false;
+        }
+
         if (trim(str_replace(',', '', stripslashes($delete))) == '') {
             add_settings_error(__CLASS__, __CLASS__, esc_html__('No term specified!', 'simple-tags'), 'error taxopress-notice');
 
@@ -1394,12 +1482,20 @@ class SimpleTags_Admin_Manage
             clean_object_term_cache($objects_id, $taxonomy);
             clean_term_cache($terms_id, $taxonomy);
         } else { // Add for all posts
-            // Page or not ?
-            $post_type_sql = "(post_status = 'publish' OR post_status = 'inherit') AND post_type = '".SimpleTags_Admin::$post_type."'";
-
             // Get all posts ID
             global $wpdb;
-            $objects_id = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE {$post_type_sql}");
+            $post_type = sanitize_key(SimpleTags_Admin::$post_type);
+            if (!post_type_exists($post_type)) {
+                add_settings_error(__CLASS__, __CLASS__, esc_html__('Invalid post type.', 'simple-tags'), 'error taxopress-notice');
+                return false;
+            }
+            SimpleTags_Admin::$post_type = $post_type;
+            $objects_id = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE (post_status = 'publish' OR post_status = 'inherit') AND post_type = %s",
+                    $post_type
+                )
+            );
 
             // Add new tags for all posts
             foreach ((array) $objects_id as $object_id) {
@@ -1464,15 +1560,25 @@ class SimpleTags_Admin_Manage
     public function handle_taxopress_check_delete_terms_ajax()
     {
 
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'st-admin-js')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'st-admin-js')) {
             wp_send_json_error(array('message' => __('Nonce verification failed.', 'simple-tags')));
             wp_die();
         }
 
         global $wpdb;
 
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : 'post_tag';
+        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : 'post_tag';
         $number = isset($_POST['number']) ? intval($_POST['number']) : 0;
+
+        $taxonomy_object = get_taxonomy($taxonomy);
+        if (
+            !current_user_can('simple_tags')
+            || !$taxonomy_object
+            || empty($taxonomy_object->cap->manage_terms)
+            || !current_user_can($taxonomy_object->cap->manage_terms)
+        ) {
+            wp_send_json_error(array('message' => __('Permission denied.', 'simple-tags')), 403);
+        }
 
         if ((int) $number > 100) {
             wp_die('Tcheater ?');
@@ -1576,8 +1682,18 @@ class SimpleTags_Admin_Manage
         } else {
             // Get all posts if no match terms were provided
             global $wpdb;
-            $post_type_sql = "(post_status = 'publish' OR post_status = 'inherit') AND post_type = '".SimpleTags_Admin::$post_type."'";
-            $objects_id = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE {$post_type_sql}");
+            $post_type = sanitize_key(SimpleTags_Admin::$post_type);
+            if (!post_type_exists($post_type)) {
+                add_settings_error(__CLASS__, __CLASS__, esc_html__('Invalid post type.', 'simple-tags'), 'error taxopress-notice');
+                return false;
+            }
+            SimpleTags_Admin::$post_type = $post_type;
+            $objects_id = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT ID FROM {$wpdb->posts} WHERE (post_status = 'publish' OR post_status = 'inherit') AND post_type = %s",
+                    $post_type
+                )
+            );
 
             // Remove valid terms for all posts
             foreach ((array) $objects_id as $object_id) {
@@ -1601,13 +1717,23 @@ class SimpleTags_Admin_Manage
 
     public static function handle_taxopress_autocomplete_terms()
     {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'st-admin-js')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce(wp_unslash($_POST['nonce']), 'st-admin-js')) {
             wp_send_json_error(['message' => __('Nonce verification failed.', 'simple-tags')]);
             wp_die();
         }
 
-        $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : 'post_tag';
-        $term = isset($_POST['term']) ? sanitize_text_field($_POST['term']) : '';
+        $taxonomy = isset($_POST['taxonomy']) ? sanitize_key(wp_unslash($_POST['taxonomy'])) : 'post_tag';
+        $term = isset($_POST['term']) ? sanitize_text_field(wp_unslash($_POST['term'])) : '';
+
+        $taxonomy_object = get_taxonomy($taxonomy);
+        if (
+            !current_user_can('simple_tags')
+            || !$taxonomy_object
+            || empty($taxonomy_object->cap->manage_terms)
+            || !current_user_can($taxonomy_object->cap->manage_terms)
+        ) {
+            wp_send_json_error(['message' => __('Permission denied.', 'simple-tags')], 403);
+        }
 
         $terms = get_terms([
             'taxonomy' => $taxonomy,

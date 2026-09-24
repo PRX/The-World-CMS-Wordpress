@@ -25,7 +25,7 @@ class ShippingWeight extends Field
 
         } else {
             if(isset($shippingData['weightCV'])) {
-                return $this->replaceSnippetsInValue($shippingData['weightCV'], $snippetData);
+                return $shippingData['weightCV'];
             } else {
                 return '';
             }

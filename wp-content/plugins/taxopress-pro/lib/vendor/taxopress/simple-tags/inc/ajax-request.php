@@ -1,5 +1,6 @@
 <?php
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared,WordPressVIPMinimum.Security.ProperEscapingFunction.htmlAttrNotByEscHTML -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
 //Taxopress auto terms => Auto terms all content ajax callback
 add_action('wp_ajax_taxopress_autoterms_content_by_ajax', 'taxopress_autoterms_content_by_ajax');
 function taxopress_autoterms_content_by_ajax()
@@ -32,9 +33,32 @@ function taxopress_autoterms_content_by_ajax()
     $offset_start_from = max(0, $start_from);
 
     if (!current_user_can('simple_tags')) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('Permission denied.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('Permission denied.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
     }
+
+    $max_batch_size = max(1, (int) apply_filters('taxopress_autoterms_max_batch_size', 25));
+    $max_batch_wait = max(0, (int) apply_filters('taxopress_autoterms_max_batch_wait', 60));
+
+    if (1 > $existing_terms_batches) {
+        $response['message'] = sprintf(
+            esc_html__('The batch limit must be between 1 and %d posts.', 'simple-tags'),
+            $max_batch_size
+        );
+        wp_send_json($response, 400);
+    }
+
+    if (0 > $existing_terms_sleep) {
+        $response['message'] = sprintf(
+            esc_html__('The batch wait time must be between 0 and %d seconds.', 'simple-tags'),
+            $max_batch_wait
+        );
+        wp_send_json($response, 400);
+    }
+
+    // Clamp legacy saved values and hostile requests to the current safe limits.
+    $existing_terms_batches = min($existing_terms_batches, $max_batch_size);
+    $existing_terms_sleep = min($existing_terms_sleep, $max_batch_wait);
 
     if ($start_from === 0) {
         delete_option('tmp_auto_terms_st');
@@ -50,13 +74,13 @@ function taxopress_autoterms_content_by_ajax()
     update_option('taxopress_autoterms_content', $auto_term_settings);
 
     if (empty($auto_term_id)) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('Auto Term is required, kindly add an Auto Term from Auto Term menu.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('Auto Term is required, kindly add an Auto Term from Auto Term menu.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
     } elseif (empty($existing_terms_batches)) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('Limit per batches is required.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('Limit per batches is required.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
-    } elseif (empty($existing_terms_sleep)) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('Batches wait time is required.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+    } elseif (0 > $existing_terms_sleep) {
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('Batches wait time is required.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
     }
 
@@ -69,32 +93,48 @@ function taxopress_autoterms_content_by_ajax()
         $autoterm_data['replace_type'] = isset($autoterm_data['existing_content_replace_type']) ? $autoterm_data['existing_content_replace_type'] : '';
         $autoterm_data['terms_limit'] = !empty($autoterm_data['existing_content_terms_limit']) ? $autoterm_data['existing_content_terms_limit'] : '';
     } else {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('Auto term settings not found', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('Auto term settings not found', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
     }
 
     if (empty($autoterm_data['post_types'])) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('The selected Auto Term setting is not enabled for any post type. Please select at least one post type in the Auto Term settings.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('The selected Auto Term setting is not enabled for any post type. Please select at least one post type in the Auto Term settings.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
     }
 
     if (empty($autoterm_data['autoterm_for_existing_content'])) {
-        $response['message'] = '<div class="taxopress-response-css red"><p>'. esc_html__('The selected Auto Term is not enabled for existing content. Please enable it in Auto Term settings.', 'simple-tags') .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $response['message'] = '<div class="taxopress-response-css red"><p>' . esc_html__('The selected Auto Term is not enabled for existing content. Please enable it in Auto Term settings.', 'simple-tags') . '</p><button type="button" class="notice-dismiss"></button></div>';
         wp_send_json($response);
+    }
+
+    $lock_key = 'taxopress_autoterms_scan_lock_' . $auto_term_id;
+    $lock_ttl = max(30, (int) apply_filters('taxopress_autoterms_scan_lock_ttl', 300));
+    $lock_token = wp_generate_uuid4();
+    $existing_lock = get_option($lock_key, []);
+    $existing_lock_time = is_array($existing_lock) && isset($existing_lock['time'])
+        ? (int) $existing_lock['time']
+        : 0;
+
+    if ($existing_lock_time && $existing_lock_time < (time() - $lock_ttl)) {
+        delete_option($lock_key);
+    }
+
+    if (!add_option($lock_key, ['token' => $lock_token, 'time' => time()], '', false)) {
+        $response['message'] = esc_html__('This Auto Terms scan is already processing another batch. Please wait and try again.', 'simple-tags');
+        wp_send_json($response, 409);
     }
 
     $limit = (isset($autoterm_data['existing_terms_batches']) && (int)$autoterm_data['existing_terms_batches'] > 0) ? (int)$autoterm_data['existing_terms_batches'] : 2;
 
     $sleep = (isset($autoterm_data['existing_terms_sleep']) && (int)$autoterm_data['existing_terms_sleep'] > 0) ? (int)$autoterm_data['existing_terms_sleep'] : 0;
 
-    if ($sleep > 0 && $start_from > 0) {
-        sleep($sleep);
-    }
+    // Waiting is performed by the browser between requests so PHP workers are not held idle.
+    $response['wait'] = $sleep;
 
     $limit_days     = (int) $autoterm_data['limit_days'];
     $limit_days_sql = '';
     if ($limit_days > 0) {
-        $limit_days_sql = 'AND post_date > "' . date('Y-m-d H:i:s', time() - $limit_days * 86400) . '"';
+        $limit_days_sql = 'AND post_date > "' . gmdate('Y-m-d H:i:s', time() - $limit_days * 86400) . '"';
     }
 
     $post_types = $autoterm_data['post_types'];
@@ -163,10 +203,10 @@ function taxopress_autoterms_content_by_ajax()
                 <fieldset>
                     <legend> 
                         <span class="result-title">
-                            <a target="_blank" href="'. esc_url(get_edit_post_link($object->ID)) . '">' . esc_html($object->post_title) . '</a>
+                            <a target="_blank" href="' . esc_url(get_edit_post_link($object->ID)) . '">' . esc_html($object->post_title) . '</a>
                         </span> 
                     </legend>
-                    <div class="result-content">'. $added_terms_html .'</div>
+                    <div class="result-content">' . $added_terms_html . '</div>
                 </fieldset></li>';
             unset($object);
         }
@@ -175,23 +215,25 @@ function taxopress_autoterms_content_by_ajax()
         $response['content'] = $response_content;
         $response['done'] = ($start_from + count($objects));
         $percentage = 100;
-        $response['notice'] = '<div class="taxopress-response-css yellow"><p>'. sprintf(esc_html__('Please leave this screen running to continue the scan. To stop the scan, close this screen or click here: %1sStop%2s | %3sPause%4s', 'simple-tags'), '<a href="#" class="terminate-autoterm-scan">', '</a>', '<a href="#" class="pause-autoterm-scan" data-pause="0" data-pause-text="'. esc_html__('Pause', 'simple-tags') .'" data-resume-text="'. esc_html__('Resume', 'simple-tags') .'">', '</a>') .'</p></div>';
-        $progress_message = '<div class="taxopress-response-css yellow"><p>'. sprintf(esc_html__('Progress Report: %s posts checked.', 'simple-tags'), '<strong>' . ($start_from + count($objects)) . '</strong>') .'</p></div>';
-
+        $response['notice'] = '<div class="taxopress-response-css yellow"><p>' . sprintf(esc_html__('Please leave this screen running to continue the scan. To stop the scan, close this screen or click here: %1sStop%2s | %3sPause%4s', 'simple-tags'), '<a href="#" class="terminate-autoterm-scan">', '</a>', '<a href="#" class="pause-autoterm-scan" data-pause="0" data-pause-text="' . esc_html__('Pause', 'simple-tags') . '" data-resume-text="' . esc_html__('Resume', 'simple-tags') . '">', '</a>') . '</p></div>';
+        $progress_message = '<div class="taxopress-response-css yellow"><p>' . sprintf(esc_html__('Progress Report: %s posts checked.', 'simple-tags'), '<strong>' . ($start_from + count($objects)) . '</strong>') . '</p></div>';
     } else {
-
         $counter = (int)get_option('tmp_auto_terms_st');
         delete_option('tmp_auto_terms_st');
         $percentage = 100;
         $response['status'] = 'sucess';
         $response['done'] = $total;
-        $progress_message = '<div class="taxopress-response-css green"><p>'. sprintf(esc_html__('Completed: %s terms added from %s posts checked.', 'simple-tags'), $counter, ($start_from + count($objects))) .'</p><button type="button" class="notice-dismiss"></button></div>';
+        $progress_message = '<div class="taxopress-response-css green"><p>' . sprintf(esc_html__('Completed: %s terms added from %s posts checked.', 'simple-tags'), $counter, ($start_from + count($objects))) . '</p><button type="button" class="notice-dismiss"></button></div>';
         $response['message'] = $progress_message;
     }
     $response['percentage'] = $progress_message;
 
-    wp_send_json($response);
+    $current_lock = get_option($lock_key, []);
+    if (is_array($current_lock) && isset($current_lock['token']) && $current_lock['token'] === $lock_token) {
+        delete_option($lock_key);
+    }
 
+    wp_send_json($response);
 }
 
 
@@ -204,7 +246,7 @@ function taxopress_post_search_callback()
 
     if (
         empty($_GET['nonce'])
-        || !wp_verify_nonce(sanitize_key($_GET['nonce']), 'taxopress-post-search')
+        || !wp_verify_nonce(sanitize_key(wp_unslash($_GET['nonce'])), 'taxopress-post-search')
     ) {
         wp_send_json_error(null, 403);
     }
@@ -213,8 +255,8 @@ function taxopress_post_search_callback()
         wp_send_json_error(null, 403);
     }
 
-    $search = !empty($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
-    $post_type = !empty($_GET['post_types']) ? array_map('sanitize_text_field', $_GET['post_types']) : 'any';
+    $search = !empty($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
+    $post_type = !empty($_GET['post_types']) ? array_map('sanitize_text_field', wp_unslash($_GET['post_types'])) : 'any';
 
     $post_args = [
         'post_type' => $post_type,
@@ -255,7 +297,7 @@ function taxopress_custom_fields_search_callback()
 
     if (
         empty($_GET['nonce'])
-        || !wp_verify_nonce(sanitize_key($_GET['nonce']), 'taxopress-custom-fields-search')
+        || !wp_verify_nonce(sanitize_key(wp_unslash($_GET['nonce'])), 'taxopress-custom-fields-search')
     ) {
         wp_send_json_error(null, 403);
     }
@@ -264,7 +306,7 @@ function taxopress_custom_fields_search_callback()
         wp_send_json_error(null, 403);
     }
 
-    $search = !empty($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
+    $search = !empty($_GET['q']) ? sanitize_text_field(wp_unslash($_GET['q'])) : '';
 
     $whereClause = '';
     if (!empty($search)) {

@@ -1,5 +1,5 @@
 <?php
-if (isset($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_url_raw($_SERVER['SCRIPT_FILENAME'])) )
+if (isset($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_url_raw(wp_unslash($_SERVER['SCRIPT_FILENAME']))) )
 	die();
 
 /*
@@ -20,6 +20,10 @@ class RevisionaryPostEditorMetaboxes {
 	function add_meta_boxes() {
 		global $wp_version;
 
+		if (\PublishPress\Revisions\Utils::isBlockEditorActive()) {
+			return;
+		}
+
 		$object_type = rvy_detect_post_type();
 		
 		if ( rvy_get_option( 'pending_revisions' ) && (rvy_get_option('enable_classic_metaboxes') || !version_compare($wp_version, '7.0', '>=')) ) {
@@ -27,7 +31,7 @@ class RevisionaryPostEditorMetaboxes {
 			
 			add_meta_box( 'pending_revisions', pp_revisions_status_label('pending-revision', 'plural'), [$this, 'rvy_metabox_revisions_pending'], $object_type, 'advanced', 'high' );
 		}
-			
+		
 		if ( rvy_get_option( 'scheduled_revisions' ) && (rvy_get_option('enable_classic_metaboxes') || !version_compare($wp_version, '7.0', '>=')) ) {
 			require_once( dirname(__FILE__).'/revision-ui_rvy.php' );
 
@@ -61,6 +65,10 @@ class RevisionaryPostEditorMetaboxes {
 			return;
 
 		$been_here = true;
+
+		if (\PublishPress\Revisions\Utils::isBlockEditorActive()) {
+			return;
+		}
 		
 		global $wp_meta_boxes;
 		

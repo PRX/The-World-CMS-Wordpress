@@ -475,6 +475,7 @@ return array(
     'WPGraphQL\\Utils\\Preview' => $baseDir . '/src/Utils/Preview.php',
     'WPGraphQL\\Utils\\QueryAnalyzer' => $baseDir . '/src/Utils/QueryAnalyzer.php',
     'WPGraphQL\\Utils\\QueryLog' => $baseDir . '/src/Utils/QueryLog.php',
+    'WPGraphQL\\Utils\\StructuredFields' => $baseDir . '/src/Utils/StructuredFields.php',
     'WPGraphQL\\Utils\\Tracing' => $baseDir . '/src/Utils/Tracing.php',
     'WPGraphQL\\Utils\\Utils' => $baseDir . '/src/Utils/Utils.php',
     'WPGraphQL\\WPSchema' => $baseDir . '/src/WPSchema.php',

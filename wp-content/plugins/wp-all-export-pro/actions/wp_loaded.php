@@ -348,7 +348,7 @@ function pmxe_wp_loaded() {
     /* Check if cron is manualy, then execute export */
     $cron_job_key = PMXE_Plugin::getInstance()->getOption('cron_job_key');
 
-    if ( ! empty($cron_job_key) and ! empty($_GET['export_id']) and ! empty($_GET['export_key']) and $_GET['export_key'] == $cron_job_key and !empty($_GET['action']) and in_array($_GET['action'], array('processing', 'trigger'))) {
+    if ( ! empty($cron_job_key) and ! empty($_GET['export_id']) and ! empty($_GET['export_key']) and $_GET['export_key'] == $cron_job_key and !empty($_GET['action']) and in_array($_GET['action'], array('processing', 'trigger', 'cancel'))) {
         pmxe_set_max_execution_time();
         $logger = function($m) {
             echo "<p>$m</p>\\n";
@@ -371,6 +371,15 @@ function pmxe_wp_loaded() {
 
                 $export->getById($id);
 
+                if($export->isEmpty()) {
+                    wp_send_json([
+                        'status' => 404,
+                        'message' => 'Export not found.'
+                    ]);
+
+                    wp_die();
+                }
+
                 $cpt = $export->options['cpt'];
                 if(!is_array($cpt)) {
                     $cpt = array($cpt);
@@ -382,7 +391,7 @@ function pmxe_wp_loaded() {
                     ||
                     ($export->options['export_type'] == 'advanced' && $export->options['wp_query_selector'] == 'wp_user_query' && !$addons->isUserAddonActive())
                 ) {
-                    die(wp_kses_post(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN)));
+                    die(wp_kses_post(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin')));
                 }
 
                 if(
@@ -391,7 +400,7 @@ function pmxe_wp_loaded() {
                     (!$addons->isWooCommerceAddonActive() && strpos($export->options['wp_query'], 'shop_coupon') !== false)
 
                 ) {
-                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this expor t. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN)));
+                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this expor t. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin')));
                 }
 
                 if (((in_array('product', $cpt) && in_array('product_variation', $cpt) ) ||
@@ -399,18 +408,18 @@ function pmxe_wp_loaded() {
                         in_array('shop_coupon', $cpt) ||
                         in_array('shop_review', $cpt) ) &&
                     !$addons->isWooCommerceAddonActive()) {
-                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN)));
+                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin')));
                 }
 
                 // Block Google Merchant Exports if the supporting add-on isn't active.
                 if(isset($export->options['xml_template_type']) && $export->options['xml_template_type'] == \XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS && !$addons->isWooCommerceAddonActive()) {
 
-                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN)));
+                    die(wp_kses_post(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin')));
 
                 }
 
                 if((in_array('acf', $export->options['cc_type']) || $export->options['xml_template_type'] == 'custom' && in_array('acf', $export->options['custom_xml_template_options']['cc_type'])) && !$addons->isAcfAddonActive()) {
-                    die(wp_kses_post(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN)));
+                    die(wp_kses_post(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin')));
                 }
 
                 $cpt_string = reset($cpt);
@@ -420,8 +429,21 @@ function pmxe_wp_loaded() {
                 }
 
                 if ( ! $export->isEmpty() ){
-
                     switch ($_GET['action']) {
+
+                        case 'cancel':
+                            $export->set(array(
+                                'canceled' => 1,
+                                'triggered' => 0,
+                                'executing' => 0,
+                                'processing' => 0,
+                            ))->save();
+
+                            wp_send_json(array(
+                                'status'     => 403,
+                                'message'    => sprintf(esc_html__('Export #%s canceled.', 'wp_all_export_plugin'), $id)
+                            ));
+                            break;
 
                         case 'trigger':
 
@@ -534,7 +556,7 @@ function pmxe_wp_loaded() {
             $export->getById(intval($_GET['export_id']));
         }
 
-        if ( (isset($_GET['security_token']) && $_GET['security_token'] == substr(md5($cron_job_key . $_GET['export_id']), 0, 16)) || (isset($_GET['security_key']) && $_GET['security_key'] === $export->options['security_token']) )
+        if ( (isset($_GET['security_token']) && $_GET['security_token'] == substr(md5($cron_job_key . $_GET['export_id']), 0, 16)) || (isset($_GET['security_key']) && isset($export->options['security_token']) && $_GET['security_key'] === $export->options['security_token']) )
         {
             $export = new PMXE_Export_Record();
 

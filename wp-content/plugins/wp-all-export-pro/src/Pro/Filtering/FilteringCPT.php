@@ -49,7 +49,7 @@ class FilteringCPT extends FilteringBase
     public function getExcludeQueryWhere($postsToExclude)
     {
 
-        return " AND ({$this->wpdb->posts}.ID NOT IN (" . implode(',', $postsToExclude) . "))";
+        return " AND ({$this->wpdb->posts}.ID NOT IN (". $postsToExclude . "))";
 
     }
 
@@ -67,7 +67,7 @@ class FilteringCPT extends FilteringBase
 
         apply_filters('wp_all_export_single_filter_rule', $rule);
 
-        // If WooCommerce Prdoducts are exported, alter the way featured meta is filtered
+        // If WooCommerce Products are exported, alter the way featured meta is filtered
         if ( ! empty(\XmlExportEngine::$post_types) and class_exists('WooCommerce')){
             if (@in_array("product", \XmlExportEngine::$post_types)){
                 $this->fixRuleForFeaturedProduct($rule);
@@ -92,6 +92,10 @@ class FilteringCPT extends FilteringBase
             case 'user_ID':
                 $rule->element = 'post_author';
                 $this->queryWhere .= "{$this->wpdb->posts}.$rule->element " . $this->parse_condition($rule, true);
+                break;
+            case 'parent_slug':
+                $this->queryJoin[] = " INNER JOIN {$this->wpdb->posts} AS pmxe_parent ON ({$this->wpdb->posts}.post_parent = pmxe_parent.ID) ";
+                $this->queryWhere .= "pmxe_parent.post_name " . $this->parse_condition($rule, false);
                 break;
             case 'user_login':
             case 'user_nicename':

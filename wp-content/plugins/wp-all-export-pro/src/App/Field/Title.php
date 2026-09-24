@@ -28,7 +28,7 @@ class Title extends Field
 
         } else if($basicInformationData['itemTitle'] == self::CUSTOM_VALUE_TEXT) {
             $customValue = $basicInformationData['itemTitleCV'];
-            $value = $this->replaceSnippetsInValue($customValue, $snippetData);
+            $value = $customValue;
         } else {
             throw new \Exception('Unknown field value');
         }

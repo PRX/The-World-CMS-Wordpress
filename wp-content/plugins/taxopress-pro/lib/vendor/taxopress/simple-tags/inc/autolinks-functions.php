@@ -1,5 +1,7 @@
 <?php
 
+// phpcs:disable WordPress.Security.NonceVerification.Recommended,WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Legacy TaxoPress file: keep behavior unchanged while documenting existing PHPCS exceptions.
+
 /**
  * Fetch our TAXOPRESS Autolinks option.
  *
@@ -42,7 +44,7 @@ function taxopress_get_current_autolink()
     $autolinks = false;
 
     if (!empty($_GET) && isset($_GET['taxopress_autolinks'])) {
-        $autolinks = sanitize_text_field($_GET['taxopress_autolinks']);
+        $autolinks = sanitize_text_field(wp_unslash($_GET['taxopress_autolinks']));
     } else {
         $autolinks = taxopress_get_autolink_data();
         if (!empty($autolinks)) {
@@ -130,9 +132,9 @@ function taxopress_process_autolink()
             exit();
         }
     } elseif (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-delete-autolink') {
-        $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+        $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
         if (wp_verify_nonce($nonce, 'autolink-action-request-nonce')) {
-            taxopress_action_delete_autolink(sanitize_text_field($_REQUEST['taxopress_autolinks']));
+            taxopress_action_delete_autolink(sanitize_text_field(wp_unslash($_REQUEST['taxopress_autolinks'])));
         }
         add_filter('removable_query_args', 'taxopress_delete_autolink_filter_removable_query_args');
     }
@@ -408,7 +410,6 @@ function taxopress_post_type_autolink_autolink()
 
     if (count($autolinks) > 0) {
         foreach ($autolinks as $autolink) {
-
             // Get option
             $post_types = (isset($autolink['embedded']) && is_array($autolink['embedded']) && count($autolink['embedded']) > 0) ? $autolink['embedded'] : false;
 

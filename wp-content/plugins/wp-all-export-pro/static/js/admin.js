@@ -283,8 +283,88 @@
 	};
 
 	if ( ! $('body.wpallexport-plugin').length) return; // do not execute any code if we are not on plugin page
+	
+    $('.wp_all_export_send_to_codebox').on('click', async function (event) {
+		
+		$target = $(event.target);
+		
+        var isCodeBoxActive = $('input[name="is_wp_codebox_active"]').val();
 
-	// fix layout position
+        if (isCodeBoxActive === '0') {
+            $('.cross-sale-notice.codebox').slideDown();
+        } else {
+			if($target.hasClass('wp_all_export_code')) {
+				var code = editor.codemirror.getValue();;
+			} else {
+				var code = main_editor.codemirror.getValue();
+			}
+
+			await wpae_save_functions(code);
+
+            $('.wp_all_export_functions_preloader').show();
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'wpae_send_to_codebox',
+                    security: wp_all_export_security,
+                    code: code
+                },
+                dataType: 'json',
+                success: function (response) {
+					$('.functions_editor_container').slideUp(300, function () {
+						$(this).html(response.html).fadeIn(300, function() {
+							const $element = $(this);
+							setTimeout(() => {
+								$element.fadeOut(300);
+							}, 3000);
+						});
+					});
+
+                    $('.wpae_function_editor_buttons').fadeOut(400);
+					$('.wpae_go_to_codebox').fadeIn(400);
+                },
+                error: function () {
+                    alert('An error occurred while sending to CodeBox.');
+                },
+                complete: function () {
+                    $('.wp_all_export_functions_preloader').hide();
+                }
+            });
+        }
+    });
+
+    $('.wp_all_export_revert_functions').on('click', function () {
+        if (confirm('Are you sure you want to revert to the previous functions file?')) {
+
+            $('.wp_all_export_functions_preloader').show();
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'wpae_send_to_codebox',
+                    security: wp_all_export_security,
+                    codeboxaction: 'revert'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    alert(response.html);
+                    location.reload();
+                },
+                error: function () {
+                    alert('An error occurred while reverting the functions file.');
+                },
+                complete: function () {
+                    $('.wp_all_export_functions_preloader').hide();
+                }
+            });
+        }
+    });
+
+
+    // fix layout position
 	setTimeout(function () {
 		$('table.wpallexport-layout').length && $('table.wpallexport-layout td.left h2:first-child').css('margin-top',  $('.wrap').offset().top - $('table.wpallexport-layout').offset().top);
 	}, 10);
@@ -686,7 +766,7 @@
 
 		    		$('#wp_all_export_available_rules').html('<div class="wp_all_export_preloader" style="display:block;"></div>');
 
-		    		var date_fields = ['post_date', 'post_modified', 'comment_date', 'comment_parent_date', 'comment_parent_date_gmt', 'user_registered', 'cf__completed_date', 'product_date'];
+		    		var date_fields = ['post_date', 'post_modified', 'comment_date', 'comment_parent_date', 'comment_parent_date_gmt', 'user_registered', 'cf__completed_date', 'product_date', '_date_paid'];
 
 	    			if ( date_fields.indexOf(params.selected) > -1 )
 		    		{
@@ -697,9 +777,14 @@
 		    			$('#date_field_notice').hide();
 		    		}
 
+					var type = $(evt.target).find(":selected").data("type");
+
 		    		var request = {
 						action: 'wpae_available_rules',
-						data: {'selected' : params.selected},
+						data: {
+							'selected' : params.selected,
+							'type' : type,
+						},
 						security: wp_all_export_security
 				    };
 
@@ -1096,7 +1181,7 @@
 							$('.wpallexport-choose-file').find('.wpallexport-upload-resource-step-two').slideUp();
 							$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 						}
-					} else if((postType == 'users') && !($('#pmxe_user_addon_installed').length || $('#pmxe_user_addon_free_installed'))) {
+					} else if((postType == 'users') && !($('#pmxe_user_addon_installed').length || $('#pmxe_user_addon_free_installed').length)) {
                     	showNotice('.wpallexport-user-export-notice');
 						return;
 					}  else if((postType == 'shop_customer') && !$('#pmxe_user_addon_installed').length) {
@@ -1180,7 +1265,7 @@
 				return false;
 			}
 
-			if (export_type == 'product' && !$('#woocommerce_add_on_pro_installed').length) {
+			if (export_type == 'product' && !$('#woocommerce_add_on_pro_installed').length && $('#WooCommerce_Installed').length) {
 				$('#migrate-products-notice').slideDown();
 				return false;
 			}
@@ -1264,6 +1349,11 @@
 					$('.wpallexport-choose-file').find('.wpallexport-submit-buttons').hide();
 				}
 			}
+		});
+
+		$('#taxonomy_to_export li').each(function() {
+			var toolTipText = $(this).find('.dd-option-value').val();
+			$(this).attr('title', toolTipText );
 		});
 	});
 	// [ \Step 1 ( chose & filter export data ) ]
@@ -1582,9 +1672,73 @@
 				$sortable.find('li:last').append($clone.removeClass('template').fadeIn());
 			}
 
-			var $fieldType = $elementType.val();
+			var $options = $clone.find('input[name^=cc_options]').val();
 
-			if ($elementLabel == '_sale_price_dates_from' || $elementLabel == '_sale_price_dates_to') $fieldType = 'date';
+			var $fieldType = $elementType.val();
+			var isAddon = wpae_addons.includes($fieldType);
+
+			function isFieldType(type) {
+				return (
+					$options.indexOf(`s:4:"type";s:${type.length}:"${type}";`) !== -1
+				);
+			}
+
+			if ($elementLabel == '_sale_price_dates_from' || $elementLabel == '_sale_price_dates_to' || $elementLabel == '_date_paid') $fieldType = 'date';
+
+			// set up additional settings for addons fields
+
+			if ( isAddon || $fieldType === 'acf' ) {
+				if ( isFieldType('repeater') ) {
+					var obj = {};
+					obj['repeater_field_item_per_line'] = $addAnotherForm.find('#repeater_field_item_per_line').is(':checked');
+					obj['repeater_field_fill_empty_columns'] = $addAnotherForm.find('#repeater_field_fill_empty_columns').is(':checked');
+					$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+				}
+			}
+
+			if ( isAddon && ( isFieldType('date') || isFieldType('datetime') ) ) {
+				var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
+				if ($dateType == 'unix')
+					$clone.find('input[name^=cc_settings]').val('unix');
+				else
+					$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
+			}
+
+			if ( isAddon && ( isFieldType('time') ) ) {
+				var $format = $addAnotherForm.find('.pmxe_time_format').val();
+				var obj = {
+					time_format: $format,
+				};
+
+				$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+			}
+
+			if ( isAddon && ( isFieldType('media') || isFieldType('gallery') ) ) {
+				var $format = $addAnotherForm.find('select.media_field_export_data').val();
+				var obj = {
+					value_format: $format,
+				};
+
+				$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+			}
+
+			if ( isAddon && isFieldType('post') ) {
+				var $format = $addAnotherForm.find('select.post_field_export_data').val();
+				var obj = {
+					post_value_format: $format,
+				};
+
+				$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+			}
+
+			if ( isAddon && isFieldType('user') ) {
+				var $format = $addAnotherForm.find('select.user_field_export_data').val();
+				var obj = {
+					user_value_format: $format,
+				};
+
+				$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
+			}
 
 			// set up additional element settings by element type
 			switch ( $fieldType )
@@ -1601,22 +1755,12 @@
 				case 'comment_parent_date_gmt':
 				case 'user_registered':
 				case 'post_modified':
+				case '_date_paid':
 					var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
 					if ($dateType == 'unix')
 						$clone.find('input[name^=cc_settings]').val('unix');
 					else
 						$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
-					break;
-				// set up additional settings for repeater field
-				case 'acf':
-					// determine is repeater field selected in dropdown
-					if ( $clone.find('input[name^=cc_options]').val().indexOf('s:4:"type";s:8:"repeater"') !== -1 )
-					{
-						var obj = {};
-						obj['repeater_field_item_per_line'] = $addAnotherForm.find('#repeater_field_item_per_line').is(':checked');
-						obj['repeater_field_fill_empty_columns'] = $addAnotherForm.find('#repeater_field_fill_empty_columns').is(':checked');
-						$clone.find('input[name^=cc_settings]').val(window.JSON.stringify(obj));
-					}
 					break;
 				case 'woo':
 					switch ( $clone.find('input[name^=cc_value]').val() )
@@ -1635,6 +1779,7 @@
 						case 'post_date':
 						case 'post_modified':
 						case '_completed_date':
+						case '_date_paid':
 							var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
 							if ($dateType == 'unix')
 								$clone.find('input[name^=cc_settings]').val('unix');
@@ -1754,8 +1899,91 @@
                 var $settings = $(this).find('input[name^=cc_settings]').val();
 
                 var $fieldType = $elementType.val();
+				var isAddon = wpae_addons.includes($fieldType);
+
+				function isFieldType(type) {
+					return (
+					  $options.indexOf(`s:4:"type";s:${type.length}:"${type}";`) !== -1
+					);
+				}
 
                 if ($elementLabel.val() == '_sale_price_dates_from' || $elementLabel.val() == '_sale_price_dates_to') $fieldType = 'date';
+
+                if ( isAddon || $fieldType === 'acf' ) {
+					if ( isFieldType('repeater') ) {
+						$addAnotherForm.find('.repeater_field_type').show();
+						if ($settings != "") {
+							var $field_options = window.JSON.parse($settings);
+							if ($field_options.repeater_field_item_per_line) $addAnotherForm.find('#repeater_field_item_per_line').prop('checked', 'checked');
+							if ($field_options.repeater_field_fill_empty_columns) $addAnotherForm.find('#repeater_field_fill_empty_columns').prop('checked', 'checked');
+						}
+					}
+                }
+
+				if ( isAddon && ( isFieldType('date') || isFieldType('datetime') ) ) {
+					$addAnotherForm.find('select.date_field_export_data').find('option').each(function () {
+						if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
+							$(this).attr({'selected': 'selected'}).trigger('click');
+						else
+							$(this).removeAttr('selected');
+					});
+
+					if ($settings != 'php' && $settings != 'unix') {
+						if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
+						$('.pmxe_date_format_wrapper').show();
+					}
+					else {
+						$('.pmxe_date_format').val('');
+					}
+					$addAnotherForm.find('.date_field_type').show();
+				}
+
+				if ( isAddon && ( isFieldType('time') ) ) {
+					const valueFormat = $settings || '{}';
+					const selectedFormat = JSON.parse(valueFormat)?.time_format;
+					$('.pmxe_time_format').val(selectedFormat);
+
+					$addAnotherForm.find('.time_field_type').show();
+				}
+
+				if ( isAddon && ( isFieldType('media') || isFieldType('gallery') ) ) {
+					const valueFormat = $settings || '{}';
+					const selectedFormat = JSON.parse(valueFormat)?.value_format;
+					$addAnotherForm.find('.media_field_type').show();
+
+					$addAnotherForm.find('.media_field_type')
+						.find('option')
+						.filter(function() {
+							return $(this).val() == selectedFormat;
+						})
+						.prop('selected', true);
+				}
+
+				if ( isAddon && isFieldType('post') ) {
+					const valueFormat = $settings || '{}';
+					const selectedFormat = JSON.parse(valueFormat)?.post_value_format;
+					$addAnotherForm.find('.post_field_type').show();
+
+					$addAnotherForm.find('.post_field_type')
+						.find('option')
+						.filter(function() {
+							return $(this).val() == selectedFormat;
+						})
+						.prop('selected', true);
+				}
+
+				if ( isAddon && isFieldType('user') ) {
+					const valueFormat = $settings || '{}';
+					const selectedFormat = JSON.parse(valueFormat)?.user_value_format;
+					$addAnotherForm.find('.user_field_type').show();
+
+					$addAnotherForm.find('.user_field_type')
+						.find('option')
+						.filter(function() {
+							return $(this).val() == selectedFormat;
+						})
+						.prop('selected', true);
+				}
 
                 switch ($fieldType) {
                     case 'content':
@@ -1772,16 +2000,6 @@
                     case 'sql':
                         $addAnotherForm.find('textarea.column_value').val($(this).find('input[name^=cc_sql]').val());
                         $addAnotherForm.find('.sql_field_type').show();
-                        break;
-                    case 'acf':
-                        if ($options.indexOf('s:4:"type";s:8:"repeater"') !== -1) {
-                            $addAnotherForm.find('.repeater_field_type').show();
-                            if ($settings != "") {
-                                var $field_options = window.JSON.parse($settings);
-                                if ($field_options.repeater_field_item_per_line) $addAnotherForm.find('#repeater_field_item_per_line').prop('checked', 'checked');
-                                if ($field_options.repeater_field_fill_empty_columns) $addAnotherForm.find('#repeater_field_fill_empty_columns').prop('checked', 'checked');
-                            }
-                        }
                         break;
                     case 'woo':
                         $woo_type = $(this).find('input[name^=cc_value]');
@@ -1807,6 +2025,7 @@
                             case 'post_date':
                             case 'post_modified':
                             case '_completed_date':
+							case '_date_paid':
 
                                 $addAnotherForm.find('select.date_field_export_data').find('option').each(function () {
                                     if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
@@ -1874,7 +2093,9 @@
                 $addAnotherForm.show();
 
                 setTimeout(function () {
-                    editor.refresh();
+					if(editor) {
+						editor.refresh();
+					}
                 }, 1);
 
                 $('.wpallexport-overlay').show();
@@ -1882,8 +2103,12 @@
                 var availableDataHeight = $('.wp-all-export-edit-column.cc').height() - 200;
                 $addAnotherForm.find('.wpallexport-pointer-data.available-data').css('max-height', availableDataHeight);
 
-                var editor = $('#wp_all_export_code + .CodeMirror').get(0).CodeMirror;
-                editor.refresh();
+				var editorElement = $('#wp_all_export_code + .CodeMirror').get(0);
+
+				if (editorElement && editorElement.CodeMirror) {
+					var editor = editorElement.CodeMirror;
+					editor.refresh();
+				}
             }
 		});
 
@@ -2453,21 +2678,21 @@
 		else
 			$('#wp_all_export_value').show();
 	});
-    // saving & validating function editor
-    $('.wp_all_export_save_functions').on('click', function(){
-
-
-    	var data = $(this).hasClass('wp_all_export_save_main_code') ? main_editor.codemirror.getValue() : editor.codemirror.getValue();
-
-    	var request = {
+	
+	function wpae_save_functions(data = ''){
+		if( data === '') {
+			data = $(this).hasClass('wp_all_export_save_main_code') ? main_editor.codemirror.getValue() : editor.codemirror.getValue();
+		}
+		
+		var request = {
 			action: 'save_functions',
 			data: data,
 			security: wp_all_export_security
-	    };
-	    $('.wp_all_export_functions_preloader').show();
-	    $('.wp_all_export_saving_status').removeClass('error updated').html('');
+		};
+		$('.wp_all_export_functions_preloader').show();
+		$('.wp_all_export_saving_status').removeClass('error updated').html('');
 
-		$.ajax({
+		return $.ajax({
 			type: 'POST',
 			url: get_valid_ajaxurl(),
 			data: request,
@@ -2494,6 +2719,15 @@
 			},
 			dataType: "json"
 		});
+	}
+	
+    // saving & validating function editor
+    $('.wp_all_export_save_functions').on('click', function(){
+
+		$('.cross-sale-notice.codebox').slideUp();
+		
+		wpae_save_functions.call(this);
+
     });
     // auot-generate zapier API key
     $('input[name=pmxe_generate_zapier_api_key]').on('click', function(e){
@@ -2824,210 +3058,6 @@
             }
 		});
 	}
-
-
-	window.openSchedulingDialog = function(itemId, element, preloaderSrc) {
-		$('.wpallexport-overlay').show();
-		$('.wpallexport-loader').show();
-
-		var $self = element;
-		$.ajax({
-			type: "POST",
-			url: ajaxurl,
-			context: element,
-			data: {
-				'action': 'scheduling_dialog_content',
-				'id': itemId,
-				'security' : wp_all_export_security
-			},
-			success: function (data) {
-                $('.wpallexport-loader').hide();
-                $(this).pointer({
-					content: '<div id="scheduling-popup">' + data + '</div>',
-					position: {
-						edge: 'right',
-						align: 'center'
-					},
-					pointerWidth: 815,
-					show: function (event, t) {
-
-						$('.timepicker').timepicker();
-
-						var $leftOffset = ($(window).width() - 715) / 2;
-						var $topOffset = $(document).scrollTop() + 100;
-
-						var $pointer = $('.wp-pointer').last();
-						$pointer.css({'position': 'absolute', 'top': $topOffset + 'px', 'left': $leftOffset + 'px'});
-
-						$pointer.find('a.close').remove();
-						$pointer.find('.wp-pointer-buttons').append('<button class="save-changes button button-primary button-hero wpallexport-large-button" style="float: right; background-image: none;">Save</button>');
-						$pointer.find('.wp-pointer-buttons').append('<button class="close-pointer button button-primary button-hero wpallexport-large-button" style="float: right; background: #F1F1F1 none;text-shadow: 0 0 black; color: #777; margin-right: 10px;">Cancel</button>');
-
-						$(".close-pointer, .wpallexport-overlay").unbind('click').on('click', function () {
-							$self.pointer('close');
-							$self.pointer('destroy');
-						});
-
-                        if(!window.pmxeHasSchedulingSubscription) {
-                            $('.save-changes ').addClass('disabled');
-                        }
-
-                        // help icons
-                        $('.wpallexport-help').tipsy({
-                            gravity: function() {
-                                var ver = 'n';
-                                if ($(document).scrollTop() < $(this).offset().top - $('.tipsy').height() - 2) {
-                                    ver = 's';
-                                }
-                                var hor = '';
-                                if ($(this).offset().left + $('.tipsy').width() < $(window).width() + $(document).scrollLeft()) {
-                                    hor = 'w';
-                                } else if ($(this).offset().left - $('.tipsy').width() > $(document).scrollLeft()) {
-                                    hor = 'e';
-                                }
-                                return ver + hor;
-                            },
-                            html: true,
-                            opacity: 1
-                        }).on('click', function () {
-                            return false;
-                        }).each(function () { // fix tipsy title for IE
-                            $(this).attr('original-title', $(this).attr('title'));
-                            $(this).removeAttr('title');
-                        });
-
-
-                        $(".save-changes").off('click').on('click', function () {
-							if($(this).hasClass('disabled')) {
-								return false;
-							}
-
-							var formValid = pmxeValidateSchedulingForm();
-
-							if (formValid.isValid) {
-
-								var schedulingEnable = $('input[name="scheduling_enable"]:checked').val();
-
-								var formData = $('#scheduling-form').serializeArray();
-								formData.push({name: 'security', value: wp_all_export_security});
-								formData.push({name: 'action', value: 'save_scheduling'});
-								formData.push({name: 'element_id', value: itemId});
-								formData.push({name: 'scheduling_enable', value: schedulingEnable});
-
-								$('.close-pointer').hide();
-								$('.save-changes').hide();
-
-								$('.wp-pointer-buttons').append('<img id="pmxe_button_preloader" style="float:right" src="' + preloaderSrc + '" /> ');
-								$.ajax({
-									type: "POST",
-									url: ajaxurl,
-									data: formData,
-									dataType: "json",
-									success: function (data) {
-										$('#pmxe_button_preloader').remove();
-										$('.close-pointer').show();
-										$(".wpallexport-overlay").trigger('click');
-									},
-									error: function () {
-										alert('There was a problem saving the schedule');
-										$('#pmxe_button_preloader').remove();
-										$('.close-pointer').show();
-										$(".wpallexport-overlay").trigger('click');
-									}
-								});
-
-							} else {
-								alert(formValid.message);
-							}
-							return false;
-						});
-					},
-					close: function () {
-						jQuery('.wpallexport-overlay').hide();
-					}
-				}).pointer('open');
-			},
-			error: function () {
-				alert('There was a problem saving the schedule');
-				$('#pmxe_button_preloader').remove();
-				$('.close-pointer').show();
-				$(".wpallexport-overlay").trigger('click');
-                $('.wpallexport-loader').hide();
-			}
-		});
-	};
-
-    window.pmxeValidateSchedulingForm = function () {
-
-        var schedulingEnabled = $('input[name="scheduling_enable"]:checked').val() == 1;
-
-        if (!schedulingEnabled) {
-            return {
-                isValid: true
-            };
-        }
-
-        var runOn = $('input[name="scheduling_run_on"]:checked').val();
-
-        // Validate weekdays
-        if (runOn == 'weekly') {
-            var weeklyDays = $('#weekly_days').val();
-
-            if (weeklyDays == '') {
-                $('#weekly li').addClass('error');
-                return {
-                    isValid: false,
-                    message: 'Please select at least a day on which the export should run'
-                }
-            }
-        } else if (runOn == 'monthly') {
-            var monthlyDays = $('#monthly_days').val();
-
-            if (monthlyDays == '') {
-                $('#monthly li').addClass('error');
-                return {
-                    isValid: false,
-                    message: 'Please select at least a day on which the export should run'
-                }
-            }
-        }
-
-        // Validate times
-        var timeValid = true;
-        var timeMessage = 'Please select at least a time for the export to run';
-        var timeInputs = $('.timepicker');
-        var timesHasValues = false;
-
-        timeInputs.each(function (key, $elem) {
-
-            if($(this).val() !== ''){
-                timesHasValues = true;
-            }
-
-            if (!$(this).val().match(/^(0?[1-9]|1[012])(:[0-5]\d)[APap][mM]$/) && $(this).val() != '') {
-                $(this).addClass('error');
-                timeValid = false;
-            } else {
-                $(this).removeClass('error');
-            }
-        });
-
-        if(!timesHasValues) {
-            timeValid = false;
-            $('.timepicker').addClass('error');
-        }
-
-        if (!timeValid) {
-            return {
-                isValid: false,
-                message: timeMessage
-            };
-        }
-
-        return {
-            isValid: true
-        };
-    };
 
     // dismiss export template warnings
     $('.wpae-general-notice-dismiss').on('click', function(){

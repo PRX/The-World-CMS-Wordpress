@@ -74,7 +74,7 @@ class PostEditorWorkflowUI {
 
             } elseif ($can_publish) {
                 if (version_compare($wp_version, '5.5-beta', '>=')) {
-                    $vars['viewCaption'] = ($block_editor) ? esc_html__('Preview this Revision', 'revisionary') : esc_html__('Preview', 'revisionary');
+                    $vars['viewCaption'] = ($block_editor) ? esc_html__('Preview Revision', 'revisionary') : esc_html__('Preview', 'revisionary');
                 } else {
                     $vars['viewCaption'] = ('future-revision' == $post->post_mime_type) ? esc_html__('View / Publish', 'revisionary') : esc_html__('View / Approve', 'revisionary');
                 }
@@ -100,14 +100,14 @@ class PostEditorWorkflowUI {
             $vars['revisionEdits'] = '';
         }
                                                                                                         //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $redirect_arg = ( ! empty($_REQUEST['rvy_redirect']) ) ? "&rvy_redirect=" . esc_url_raw($_REQUEST['rvy_redirect']) : '';
+        $redirect_arg = ( ! empty($_REQUEST['rvy_redirect']) ) ? "&rvy_redirect=" . esc_url_raw(wp_unslash($_REQUEST['rvy_redirect'])) : '';
 
         $draft_obj = get_post_status_object('draft-revision');
         $vars['draftStatusCaption'] = $draft_obj->label;
 
         $vars['draftAjaxField'] = (is_content_administrator_rvy() || current_user_can('set_revision_pending-revision', $post->ID)) ? 'submit_revision' : '';
         $vars['draftErrorCaption'] = esc_html__('Revision Submission Error', 'revisionary');
-        $vars['draftDeletionURL'] = get_delete_post_link($post->ID, '', false);
+        $vars['draftDeletionURL'] = get_delete_post_link($post->ID, '', '');
 
         if ($vars['draftAjaxField']) {
             $vars['draftActionCaption'] = pp_revisions_status_label('pending-revision', 'submit');
@@ -161,7 +161,7 @@ class PostEditorWorkflowUI {
             $vars['futureActionCaption'] = pp_revisions_status_label('future-revision', 'publish');
             $vars['futureActionURL'] = wp_nonce_url( rvy_admin_url("admin.php?page=rvy-revisions&amp;revision={$post->ID}&amp;action=publish$redirect_arg&amp;editor=1"), "publish-post_$published_post_id|{$post->ID}" );
 
-            $vars['pendingDeletionURL'] = get_delete_post_link($post->ID, '', false);
+            $vars['pendingDeletionURL'] = get_delete_post_link($post->ID, '', '');
             $vars['futureDeletionURL'] = $vars['pendingDeletionURL'];
         } else {
             $vars['pendingActionURL'] = '';
@@ -213,7 +213,7 @@ class PostEditorWorkflowUI {
             $status_label = (count($_revisions) <= 1) ? pp_revisions_status_label('pending-revision', 'name') : pp_revisions_status_label('pending-revision', 'plural');
             $vars['pendingRevisionsCaption'] = sprintf('<span class="dashicons dashicons-edit"></span>&nbsp;%s %s', count($_revisions), $status_label);
 
-            $vars['pendingRevisionsURL'] = rvy_admin_url("revision.php?post_id=$post->ID&revision=pending-revision");   // @todo: fix i8n
+            $vars['pendingRevisionsURL'] = rvy_compare_url('pending-revision', ['post_id' => $post->ID]);
         } else {
             $vars['pendingRevisionsURL'] = '';
         }
@@ -224,12 +224,12 @@ class PostEditorWorkflowUI {
             $status_label = (count($_revisions) <= 1) ? pp_revisions_status_label('future-revision', 'name') : pp_revisions_status_label('future-revision', 'plural');
             $vars['scheduledRevisionsCaption'] = sprintf('<span class="dashicons dashicons-clock"></span>&nbsp;%s %s', count($_revisions), $status_label);
 
-            $vars['scheduledRevisionsURL'] = rvy_admin_url("revision.php?post_id=$post->ID&revision=future-revision");
+            $vars['scheduledRevisionsURL'] = rvy_compare_url('future-revision', ['post_id' => $post->ID]);
         } else {
             $vars['scheduledRevisionsURL'] = '';
         }
                                                                                                 //phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        $redirect_arg = ( ! empty($_REQUEST['rvy_redirect']) ) ? "&rvy_redirect=" . esc_url_raw($_REQUEST['rvy_redirect']) : '';
+        $redirect_arg = ( ! empty($_REQUEST['rvy_redirect']) ) ? "&rvy_redirect=" . esc_url_raw(wp_unslash($_REQUEST['rvy_redirect'])) : '';
         $published_post_id = rvy_post_id($post->ID);
 
         $is_block_editor = \PublishPress\Revisions\Utils::isBlockEditorActive($post->post_type);

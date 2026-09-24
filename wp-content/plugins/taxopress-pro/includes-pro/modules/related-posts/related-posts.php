@@ -79,10 +79,14 @@ if (!class_exists('TaxoPress_Pro_Related_Posts')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-relatedpost') {
+                if (!current_user_can('simple_tags')) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_relatedposts'])) {
-                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
                     if (wp_verify_nonce($nonce, 'relatedpost-action-request-nonce')) {
-                        $this->taxopress_action_copy_relatedpost(sanitize_text_field($_REQUEST['taxopress_relatedposts']));
+                        $this->taxopress_action_copy_relatedpost(sanitize_text_field(wp_unslash($_REQUEST['taxopress_relatedposts'])));
                     }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_relatedpost_filter_removable_query_args']);

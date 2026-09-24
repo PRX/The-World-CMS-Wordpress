@@ -11,7 +11,7 @@ if ( ! function_exists('wp_all_export_secure_file') ){
 
 			if ( ! is_dir($dir) ) @mkdir($dir, 0755);
 
-			if (@is_writable($dir) and @is_dir($dir)){
+			if (@pmxe_is_writable($dir) and @is_dir($dir)){
 				$targetDir = $dir;	
 				@touch( $dir . DIRECTORY_SEPARATOR . 'index.php' );
 			}

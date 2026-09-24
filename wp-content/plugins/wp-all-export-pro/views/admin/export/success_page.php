@@ -4,6 +4,24 @@ if (!defined('ABSPATH')) {
 }
 ?>
 <?php
+
+if(empty($update_previous->options['cpt'])) {
+	$postTypes           = [];
+	$exportqueryPostType = [];
+
+	if ( isset( $update_previous->options['exportquery'] ) && ! empty( $update_previous->options['exportquery']->query['post_type'] ) ) {
+		$exportqueryPostType = is_array($update_previous->options['exportquery']->query['post_type']) ? $update_previous->options['exportquery']->query['post_type'] : [ $update_previous->options['exportquery']->query['post_type'] ];
+	}
+
+	if ( empty( $postTypes ) ) {
+		$postTypes = $exportqueryPostType;
+	}
+
+	$tmp_options = $update_previous->options;
+	$tmp_options['cpt'] = $postTypes;
+	$update_previous->options = $tmp_options;
+}
+
 $cron_job_key = PMXE_Plugin::getInstance()->getOption('cron_job_key');
 $urlToExport = site_url() . '/wp-load.php?security_token=' . substr(md5($cron_job_key . $update_previous->id), 0, 16) . '&export_id=' . $update_previous->id . '&action=get_data';
 $uploads = wp_upload_dir();
@@ -18,10 +36,11 @@ $isImportAllowedSpecification = new \Wpae\App\Specification\IsImportAllowed();
 
 $cpt = $update_previous->options['cpt'];
 if (is_array($cpt)) {
-    $cpt = $cpt[0];
+    $cpt = reset($cpt);
 }
 
 $is_rapid_addon_export = true;
+$post = $update_previous->options;
 
 if (strpos($cpt, 'custom_') !== 0) {
     $is_rapid_addon_export = false;
@@ -103,7 +122,7 @@ if (current_user_can(PMXE_Plugin::$capabilities)) {
                     <?php endif; ?>
 
                     <div style="margin-top:30px;">
-                        <h3 style="margin-bottom: 0; margin-top: -10px;"><?php echo esc_html_e("Secure URL", 'wp_all_export_plugin'); ?></h3>
+                        <h3 style="margin-bottom: 0; margin-top: -10px;"><?php esc_html_e("Secure URL", 'wp_all_export_plugin'); ?></h3>
 
 
                         <div id="wpae-secure-url-container">
@@ -148,15 +167,43 @@ if (current_user_can(PMXE_Plugin::$capabilities)) {
                 </div>
                 <div class="tab-content scheduling" id="tab2-content">
                     <div class="wrap" style="text-align: left; padding-top: 10px;">
+                        <div id="scheduling-form-container">
 
-                        <?php
+                            <div class="wpallexport-content-section" style="padding-bottom: 15px; margin-bottom: 10px; margin-top: 5px;">
+                                <div class="wpallexport-collapsed-content" style="padding: 0; height: auto; ">
+                                    <div class="wpallexport-collapsed-content-inner" style="padding-bottom: 0; overflow: auto; padding-right: 0;">
+
+                                    <?php
                         if (current_user_can(PMXE_Plugin::$capabilities)) {
+	                        $is_export_complete_page = true;
                             $export = $update_previous;
                             require __DIR__ . '/../../../src/Scheduling/views/SchedulingUI.php';
                         } ?>
-
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wpae-save-button button button-primary button-hero wpallexport-large-button wpae-export-complete-save-button <?php if(!$hasActiveLicense) { echo 'disabled'; }?>"
+                             style="position: relative; width: 285px; display: block; margin:auto; background-image: none; margin-top: 25px;">
+                            <svg width="30" height="30" viewBox="0 0 1792 1792"
+                                 xmlns="http://www.w3.org/2000/svg"
+                                 style="fill: white;">
+                                <path
+                                        d="M1671 566q0 40-28 68l-724 724-136 136q-28 28-68 28t-68-28l-136-136-362-362q-28-28-28-68t28-68l136-136q28-28 68-28t68 28l294 295 656-657q28-28 68-28t68 28l136 136q28 28 28 68z"
+                                        fill="white"/>
+                            </svg>
+                            <div class="easing-spinner" style="display: none; left:20px; top:7px;">
+                                <div class="double-bounce1"></div>
+                                <div class="double-bounce2"></div>
+                            </div>
+                            <div class="save-text"
+                                 style="display: block; position:absolute; left: 70px; top:0; user-select: none;">
+			                    <?php esc_html_e('Save Scheduling Options', 'wp_all_export_plugin'); ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
                 <div class="tab-content normal-tab" id="tab3-content">
                     <p>
                         <?php esc_html_e("Automatically send your data to over 500 apps with Zapier.", 'wp_all_export_plugin'); ?>

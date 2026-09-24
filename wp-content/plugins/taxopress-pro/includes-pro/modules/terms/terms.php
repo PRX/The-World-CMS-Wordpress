@@ -37,10 +37,14 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
             }
 
             if (isset($_REQUEST['action']) && $_REQUEST['action'] === 'taxopress-copy-term-with-meta') {
+                if (!current_user_can('simple_tags')) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 if (isset($_REQUEST['_wpnonce']) && isset($_REQUEST['taxopress_terms'])) {
-                    $nonce = sanitize_text_field($_REQUEST['_wpnonce']);
+                    $nonce = sanitize_text_field(wp_unslash($_REQUEST['_wpnonce']));
                     if (wp_verify_nonce($nonce, 'terms-action-request-nonce')) {
-                        $this->taxopress_action_copy_term_with_meta(sanitize_text_field($_REQUEST['taxopress_terms']));
+                        $this->taxopress_action_copy_term_with_meta(sanitize_text_field(wp_unslash($_REQUEST['taxopress_terms'])));
                     }
                 }
                 add_filter('removable_query_args', [$this, 'taxopress_copy_term_filter_removable_query_args']);
@@ -50,7 +54,6 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
         public function taxopress_action_copy_term_with_meta($term_id)
         {
             $term = get_term($term_id);
-
             // Get taxonomy if term is not an object
             if (!is_object($term)) {
                 $term_taxonomy = wp_get_object_terms($term_id, get_taxonomies());
@@ -60,6 +63,15 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
             }
 
             if ($term && !is_wp_error($term)) {
+                if (
+                    !taxopress_current_user_can_for_taxonomy(
+                        $term->taxonomy,
+                        ['edit_terms', 'assign_terms']
+                    )
+                ) {
+                    wp_die(esc_html__('Permission denied.', 'taxopress-pro'), '', ['response' => 403]);
+                }
+
                 $new_name = $term->name . ' Copy';
                 $base_slug = $term->slug . '-copy';
                 $new_slug = taxopress_get_unique_term_slug($base_slug, $term->taxonomy);
@@ -92,7 +104,7 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
 
                         $args = [
                             'post_type' => 'any',
-                            'posts_per_page' => -1,
+                            
                             // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
                             'tax_query' => [[
                                 'taxonomy' => $term->taxonomy,
@@ -101,9 +113,11 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                             ]],
                         ];
                         foreach (taxopress_get_post_ids_for_terms_action($args) as $post_id) {
+                            if (!current_user_can('edit_post', $post_id)) {
+                                continue;
+                            }
                             wp_set_object_terms($post_id, $new_term->term_id, $term->taxonomy, true);
                         }
-
                         taxopress_place_copied_term_near_original($term->taxonomy, $term->term_id, $new_term->term_id);
                         clean_term_cache($new_term->term_id, $term->taxonomy);
                         delete_transient('taxopress_terms_' . $term->taxonomy);
@@ -174,11 +188,11 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
                 wp_send_json_error(['message' => esc_html__('Permission denied.', 'simple-tags')]);
             }
 
-            if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_key($_POST['nonce']), 'st-admin-js')) {
+            if (!isset($_POST['nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['nonce'])), 'st-admin-js')) {
                 wp_send_json_error(['message' => esc_html__('Invalid nonce.', 'simple-tags')]);
             }
 
-            $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field($_POST['taxonomy']) : '';
+            $taxonomy = isset($_POST['taxonomy']) ? sanitize_text_field(wp_unslash($_POST['taxonomy'])) : '';
             $order    = isset($_POST['order']) && is_array($_POST['order']) ? array_map('intval', $_POST['order']) : [];
 
             // Only allow saving if taxonomy is set and not empty
@@ -220,7 +234,8 @@ if (!class_exists('TaxoPress_Pro_Terms')) {
 
                 $saved_order = array_values(array_unique(array_filter(array_map('intval', (array) $saved_order))));
             } else {
-                $term_count = wp_count_terms($taxonomy, [
+                $term_count = wp_count_terms([
+                    'taxonomy'   => $taxonomy,
                     'hide_empty' => false,
                 ]);
 

@@ -190,7 +190,7 @@ if($is_rapid_addon_export) {
 								</div>
 
                                 <!-- Warning Messages -->
-                                <?php if ( (($addons->isWooCommerceAddonActive() || $addons->isWooCommerceOrderAddonActive()) && ! XmlExportWooCommerceOrder::$is_active) && ! XmlExportComment::$is_active && ! XmlExportTaxonomy::$is_active ) : ?>
+                                <?php if ( (($addons->isWooCommerceAddonActive() || $addons->isWooCommerceOrderAddonActive()) && ! XmlExportWooCommerceOrder::$is_active) && ! XmlExportComment::$is_active && ! XmlExportTaxonomy::$is_active && ! XmlExportEngine::$is_woo_guest_customer_export ) : ?>
                                     <div class="wp-all-export-warning" <?php if ( empty($post['ids']) or count($post['ids']) > 1 ) echo 'style="display:none;"'; ?>>
                                         <p></p>
                                         <input type="hidden" id="warning_template" value="<?php esc_html_e("Warning: without %s you won't be able to re-import this data back to this site using WP All Import.", "wp_all_export_plugin"); ?>"/>
@@ -202,7 +202,7 @@ if($is_rapid_addon_export) {
                                     <input type="hidden" id="is_product_export" value="1"/>
                                 <?php endif; ?>
 
-								<?php if ( XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() && empty($post['cpt']) && ! XmlExportWooCommerceOrder::$is_active && ! $addons->isUserAddonActiveAndIsUserExport() && ! XmlExportComment::$is_active && !XmlExportWooCommerceReview::$is_active && ! XmlExportTaxonomy::$is_active ) : ?>
+								<?php if ( ( XmlExportEngine::get_addons_service()->isWooCommerceAddonActive()  || XMLExportEngine::get_addons_service()->isWooCommerceOrderAddonActive() ) && empty($post['cpt']) && ! XmlExportWooCommerceOrder::$is_active && ! $addons->isUserAddonActiveAndIsUserExport() && ! XmlExportComment::$is_active && !XmlExportWooCommerceReview::$is_active && ! XmlExportTaxonomy::$is_active ) : ?>
 								<input type="hidden" id="is_wp_query" value="1"/>								
 								<?php endif; ?>
 																									
@@ -317,6 +317,7 @@ if($is_rapid_addon_export) {
 													<input type="checkbox" id="include_header_row" name="include_header_row" value="1" style="margin-bottom: -4px" <?php if ($post['include_header_row']):?>checked="checked"<?php endif; ?> class="switcher"/>
 													<label for="include_header_row"><?php esc_html_e("Include header row and column titles in export", "wp_all_export_plugin"); ?></label>
 												</div>
+
 											</div>
 										</div>
 
@@ -354,6 +355,22 @@ if($is_rapid_addon_export) {
 											</div>
 											<div class="clear"></div>
 										<?php endif; ?>
+
+                                        <div class="input" style="float: left; margin-top: 15px; margin-left:20px;"
+                                             id="csv_omit_empty_columns">
+                                            <input type="hidden" name="csv_omit_empty_columns" value="0"/>
+                                            <input type="checkbox" id="csv_omit_empty_columns" name="csv_omit_empty_columns"
+                                                   value="1"
+											       <?php if ( $post['csv_omit_empty_columns'] ): ?>checked="checked"<?php endif; ?>
+                                                   />
+                                            <label for="csv_omit_empty_columns"><?php esc_html_e( "Remove empty columns from export file", "wp_all_export_plugin" ); ?></label>
+                                            <span>
+                                                    <a href="#help" class="wpallexport-help"
+                                                       style="position: relative; top: 0px;"
+                                                       title="<?php esc_html_e( 'When enabled, any column without data for at least one row will be removed from the generated export file.', 'wp_all_export_plugin' ); ?>">?</a>
+												</span>
+                                        </div>
+                                        <div class="clear"></div>
 									</div>
 								</div>
 							</div>
@@ -554,6 +571,7 @@ if($is_rapid_addon_export) {
                 <?php
                 $uploads = wp_upload_dir();
                 $functions = $uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
+                $functions = apply_filters( 'wp_all_export_functions_file_path', $functions );
                 $functions_content = file_get_contents($functions);
                 ?>
 
@@ -565,22 +583,9 @@ if($is_rapid_addon_export) {
                         <div class="wpallexport-collapsed-content" style="padding: 0;">
                             <div class="wpallexport-collapsed-content-inner">
 
-                                <textarea id="wp_all_export_main_code"
-                                          name="wp_all_export_main_code"><?php echo (empty($functions_content)) ? "<?php\n\n?>" : esc_textarea($functions_content); ?></textarea>
-
-                                <div class="input" style="margin-top: 10px;">
-
-                                    <div class="input" style="display:inline-block; margin-right: 20px;">
-                                        <input type="button"
-                                               class="button-primary wp_all_export_save_functions wp_all_export_save_main_code"
-                                               value="<?php esc_html_e("Save Functions", 'wp_all_export_plugin'); ?>"/>
-                                        <a href="#help" class="wpallexport-help"
-                                           title="<?php printf(esc_html__("Add functions here for use during your export. You can access this file at %s", "wp_all_export_plugin"), preg_replace("%.*wp-content%", "wp-content", $functions)); ?>"
-                                           style="top: 3px;">?</a>
-                                        <div class="wp_all_export_functions_preloader"></div>
-                                    </div>
-                                    <div class="input wp_all_export_saving_status"></div>
-                                </div>
+	                            <?php
+                                    require(PMXE_Plugin::ROOT_DIR . '/views/admin/shared/function_editor.php');
+                                ?>
                             </div>
                         </div>
                     </div>

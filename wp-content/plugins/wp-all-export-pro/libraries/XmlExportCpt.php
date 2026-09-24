@@ -14,9 +14,17 @@ final class XmlExportCpt
 	{
 		$variationOptionsFactory = new  VariationOptionsFactory();
 		$variationOptions = $variationOptionsFactory->createVariationOptions(PMXE_EDITION);
-		$entry = $variationOptions->preprocessPost($entry);
-
+        if($entry instanceof \WP_Post) {
+            $entry = $variationOptions->preprocessPost($entry);
+        }
 		$article = array();
+
+		if(!isset($entry->ID)) {
+			$entryId = is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt']) ? $entry->order_id ?? $entry->id : $entry->id;
+			$entry->ID = $entry->id;
+		} else {
+			$entryId = is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt']) ? $entry->order_id ?? $entry->id ?? $entry->ID : $entry->id ?? $entry->ID;
+		}
 
 		// associate exported post with import
 		if ( ! $is_item_data and wp_all_export_is_compatible() && isset($exportOptions['is_generate_import']) && isset($exportOptions['import_id']) &&
@@ -25,16 +33,17 @@ final class XmlExportCpt
 		{
 			$postRecord = new PMXI_Post_Record();
 			$postRecord->clear();
+
 			$postRecord->getBy(array(
-				'post_id' => $entry->ID,
+				'post_id' => $entryId,
 				'import_id' => $exportOptions['import_id'],
 			));
 
 			if ($postRecord->isEmpty()){
 				$postRecord->set(array(
-					'post_id' => $entry->ID,
+					'post_id' => $entryId,
 					'import_id' => $exportOptions['import_id'],
-					'unique_key' => $entry->ID,
+					'unique_key' => $entryId,
 					'product_key' => ''
 				))->save();
 			}
@@ -49,8 +58,11 @@ final class XmlExportCpt
 
 		if(isset($exportOptions['ids']) && is_array($exportOptions['ids'])) {
 			foreach ($exportOptions['ids'] as $ID => $value) {
-				$pType = $entry->post_type;
-
+                if(is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt'])) {
+                    $pType = 'shop_order';
+                } else {
+                    $pType = $entry->post_type ?? $entry->type;
+                }
 				if ($is_item_data and $subID != $ID) continue;
 
 				// skip shop order items data
@@ -119,29 +131,32 @@ final class XmlExportCpt
                     $snippets['xml_template_type'] = $exportOptions['xml_template_type'];
 					$articleData = self::prepare_data($entry, $snippets, false, $acfs, $woo, $woo_order, $implode_delimiter, false);
 
-					$wpaeString = new WpaeString();
+                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($articleData, true, $combineMultipleFieldsValue, $preview);
 
-                    foreach ($articleData as $snippetName => $articleValue) {
-
-                        if($wpaeString->isBetween($combineMultipleFieldsValue, "{".$snippetName."}", '[',']')) {
-                            // Replace snippets in functions
-                            $combineMultipleFieldsValue = str_replace("{" . $snippetName . "}", '$articleData**OPENARR**"'.$snippetName.'"**CLOSEARR**', $combineMultipleFieldsValue);
-                        } else {
-                            // Replace snippets not in functions
-                            $combineMultipleFieldsValue = str_replace("{" . $snippetName . "}", $articleValue, $combineMultipleFieldsValue);
-                        }
-                    }
-
-                    $functions = $snippetParser->parseFunctions($combineMultipleFieldsValue);
-
-                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($functions, $combineMultipleFieldsValue, $articleData);
-
-                    if($preview) {
-                        $combineMultipleFieldsValue = trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($combineMultipleFieldsValue)));
-                    }
 
                     wp_all_export_write_article($article, $element_name, pmxe_filter($combineMultipleFieldsValue, $fieldSnippet));
 				} else {
+
+					// Run addons export field hooks
+					$addons = XmlExportEngine::get_addons();
+					$addonFieldOptions = maybe_unserialize($fieldOptions);
+
+					if (in_array($fieldType, $addons)) {
+						$article = apply_filters(
+							"pmxe_{$fieldType}_addon_export_field",
+							$article,
+							$addonFieldOptions,
+							$exportOptions,
+							$ID,
+							$entry,
+							$entry->ID,
+							$xmlWriter,
+							$element_name,
+							$element_name_ns,
+							$fieldSnippet,
+							$preview
+						);
+					}
 
 					switch ($fieldType) {
 						case 'id':
@@ -350,8 +365,28 @@ final class XmlExportCpt
 						case 'cf':
 							if (!empty($fieldValue)) {
 
+								// Clear the meta values from the previous iteration.
+								$cur_meta_values = null;
+
 								$val = "";
-								$cur_meta_values = get_post_meta($entry->ID, $fieldValue);
+
+								// Retrieve meta from *wc_orders_meta table if order export and HPOS enabled. Ensure a valid order
+								// object is returned.
+								if ( $pType === 'shop_order' && PMXE_Plugin::hposEnabled() && $order = wc_get_order( $entryId )) {
+
+									$metaName = 'get' . $fieldValue;
+
+									if(method_exists('WC_Order', $metaName)) {
+										$cur_meta_values = $order->$metaName();
+									}else {
+										$cur_meta_values = $order->get_meta( $fieldValue );
+									}
+								}
+
+								// Retrieve meta from *postmeta table if no value was found above.
+								if ( empty( $cur_meta_values ) ) {
+									$cur_meta_values = get_post_meta( $entryId, $fieldValue );
+								}
 
 								if (!empty($cur_meta_values) and is_array($cur_meta_values)) {
 									foreach ($cur_meta_values as $key => $cur_meta_value) {
@@ -362,13 +397,15 @@ final class XmlExportCpt
 										}
 									}
 									$val = pmxe_filter($val, $fieldSnippet);
-									wp_all_export_write_article($article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($val))) : $val);
+									wp_all_export_write_article($article, $element_name, ($preview) ? trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars(($val ?? '')))) : $val);
 								}
 
 								if (empty($cur_meta_values)) {
 									if (empty($article[$element_name])) {
+
 										wp_all_export_write_article($article, $element_name, apply_filters('pmxe_custom_field', pmxe_filter('', $fieldSnippet), $fieldValue, $entry->ID));
-									}
+
+                                    }
 								}
 
 								/** TODO: Refactor logic */
@@ -415,13 +452,13 @@ final class XmlExportCpt
 
                                     if ($blocks) {
                                         foreach ($blocks as $block) {
-                                            if ($block['attrs']['id'] == $field_options['key']) {
+                                            if ( isset($block['attrs']['id']) && $block['attrs']['id'] == $field_options['key'] ) {
                                                 $field_value = $block['data'][$fieldLabel];
                                             }
                                         }
                                     }
 
-									// Explicitly allow a value of 0 regardless if it's int or string.
+                                    // Explicitly allow a value of 0 regardless if it's int or string.
                                     if (!$field_value && 0 !== $field_value && '0' !== $field_value) {
                                         if (XmlExportEngine::get_addons_service()->isAcfAddonActive()) {
                                             $field_value = XmlExportACF::get_acf_block_value($entry, $field_options['name']);
@@ -430,20 +467,28 @@ final class XmlExportCpt
 
 
                                     if (XmlExportEngine::get_addons_service()->isAcfAddonActive()) {
-                                        XmlExportACF::export_acf_field(
-                                            $field_value,
-                                            $exportOptions,
-                                            $ID,
-                                            $entry->ID,
-                                            $article,
-                                            $xmlWriter,
-                                            $acfs,
-                                            $element_name,
-                                            $element_name_ns,
-                                            $fieldSnippet,
-                                            $field_options['group_id'],
-                                            $preview
-                                        );
+                                        // Sanitize field value to prevent ACF addon crashes
+                                        $sanitized_field_value = self::sanitizeAcfFieldValue($field_value, $field_options, $fieldLabel, $entry->ID);
+
+                                        try {
+                                            XmlExportACF::export_acf_field(
+                                                $sanitized_field_value,
+                                                $exportOptions,
+                                                $ID,
+                                                $entry->ID,
+                                                $article,
+                                                $xmlWriter,
+                                                $acfs,
+                                                $element_name,
+                                                $element_name_ns,
+                                                $fieldSnippet,
+                                                $field_options['group_id'],
+                                                $preview
+                                            );
+                                        } catch (Exception $e) {
+                                            // Fallback: if ACF addon still fails, export the raw value
+                                            wp_all_export_write_article($article, $element_name, $sanitized_field_value);
+                                        }
                                     }
                                 }
                             }
@@ -514,9 +559,11 @@ final class XmlExportCpt
 
 						    if( $fieldLabel == 'product_visibility' ) {
                                 $product = wc_get_product( $entry->ID );
-                                $value = $product->get_catalog_visibility();
-                                $value = apply_filters('pmxe_woo_field', $value, $element_name, $entry->ID);
-                                wp_all_export_write_article($article, $element_name,$value);
+                                if($product) {
+                                    $value = $product->get_catalog_visibility();
+                                    $value = apply_filters('pmxe_woo_field', $value, $element_name, $entry->ID);
+                                    wp_all_export_write_article($article, $element_name, $value);
+                                }
                             } else {
                                 if (!empty($fieldValue)) {
 
@@ -694,6 +741,10 @@ final class XmlExportCpt
 		switch ($element_type) 
 		{
 			case 'id':
+				// Ensure that combined fields aren't used as the unique_key.
+				if( isset($options['cc_combine_multiple_fields'][$ID]) && $options['cc_combine_multiple_fields'][$ID] == 1){
+					break;
+				}
                 if ($field_tpl_key == 'ID' && !$ID && $exportOptions['export_to'] == 'csv' && $exportOptions['export_to_sheet'] != 'csv'){
                     $field_tpl_key = 'id';
                 }
@@ -844,5 +895,54 @@ final class XmlExportCpt
 			self::$userData[$userId] = get_userdata($userId);
 		}
 		return self::$userData[$userId];
+	}
+
+	/**
+	 * Sanitize ACF field values to prevent addon crashes from corrupted data
+	 *
+	 * @param mixed $field_value The field value from ACF
+	 * @param array $field_options The field configuration
+	 * @param string $field_label The field label
+	 * @param int $entry_id The post ID for logging
+	 * @return mixed Sanitized field value
+	 */
+	private static function sanitizeAcfFieldValue($field_value, $field_options, $field_label, $entry_id) {
+		// If field value is null or empty, return as-is
+		if (empty($field_value) && $field_value !== 0 && $field_value !== '0') {
+			return $field_value;
+		}
+
+		$field_type = isset($field_options['type']) ? $field_options['type'] : 'unknown';
+
+		// Handle corrupted data where arrays became strings
+		if (is_string($field_value) && $field_value === 'Array') {
+			return '';
+		}
+
+		// Handle specific field types that expect arrays
+		switch ($field_type) {
+			case 'google_map':
+				if (is_string($field_value) && strpos($field_value, 'Array') === 0) {
+					return null;
+				}
+				if (is_string($field_value) && $field_value !== 'Array') {
+					return $field_value;
+				}
+				break;
+
+			case 'repeater':
+			case 'flexible_content':
+			case 'group':
+			case 'gallery':
+			case 'relationship':
+			case 'post_object':
+				if (is_string($field_value) && (strpos($field_value, 'Array') === 0 || $field_value === 'Array')) {
+					return array();
+				}
+				break;
+		}
+
+		// For all other cases, return the value as-is
+		return $field_value;
 	}
 }

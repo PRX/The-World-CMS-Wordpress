@@ -108,7 +108,7 @@ class FilteringUsers extends \Wpae\Pro\Filtering\FilteringBase
      */
     protected function getExcludeQueryWhere($postsToExclude){
 
-        return " AND ({$this->wpdb->users}.ID NOT IN (". implode(',', $postsToExclude) ."))";
+        return " AND ({$this->wpdb->users}.ID NOT IN (". $postsToExclude ."))";
 
     }
 }

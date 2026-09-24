@@ -142,8 +142,12 @@ abstract class Model {
 			return null;
 		}
 
-		// If the property is a callable, we need to process it.
-		if ( is_callable( $this->fields[ $key ] ) ) {
+		// Unresolved fields are closures (see wrap_fields()); resolve and memoize them.
+		// Anything else is already-resolved data, including strings that happen to
+		// collide with a defined function name ("Max" vs max()), which is_callable()
+		// would match case-insensitively and invoke the builtin instead of returning
+		// the value.
+		if ( $this->fields[ $key ] instanceof \Closure ) {
 			$data       = call_user_func( $this->fields[ $key ] );
 			$this->$key = $data;
 
@@ -412,7 +416,12 @@ abstract class Model {
 			$field = null;
 		}
 
-		if ( is_callable( $field ) ) {
+		// Invoke Closures and callable arrays (the resolver shapes WPGraphQL installs),
+		// but never a bare callable string. A field definition that is a string is data,
+		// not a resolver we registered (for example a value that happens to match a PHP
+		// function name), so it must be returned rather than invoked. This mirrors the
+		// Closure gate in __get(). Defense in depth for GHSA-7922 / CVE-2026-18944.
+		if ( is_callable( $field ) && ! is_string( $field ) ) {
 			$this->setup();
 			$field = call_user_func( $field );
 			$this->tear_down();

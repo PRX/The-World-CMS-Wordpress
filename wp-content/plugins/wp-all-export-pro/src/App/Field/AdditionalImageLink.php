@@ -25,10 +25,12 @@ class AdditionalImageLink extends Field
             }
 
         } else if($basicInformationData['additionalImageLink'] == self::CUSTOM_VALUE_TEXT) {
-            return $this->replaceSnippetsInValue($basicInformationData['additionalImageLinkCV'], $snippetData);
+            return $basicInformationData['additionalImageLinkCV'];
         } else {
             throw new \Exception('Unknown value '.$basicInformationData['additionalImageLink']. ' for additional image link');
         }
+
+		return '';
 
     }
 

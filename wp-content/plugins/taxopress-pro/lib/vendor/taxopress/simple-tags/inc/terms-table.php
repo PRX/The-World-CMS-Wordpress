@@ -27,17 +27,17 @@ class Taxopress_Terms_List extends WP_List_Table
         $taxonomies = array_keys(get_all_taxopress_taxonomies_request());
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameter for search filtering
-        $search = (!empty($_REQUEST['s'])) ? sanitize_text_field($_REQUEST['s']) : '';
+        $search = (!empty($_REQUEST['s'])) ? sanitize_text_field(wp_unslash($_REQUEST['s'])) : '';
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering and display
-        $selected_post_type = (!empty($_REQUEST['terms_filter_post_type'])) ? sanitize_key($_REQUEST['terms_filter_post_type']) : '';
+        $selected_post_type = (!empty($_REQUEST['terms_filter_post_type'])) ? sanitize_key(wp_unslash($_REQUEST['terms_filter_post_type'])) : '';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering and display
-        $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_key($_REQUEST['terms_filter_taxonomy']) : '';
+        $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_key(wp_unslash($_REQUEST['terms_filter_taxonomy'])) : '';
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameter for taxonomy filtering
         if (!empty($_REQUEST['taxopress_terms_taxonomy'])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameter for taxonomy filtering
-            $selected_taxonomy = sanitize_key($_REQUEST['taxopress_terms_taxonomy']);
+            $selected_taxonomy = sanitize_key(wp_unslash($_REQUEST['taxopress_terms_taxonomy']));
             $taxonomies = [$selected_taxonomy];
         } elseif (!empty($selected_taxonomy)) {
             $taxonomies = [$selected_taxonomy];
@@ -196,7 +196,7 @@ class Taxopress_Terms_List extends WP_List_Table
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Temporary display context after a copy action.
         $original_term_id = !empty($_REQUEST['taxopress_original_term_id']) ? (int) $_REQUEST['taxopress_original_term_id'] : 0;
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Temporary display context after a copy action.
-        $taxonomy = !empty($_REQUEST['taxopress_copied_taxonomy']) ? sanitize_key($_REQUEST['taxopress_copied_taxonomy']) : '';
+        $taxonomy = !empty($_REQUEST['taxopress_copied_taxonomy']) ? sanitize_key(wp_unslash($_REQUEST['taxopress_copied_taxonomy'])) : '';
 
         if ($copied_term_id <= 0 || $original_term_id <= 0 || empty($taxonomy)) {
             return $terms;
@@ -401,9 +401,9 @@ class Taxopress_Terms_List extends WP_List_Table
         $allowed_order   = ['asc', 'desc'];
 
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for ordering
-        $requested_orderby = !empty($_REQUEST['orderby']) ? sanitize_key($_REQUEST['orderby']) : '';
+        $requested_orderby = !empty($_REQUEST['orderby']) ? sanitize_key(wp_unslash($_REQUEST['orderby'])) : '';
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for ordering
-        $requested_order   = !empty($_REQUEST['order']) ? strtolower(sanitize_text_field($_REQUEST['order'])) : '';
+        $requested_order   = !empty($_REQUEST['order']) ? strtolower(sanitize_text_field(wp_unslash($_REQUEST['order']))) : '';
 
         if (!in_array($requested_orderby, $allowed_orderby, true)) {
             $requested_orderby = '';
@@ -819,11 +819,11 @@ class Taxopress_Terms_List extends WP_List_Table
             $taxonomies = get_all_taxopress_taxonomies_request();
 
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering
-            $selected_post_type = (!empty($_REQUEST['terms_filter_post_type'])) ? sanitize_text_field($_REQUEST['terms_filter_post_type']) : '';
+            $selected_post_type = (!empty($_REQUEST['terms_filter_post_type'])) ? sanitize_text_field(wp_unslash($_REQUEST['terms_filter_post_type'])) : '';
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering
-            $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field($_REQUEST['terms_filter_taxonomy']) : '';
+            $selected_taxonomy = (!empty($_REQUEST['terms_filter_taxonomy'])) ? sanitize_text_field(wp_unslash($_REQUEST['terms_filter_taxonomy'])) : '';
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering
-            $selected_post = (!empty($_REQUEST['taxopress_destination_post_type'])) ? sanitize_text_field($_REQUEST['taxopress_destination_post_type']) : '';
+            $selected_post = (!empty($_REQUEST['taxopress_destination_post_type'])) ? sanitize_text_field(wp_unslash($_REQUEST['taxopress_destination_post_type'])) : '';
 
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying GET parameter for taxonomy type
             $selected_option = 'public';
@@ -893,19 +893,23 @@ class Taxopress_Terms_List extends WP_List_Table
 
         $query_arg = '_wpnonce';
         $action = 'bulk-' . $this->_args['plural'];
-        $checked = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key($_REQUEST[$query_arg]), $action) : false;
+        $checked = isset($_REQUEST[$query_arg]) ? wp_verify_nonce(sanitize_key(wp_unslash($_REQUEST[$query_arg])), $action) : false;
 
         if (!$checked || !current_user_can('simple_tags')) {
             return;
         }
 
         if ($this->current_action() === 'taxopress-terms-delete-terms') {
-            $taxopress_terms = !empty($_REQUEST['taxopress_terms']) ? array_map('sanitize_text_field', (array)$_REQUEST['taxopress_terms']) : [];
+            $taxopress_terms = !empty($_REQUEST['taxopress_terms']) ? array_map('sanitize_text_field', (array) wp_unslash($_REQUEST['taxopress_terms'])) : [];
             if (!empty($taxopress_terms)) {
                 $deleted_terms_by_taxonomy = [];
                 foreach ($taxopress_terms as $taxopress_term) {
                     $term = get_term($taxopress_term);
                     if (!$term || is_wp_error($term)) {
+                        continue;
+                    }
+
+                    if (!taxopress_current_user_can_for_taxonomy($term->taxonomy, 'delete_terms')) {
                         continue;
                     }
 
@@ -924,24 +928,58 @@ class Taxopress_Terms_List extends WP_List_Table
             }
         }
         if ($this->current_action() === 'taxopress-terms-copy-terms') {
-            $taxopress_terms = !empty($_REQUEST['taxopress_terms']) ? array_map('sanitize_text_field', (array)$_REQUEST['taxopress_terms']) : [];
-            $destination_taxonomy = !empty($_REQUEST['taxopress_destination_taxonomy']) ? sanitize_text_field($_REQUEST['taxopress_destination_taxonomy']) : '';
-            $destination_post = !empty($_REQUEST['taxopress_destination_post_type']) ? sanitize_text_field($_REQUEST['taxopress_destination_post_type']) : '';
+            $taxopress_terms = !empty($_REQUEST['taxopress_terms']) ? array_map('sanitize_text_field', (array) wp_unslash($_REQUEST['taxopress_terms'])) : [];
+            $destination_taxonomy = !empty($_REQUEST['taxopress_destination_taxonomy']) ? sanitize_key(wp_unslash($_REQUEST['taxopress_destination_taxonomy'])) : '';
+            $destination_post = !empty($_REQUEST['taxopress_destination_post_type']) ? sanitize_text_field(wp_unslash($_REQUEST['taxopress_destination_post_type'])) : '';
 
-            if (!empty($taxopress_terms) && !empty($destination_taxonomy)) {
+            if (
+                !empty($taxopress_terms)
+                && !empty($destination_taxonomy)
+                && taxopress_current_user_can_for_taxonomy(
+                    $destination_taxonomy,
+                    ['edit_terms', 'assign_terms']
+                )
+            ) {
                 foreach ($taxopress_terms as $taxopress_term) {
                     $term = get_term($taxopress_term);
-                    wp_insert_term($term->name, $destination_taxonomy, [
+                    if (
+                        !$term
+                        || is_wp_error($term)
+                        || !taxopress_current_user_can_for_taxonomy($term->taxonomy, 'edit_terms')
+                    ) {
+                        continue;
+                    }
+
+                    $inserted_term = wp_insert_term($term->name, $destination_taxonomy, [
                         'slug' => $term->slug,
                         'description' => $term->description,
                     ]);
-                    if (!empty($destination_post) && $destination_post !== 'all') {
-                        wp_set_object_terms($destination_post, [$term->term_id], $destination_taxonomy, true);
+                    if (is_wp_error($inserted_term)) {
+                        $existing_term = term_exists($term->slug, $destination_taxonomy);
+                        $destination_term_id = is_array($existing_term) ? (int) $existing_term['term_id'] : (int) $existing_term;
+                    } else {
+                        $destination_term_id = (int) $inserted_term['term_id'];
                     }
 
-                    if ($destination_post === 'all') {
+                    if (
+                        $destination_term_id
+                        && !empty($destination_post)
+                        && $destination_post !== 'all'
+                        && current_user_can('edit_post', (int) $destination_post)
+                        && is_object_in_taxonomy(get_post_type((int) $destination_post), $destination_taxonomy)
+                    ) {
+                        wp_set_object_terms((int) $destination_post, [$destination_term_id], $destination_taxonomy, true);
+                    }
+
+                    if ($destination_term_id && $destination_post === 'all') {
                         foreach (taxopress_get_post_ids_for_terms_action() as $post_id) {
-                            wp_set_object_terms($post_id, [$term->term_id], $destination_taxonomy, true);
+                            if (
+                                !current_user_can('edit_post', $post_id)
+                                || !is_object_in_taxonomy(get_post_type($post_id), $destination_taxonomy)
+                            ) {
+                                continue;
+                            }
+                            wp_set_object_terms($post_id, [$destination_term_id], $destination_taxonomy, true);
                         }
                     }
                 }
@@ -1015,24 +1053,24 @@ class Taxopress_Terms_List extends WP_List_Table
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!empty($_REQUEST['orderby'])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field($_REQUEST['orderby'])) . '" />';
+            echo '<input type="hidden" name="orderby" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['orderby']))) . '" />';
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!empty($_REQUEST['order'])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field($_REQUEST['order'])) . '" />';
+            echo '<input type="hidden" name="order" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['order']))) . '" />';
         }
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
         if (!empty($_REQUEST['page'])) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field($_REQUEST['page'])) . '" />';
+            echo '<input type="hidden" name="page" value="' . esc_attr(sanitize_text_field(wp_unslash($_REQUEST['page']))) . '" />';
         }
 
         $custom_filters = ['terms_filter_post_type', 'terms_filter_taxonomy', 'taxonomy_type'];
 
         foreach ($custom_filters as $custom_filter) {
             // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Reading non-state-modifying REQUEST parameters for filtering
-            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field($_REQUEST[$custom_filter]) : '';
+            $filter_value = !empty($_REQUEST[$custom_filter]) ? sanitize_text_field(wp_unslash($_REQUEST[$custom_filter])) : '';
             echo '<input type="hidden" name="' . esc_attr($custom_filter) . '" value="' . esc_attr($filter_value) . '" />';
         }
         ?>
@@ -1133,14 +1171,14 @@ class Taxopress_Terms_List extends WP_List_Table
             if (current_user_can('edit_term', $item->term_id)) {
                 $actions['remove_posts'] = sprintf(
                     '<a href="%s">%s</a>',
-                    add_query_arg(
+                    esc_url(add_query_arg(
                         taxopress_get_terms_screen_query_args([
                             'action'                 => 'taxopress-remove-from-posts',
                             'taxopress_terms'        => esc_attr($item->term_id),
                             '_wpnonce'               => wp_create_nonce('terms-action-request-nonce')
                         ]),
                         admin_url('admin.php')
-                    ),
+                    )),
                     esc_html__('Remove From All Posts', 'simple-tags')
                 );
             }
@@ -1148,14 +1186,14 @@ class Taxopress_Terms_List extends WP_List_Table
             if (current_user_can('delete_term', $item->term_id)) {
                 $actions['delete'] = sprintf(
                     '<a href="%s" class="delete-terms">%s</a>',
-                    add_query_arg(
+                    esc_url(add_query_arg(
                         taxopress_get_terms_screen_query_args([
                             'action'                 => 'taxopress-delete-terms',
                             'taxopress_terms'        => esc_attr($item->term_id),
                             '_wpnonce'               => wp_create_nonce('terms-action-request-nonce')
                         ]),
                         admin_url('admin.php')
-                    ),
+                    )),
                     esc_html__('Delete', 'simple-tags')
                 );
             }
@@ -1170,14 +1208,14 @@ class Taxopress_Terms_List extends WP_List_Table
 
             $actions['copy_term'] = sprintf(
                 '<a href="%s">%s</a>',
-                add_query_arg(
+                esc_url(add_query_arg(
                     taxopress_get_terms_screen_query_args([
                         'action'                 => 'taxopress-copy-term',
                         'taxopress_terms'        => esc_attr($item->term_id),
                         '_wpnonce'               => wp_create_nonce('terms-action-request-nonce')
                     ]),
                     admin_url('admin.php')
-                ),
+                )),
                 esc_html__('Copy', 'simple-tags')
             );
             $actions = apply_filters('taxopress_terms_row_actions', $actions, $item);

@@ -37,7 +37,7 @@ class FilteringReviews extends \Wpae\Pro\Filtering\FilteringBase
     }
 
     public function getExcludeQueryWhere($postsToExclude){
-        $this->queryWhere = " AND ({$this->wpdb->comments}.comment_ID NOT IN (" . implode(',', $postsToExclude) . "))";
+        $this->queryWhere = " AND ({$this->wpdb->comments}.comment_ID NOT IN (" . $postsToExclude . "))";
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 function pmxe_prepend($string, $orig_filename)
 {
     $context = stream_context_create();
@@ -210,35 +212,32 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 
                         // convert splitted files into XLS format
                         if (!empty($exportOptions['split_files_list']) && !empty($export->options['export_to_sheet']) and $export->options['export_to_sheet'] != 'csv') {
-                            require_once PMXE_Plugin::ROOT_DIR . '/classes/PHPExcel/IOFactory.php';
+	                        foreach ($exportOptions['split_files_list'] as $key => $file) {
+		                        $reader = IOFactory::createReader('Csv');
+		                        // If the files use a delimiter other than a comma (e.g., a tab), then configure the reader
+		                        $reader->setDelimiter($export->options['delimiter']);
+		                        // Load the file into a Spreadsheet object
+		                        $spreadsheet = $reader->load($file);
+		                        $enableRtl = apply_filters('wp_all_export_enable_rtl', false, $export->id);
 
-                            foreach ($exportOptions['split_files_list'] as $key => $file) {
-                                $objReader = PHPExcel_IOFactory::createReader('CSV');
-                                // If the files uses a delimiter other than a comma (e.g. a tab), then tell the reader
-                                $objReader->setDelimiter($export->options['delimiter']);
-                                // If the files uses an encoding other than UTF-8 or ASCII, then tell the reader
-                                $objPHPExcel = $objReader->load($file);
-                                $enableRtl = apply_filters('wp_all_export_enable_rtl', false, $export->id);
+		                        if ($enableRtl) {
+			                        $spreadsheet->getActiveSheet()->setRightToLeft(true);
+		                        }
 
-                                if ($enableRtl) {
-                                    $objPHPExcel->getActiveSheet()
-                                        ->setRightToLeft(true);
-                                }
-
-                                switch ($export->options['export_to_sheet']) {
-                                    case 'xls':
-                                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-                                        $objWriter->save(str_replace(".csv", ".xls", $file));
-                                        $exportOptions['split_files_list'][$key] = str_replace(".csv", ".xls", $file);
-                                        break;
-                                    case 'xlsx':
-                                        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-                                        $objWriter->save(str_replace(".csv", ".xlsx", $file));
-                                        $exportOptions['split_files_list'][$key] = str_replace(".csv", ".xlsx", $file);
-                                        break;
-                                }
-                                @unlink($file);
-                            }
+		                        switch ($export->options['export_to_sheet']) {
+			                        case 'xls':
+				                        $writer = IOFactory::createWriter($spreadsheet, 'Xls');
+				                        $writer->save(str_replace(".csv", ".xls", $file));
+				                        $exportOptions['split_files_list'][$key] = str_replace(".csv", ".xls", $file);
+				                        break;
+			                        case 'xlsx':
+				                        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+				                        $writer->save(str_replace(".csv", ".xlsx", $file));
+				                        $exportOptions['split_files_list'][$key] = str_replace(".csv", ".xlsx", $file);
+				                        break;
+		                        }
+		                        @unlink($file);
+	                        }
                         }
 
                         break;
@@ -259,10 +258,10 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             if ($export->options['export_to'] == 'csv') {
                 $f = fopen($filepath, 'r');
 
-                $headers = fgetcsv($f);
+                $headers = fgetcsv($f, null, $export->options['delimiter']);
 
                 while(!feof($f)) {
-                    $data = fgetcsv($f);
+                    $data = fgetcsv($f, null, $export->options['delimiter']);
                     $currentLine = [];
                     if(is_array($data)) {
                         foreach ($data as $key => $value) {
@@ -303,36 +302,32 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 
         // convert CSV to XLS
         if (@file_exists($filepath) and $export->options['export_to'] == 'csv' && !empty($export->options['export_to_sheet']) and $export->options['export_to_sheet'] != 'csv') {
-            require_once PMXE_Plugin::ROOT_DIR . '/classes/PHPExcel/IOFactory.php';
+	        $reader = IOFactory::createReader('Csv');
+			// If the file uses a delimiter other than a comma (e.g., a tab), then configure the reader
+	        $reader->setDelimiter($export->options['delimiter']);
+			// Load the file into a Spreadsheet object
+	        $spreadsheet = $reader->load($filepath);
 
-            $objReader = PHPExcel_IOFactory::createReader('CSV');
-            // If the files uses a delimiter other than a comma (e.g. a tab), then tell the reader
-            $objReader->setDelimiter($export->options['delimiter']);
-            // If the files uses an encoding other than UTF-8 or ASCII, then tell the reader
+	        $enableRtl = apply_filters('wp_all_export_enable_rtl', false, $export->id);
 
-            $objPHPExcel = $objReader->load($filepath);
+	        if ($enableRtl) {
+		        $spreadsheet->getActiveSheet()->setRightToLeft(true);
+	        }
 
-            $enableRtl = apply_filters('wp_all_export_enable_rtl', false, $export->id);
-
-            if ($enableRtl) {
-                $objPHPExcel->getActiveSheet()
-                    ->setRightToLeft(true);
-            }
-
-            switch ($export->options['export_to_sheet']) {
-                case 'xls':
-                    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-                    $objWriter->save(str_replace(".csv", ".xls", $filepath));
-                    @unlink($filepath);
-                    $filepath = str_replace(".csv", ".xls", $filepath);
-                    break;
-                case 'xlsx':
-                    $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-                    $objWriter->save(str_replace(".csv", ".xlsx", $filepath));
-                    @unlink($filepath);
-                    $filepath = str_replace(".csv", ".xlsx", $filepath);
-                    break;
-            }
+	        switch ($export->options['export_to_sheet']) {
+		        case 'xls':
+			        $writer = IOFactory::createWriter($spreadsheet, 'Xls');
+			        $writer->save(str_replace(".csv", ".xls", $filepath));
+			        @unlink($filepath);
+			        $filepath = str_replace(".csv", ".xls", $filepath);
+			        break;
+		        case 'xlsx':
+			        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+			        $writer->save(str_replace(".csv", ".xlsx", $filepath));
+			        @unlink($filepath);
+			        $filepath = str_replace(".csv", ".xlsx", $filepath);
+			        break;
+	        }
 
             $exportOptions = $export->options;
             $exportOptions['filepath'] = wp_all_export_get_relative_path($filepath);
@@ -363,6 +358,60 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             }
 
         }
+
+		// Remove empty columns.
+	    if(!empty($export->options['csv_omit_empty_columns']) && $export->options['export_to'] == 'csv' && $export->options['export_to_sheet'] == 'csv' && @file_exists($filepath)){
+		    // Create a temporary file
+		    $tempFile = tempnam(sys_get_temp_dir(), 'temp_csv');
+
+		    // Open the input file for reading and the temporary file for writing
+		    $in = fopen($filepath, 'r');
+		    $out = fopen($tempFile, 'w');
+
+		    if ($in === FALSE || $out === FALSE) {
+			    // TODO: Add error handling.
+		    }
+
+		    // Read the header row.
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+		    $columnCount = count($header);
+		    $nonEmptyColumns = array_fill(0, $columnCount, false);
+
+		    // Determine non-empty columns by scanning through each data row.
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'])) !== FALSE) {
+			    foreach ($row as $index => $value) {
+				    if (!empty($value)) {
+					    $nonEmptyColumns[$index] = true;
+				    }
+			    }
+		    }
+
+		    // Close and reopen the input file for reading from the beginning
+		    fclose($in);
+		    $in = fopen($filepath, 'r');
+
+		    // Write the header row with filtered columns.
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+		    $filteredHeader = array_filter($header, function($key) use ($nonEmptyColumns) {
+			    return $nonEmptyColumns[$key];
+		    }, ARRAY_FILTER_USE_KEY);
+		    fputcsv($out, array_values($filteredHeader), XmlExportEngine::$exportOptions['delimiter']);
+
+		    // Write the filtered data rows.
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'])) !== FALSE) {
+			    $filteredRow = array_filter($row, function($key) use ($nonEmptyColumns) {
+				    return $nonEmptyColumns[$key];
+			    }, ARRAY_FILTER_USE_KEY);
+			    fputcsv($out, array_values($filteredRow), XmlExportEngine::$exportOptions['delimiter']);
+		    }
+
+		    // Close the files.
+		    fclose($in);
+		    fclose($out);
+
+		    // Overwrite the original file with our updated version.
+		    rename($tempFile, $filepath);
+	    }
 
         // make a temporary copy of current file
         if (empty($export->parent_id) and @file_exists($filepath) and @copy($filepath, str_replace(basename($filepath), '', $filepath) . 'current-' . basename($filepath))) {
@@ -396,6 +445,9 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             $wp_uploads = wp_upload_dir();
 
             $fileurl = str_replace($wp_uploads['basedir'], $wp_uploads['baseurl'], $filepath);
+
+			// Add file edit time parameter to avoid caching of linked files by Cloudflare (or other caches).
+	        $fileurl = add_query_arg('v', filemtime($filepath), $fileurl);
 
             if ($export->isRte()) {
 

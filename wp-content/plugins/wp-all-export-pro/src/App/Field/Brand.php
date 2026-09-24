@@ -11,7 +11,7 @@ class Brand extends Field
     {
         $uniqueIdentifiersData = $this->feed->getSectionFeedData(self::SECTION);
 
-        $value = $this->replaceSnippetsInValue($uniqueIdentifiersData['brand'], $snippetData);
+        $value = $uniqueIdentifiersData['brand'];
 
         return $value;
     }

@@ -46,6 +46,8 @@ function pmxe_wp_ajax_wpae_preview(){
 
 	XmlExportEngine::$exportOptions      = $exportOptions;
 	XmlExportEngine::$is_user_export     = $exportOptions['is_user_export'];
+	XmlExportEngine::$is_woo_customer_export = !empty($exportOptions['is_woo_customer_export']) ? $exportOptions['is_woo_customer_export'] : false;
+	XmlExportEngine::$is_woo_guest_customer_export = !empty($exportOptions['is_woo_guest_customer_export']) ? $exportOptions['is_woo_guest_customer_export'] : false;
 	XmlExportEngine::$is_comment_export  = $exportOptions['is_comment_export'];
 	XmlExportEngine::$is_taxonomy_export = $exportOptions['is_taxonomy_export'];
 	XmlExportEngine::$exportID 			 = $export_id;
@@ -117,6 +119,37 @@ function pmxe_wp_ajax_wpae_preview(){
 		if ( XmlExportEngine::$is_user_export ) {
 			$exportQuery = eval('return new WP_User_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
+		elseif ( XmlExportEngine::$is_woo_guest_customer_export ) {
+			// Handle guest customers advanced export preview
+			global $wpdb;
+			$table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}wc_customer_lookup'");
+			if (!$table_exists) {
+				$exportQuery = new stdClass();
+				$exportQuery->results = array();
+			} else {
+				$where_clause = "user_id IS NULL";
+
+				if (!empty($exportOptions['export_only_customers_that_made_purchases'])) {
+					$where_clause .= " AND order_count > 0";
+				}
+
+				// Apply advanced filtering rules if they exist
+				$whereclause = PMXE_Plugin::$session->get('whereclause');
+				if (!empty($whereclause)) {
+					$where_clause .= $whereclause;
+				}
+
+				$guest_customers = $wpdb->get_results("
+					SELECT * FROM {$wpdb->prefix}wc_customer_lookup
+					WHERE {$where_clause}
+					ORDER BY customer_id ASC
+					LIMIT 10
+				");
+
+				$exportQuery = new stdClass();
+				$exportQuery->results = $guest_customers ?: array();
+			}
+		}
 		elseif ( XmlExportEngine::$is_comment_export ) {
 			$exportQuery = eval('return new WP_Comment_Query(array(' . $exportOptions['wp_query'] . ', \'offset\' => 0, \'number\' => 10));');
 		}
@@ -132,11 +165,46 @@ function pmxe_wp_ajax_wpae_preview(){
 	{
 		XmlExportEngine::$post_types = $exportOptions['cpt'];
 
+
+
 		if ( in_array('users', $exportOptions['cpt']) or in_array('shop_customer', $exportOptions['cpt']))
 		{
 			add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
 			$exportQuery = new WP_User_Query( array( 'orderby' => 'ID', 'order' => 'ASC', 'number' => 10 ));
 			remove_action('pre_user_query', 'wp_all_export_pre_user_query');
+		}
+		elseif ( in_array('shop_guest_customer', $exportOptions['cpt']))
+		{
+			// Handle guest customers preview
+			global $wpdb;
+			$table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}wc_customer_lookup'");
+			if (!$table_exists) {
+				$exportQuery = new stdClass();
+				$exportQuery->results = array();
+			} else {
+				$where_clause = "user_id IS NULL";
+
+				// Apply basic filtering if needed
+				if (!empty($exportOptions['export_only_customers_that_made_purchases'])) {
+					$where_clause .= " AND order_count > 0";
+				}
+
+				// Apply advanced filtering rules if they exist
+				$whereclause = PMXE_Plugin::$session->get('whereclause');
+				if (!empty($whereclause)) {
+					$where_clause .= $whereclause;
+				}
+
+				$guest_customers = $wpdb->get_results("
+					SELECT * FROM {$wpdb->prefix}wc_customer_lookup
+					WHERE {$where_clause}
+					ORDER BY customer_id ASC
+					LIMIT 9
+				");
+
+				$exportQuery = new stdClass();
+				$exportQuery->results = $guest_customers ?: array();
+			}
 		}
 		elseif ( in_array('taxonomies', $exportOptions['cpt']))
 		{
@@ -181,7 +249,11 @@ function pmxe_wp_ajax_wpae_preview(){
             }
             remove_action('comments_clauses', 'wp_all_export_comments_clauses');
 
+        } else if(in_array('shop_order', $exportOptions['cpt']) && PMXE_Plugin::hposEnabled()) {
+            $exportQuery = new \Wpae\WordPress\OrderQuery();
+
         }
+
 		else
 		{
 		    if(strpos($exportOptions['cpt'][0], 'custom_') === 0) {
@@ -243,8 +315,9 @@ function pmxe_wp_ajax_wpae_preview(){
 		$wp_uploads = wp_upload_dir();
 
 		$functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-		if ( @file_exists($functions) ) {
-			require_once $functions;
+		$functions = apply_filters( 'wp_all_export_functions_file_path', $functions );
+        if ( @file_exists($functions) ) {
+			\Wpae\Integrations\CodeBox::requireFunctionsFile();
 		}
 
 		switch ($exportOptions['export_to']) {

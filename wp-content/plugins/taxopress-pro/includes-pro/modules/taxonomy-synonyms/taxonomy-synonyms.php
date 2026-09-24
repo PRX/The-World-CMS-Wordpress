@@ -121,12 +121,12 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
         public function save_term_fields($term_id)
         {
 
-            if (!isset($_POST['taxopress_term_synonyms_nonce']) || !wp_verify_nonce(sanitize_key($_POST['taxopress_term_synonyms_nonce']), 'taxopress_term_synonyms')) {
+            if (!isset($_POST['taxopress_term_synonyms_nonce']) || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['taxopress_term_synonyms_nonce'])), 'taxopress_term_synonyms')) {
                 return;
             }
 
             // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Input is properly validated with isset() check above and sanitized here
-            $taxopress_term_synonyms = isset($_POST['taxopress_term_synonyms']) ? array_map('sanitize_text_field', $_POST['taxopress_term_synonyms']) : [];
+            $taxopress_term_synonyms = isset($_POST['taxopress_term_synonyms']) ? array_map('sanitize_text_field', wp_unslash($_POST['taxopress_term_synonyms'])) : [];
             $taxopress_term_synonyms = array_filter($taxopress_term_synonyms);
 
             update_term_meta(
@@ -218,7 +218,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
             // phpcs:ignore WordPress.Security.NonceVerification.Missing
             if (!empty($_POST) && isset($_POST['taxopress_term_synonyms']) && !empty($_POST['taxopress_term_synonyms'])) {
                 // phpcs:ignore WordPress.Security.NonceVerification.Missing
-                $meta_values = array_map('sanitize_text_field', $_POST['taxopress_term_synonyms']);
+                $meta_values = array_map('sanitize_text_field', wp_unslash($_POST['taxopress_term_synonyms']));
                 $meta_values = array_filter($meta_values);
                 if (!empty($meta_values)) {
                     $duplicate_terms = self::find_terms_with_synonyms($meta_values);
@@ -296,13 +296,20 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
         public static function handle_duplicate_synonyms_validation()
         {
 
+            if (!current_user_can('simple_tags')) {
+                wp_send_json([
+                        'status'  => 'error',
+                        'content' => esc_html__('Permission denied.', 'taxopress-pro'),
+                    ], 403);
+            }
+
             $response['status']  = 'success';
             $response['content'] = esc_html__('Request status.', 'taxopress-pro');
 
             //do not process request if nonce validation failed
             if (
                 empty($_POST['nonce'])
-                || !wp_verify_nonce(sanitize_key($_POST['nonce']), 'ajax-duplicate-nonce')
+                || !wp_verify_nonce(sanitize_key(wp_unslash($_POST['nonce'])), 'ajax-duplicate-nonce')
             ) {
                 $response['status']  = 'error';
                 $response['content'] = esc_html__(
@@ -310,7 +317,7 @@ if (!class_exists('TaxoPress_Taxonomy_Synonyms')) {
                     'taxopress-pro'
                 );
             } else {
-                $term_synonyms = !empty($_POST['term_synonyms']) ? array_map('sanitize_text_field', $_POST['term_synonyms']) : [];
+                $term_synonyms = !empty($_POST['term_synonyms']) ? array_map('sanitize_text_field', wp_unslash($_POST['term_synonyms'])) : [];
                 $term_id     = !empty($_POST['term_id']) ? (int) $_POST['term_id'] : 0;
 
                 if ($term_id > 0 && !empty($term_synonyms)) {

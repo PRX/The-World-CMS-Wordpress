@@ -11,12 +11,12 @@ $is_rapid_addon_export = PMXE_Helper::is_rapid_export_addon($exportOptions['cpt'
     <label>
         <input type="radio" name="scheduling_enable"
                value="2" <?php if (isset($exportOptions['scheduling_enable']) &&  $exportOptions['scheduling_enable'] == 2) { ?> checked="checked" <?php } ?>/>
-        <h4 style="margin-top: 0;display: inline-block;"><?php esc_html_e('Manual Scheduling', PMXE_Plugin::LANGUAGE_DOMAIN); ?></h4>
+        <h4 style="margin: 0;display: inline-block;"><?php esc_html_e('Manual Scheduling', 'wp_all_export_plugin'); ?></h4>
     </label>
-    <div style="margin-left: 26px; margin-bottom: 10px; font-size: 13px; margin-top: -3px;"><?php esc_html_e('Run this export using cron jobs.'); ?></div>
+    <div style="margin-left: 26px; margin-bottom: 10px; font-size: 13px; margin-top: -3px;"><?php esc_html_e('Run this export using cron jobs.', 'wp_all_export_plugin'); ?></div>
     <div style="<?php if (isset($exportOptions['scheduling_enable']) && $exportOptions['scheduling_enable'] != 2) { ?> display: none; <?php } ?>" class="manual-scheduling">
         <p style="margin:0;">
-        <h5 style="margin-bottom: 10px; margin-top: 10px; font-size: 14px;"><?php esc_html_e('Trigger URL'); ?></h5>
+        <h5 style="margin-bottom: 10px; margin-top: 10px; font-size: 14px;"><?php esc_html_e('Trigger URL', 'wp_all_export_plugin'); ?></h5>
         <code style="padding: 10px; border: 1px solid #ccc; display: block; width: 90%;">
             <?php echo esc_url(site_url() . '/wp-load.php?export_key=' . $cron_job_key . '&export_id=' . $export_id . '&action=trigger'); ?>
         </code>

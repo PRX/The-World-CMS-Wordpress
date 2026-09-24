@@ -85,7 +85,7 @@ do_action('pmxe_addons_html');
 											break;
 										}
 									}
-									$order = array('shop_order', 'shop_coupon', 'shop_customer', 'product');
+									$order = array('shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer', 'product');
 									foreach ($order as $cpt){
 										if (!empty($custom_types[$cpt])) $sorted_cpt[$cpt] = $custom_types[$cpt];
 									}
@@ -101,7 +101,7 @@ do_action('pmxe_addons_html');
                                 if (  class_exists('WooCommerce') ){
                                     $reviewElement = new stdClass();
                                     $reviewElement->labels = new stdClass();
-                                    $reviewElement->labels->name = esc_html__('WooCommerce Reviews', PMXE_Plugin::LANGUAGE_DOMAIN);
+                                    $reviewElement->labels->name = esc_html__('WooCommerce Reviews', 'wp_all_export_plugin');
 
                                     $sorted_cpt = $this->insertAfter($sorted_cpt, 'product', 'shop_review', $reviewElement);
                                 }
@@ -115,7 +115,7 @@ do_action('pmxe_addons_html');
 										foreach ($sorted_cpt as $key => $ct) {
 
                                                 // Remove unused post types
-                                                if( in_array($key, array('wp_block', 'customize_changeset', 'custom_css', 'scheduled_action', 'scheduled-action', 'user_request', 'oembed_cache'))) {
+                                                if( in_array($key, array('wp_block', 'customize_changeset', 'custom_css', 'scheduled_action', 'scheduled-action', 'user_request', 'oembed_cache', 'wp_navigation'))) {
                                                    continue;
                                                 }
 
@@ -126,7 +126,7 @@ do_action('pmxe_addons_html');
                                                 }
 												$cpt_label = $ct->labels->name;
 
-                                                if (in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer', 'users', 'comments', 'taxonomies', 'custom_wpae-gf-addon'))) {
+                                                if (in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer', 'users', 'comments', 'taxonomies', 'custom_wpae-gf-addon'))) {
                                                     $image_src = 'dashicon-' . $key;
                                                 } else if ($key == 'shop_review') {
                                                     $image_src = 'dashicon-review';
@@ -160,6 +160,8 @@ do_action('pmxe_addons_html');
 								<input type="hidden" name="cpt" value="<?php echo $post['cpt']; ?>"/>									
 								<div class="taxonomy_to_export_wrapper">
 									<input type="hidden" name="taxonomy_to_export" value="<?php echo $post['taxonomy_to_export'];?>">
+									<h2 class="wpae-taxonomy-h2"><?php _e('Select taxonomy to export...');?> <a href="#help" class="wpallexport-help upper"
+                                       title="<?php esc_html_e('Hover over each entry to view the taxonomy slug.', 'wp_all_export_plugin'); ?>">?</a></h2>
 									<select id="taxonomy_to_export">
 										<option value=""><?php esc_html_e('Select taxonomy', 'wp_all_export_plugin'); ?></option>
 										<?php $options = wp_all_export_get_taxonomies(); ?>
@@ -200,54 +202,54 @@ do_action('pmxe_addons_html');
 
                         <div class="wpallexport-free-edition-notice wpallexport-user-export-notice" >
                             <p>
-                                <?php esc_html_e('The User Export Add-On Pro is required to Export Users', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
+                                <?php esc_html_e('The User Export Add-On Pro is required to Export Users', 'wp_all_export_plugin'); ?>
                             </p>
 
-                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-users" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the User Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-users" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the User Export Add-On', 'wp_all_export_plugin');?></a>
                         </div>
 
                         <div class="wpallexport-free-edition-notice wpallexport-customer-export-notice" >
                             <p>
-                                <?php esc_html_e('The User Export Add-On Pro is required to Export WooCommerce Customers', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
+                                <?php esc_html_e('The User Export Add-On Pro is required to Export WooCommerce Customers', 'wp_all_export_plugin'); ?>
                             </p>
-                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-customers" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the User Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-customers" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the User Export Add-On', 'wp_all_export_plugin');?></a>
                         </div>
 
                         <div class="wpallexport-free-edition-notice wpallexport-product-export-notice" >
                             <p>
-                                <?php esc_html_e('The Product Export Add-On is required to Export WooCommerce Products', PMXE_Plugin::LANGUAGE_DOMAIN);
+                                <?php esc_html_e('The Product Export Add-On is required to Export WooCommerce Products', 'wp_all_export_plugin');
 
                                 ?>
                             </p>
-                            <a href="https://wordpress.org/plugins/product-export-for-woocommerce/" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to download the Product Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>?>
+                            <a href="https://wordpress.org/plugins/product-export-for-woocommerce/" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to download the Product Export Add-On', 'wp_all_export_plugin');?></a>
                         </div>
 
                         <div class="wpallexport-free-edition-notice wpallexport-order-export-notice" >
                             <p>
-                                <?php esc_html_e('The Order Export Add-On is required to Export WooCommerce Orders', PMXE_Plugin::LANGUAGE_DOMAIN);
+                                <?php esc_html_e('The Order Export Add-On is required to Export WooCommerce Orders', 'wp_all_export_plugin');
 
                                 ?>
                             </p>
 
-                                <a href="https://wordpress.org/plugins/order-export-for-woocommerce/" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to download the Order Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                                <a href="https://wordpress.org/plugins/order-export-for-woocommerce/" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to download the Order Export Add-On', 'wp_all_export_plugin');?></a>
 
                         </div>
 
                         <div class="wpallexport-free-edition-notice wpallexport-coupon-export-notice" >
                             <p>
-                                <?php esc_html_e('The WooCommerce Export Add-On Pro is required to Export WooCommerce Coupons', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
+                                <?php esc_html_e('The WooCommerce Export Add-On Pro is required to Export WooCommerce Coupons', 'wp_all_export_plugin'); ?>
                             </p>
 
-                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-coupons" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the WooCommerce Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-coupons" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the WooCommerce Export Add-On', 'wp_all_export_plugin');?></a>
 
                         </div>
 
                         <div class="wpallexport-free-edition-notice wpallexport-review-export-notice" >
                             <p>
-                                <?php esc_html_e('The WooCommerce Export Add-On Pro is required to Export WooCommerce Reviews', PMXE_Plugin::LANGUAGE_DOMAIN); ?>
+                                <?php esc_html_e('The WooCommerce Export Add-On Pro is required to Export WooCommerce Reviews', 'wp_all_export_plugin'); ?>
                             </p>
 
-                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-reviews" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the WooCommerce Export Add-On', PMXE_Plugin::LANGUAGE_DOMAIN);?></a>
+                            <a href="http://www.wpallimport.com/portal/discounts/?utm_source=export-plugin-pro&utm_medium=upgrade-notice&utm_campaign=export-reviews" target="_blank" class="upgrade_link"><?php esc_html_e('Click here to purchase the WooCommerce Export Add-On', 'wp_all_export_plugin');?></a>
 
                         </div>
                         

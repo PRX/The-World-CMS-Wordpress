@@ -48,7 +48,7 @@ class PMXE_XMLWriter extends XMLWriter
 
         if (!empty($article)) {
             foreach ($article as $key => $value) {
-                if (!is_array($value) && strpos($value, '#delimiter#') !== FALSE) {
+                if (!empty($value) && !is_array($value) && strpos($value, '#delimiter#') !== FALSE) {
                     $article[$key] = explode('#delimiter#', $value);
                 }
             }
@@ -113,6 +113,11 @@ class PMXE_XMLWriter extends XMLWriter
     {
         if (in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants'))) return true;
 
+        // Fix for "0" values - convert to string to ensure they're properly processed
+        if ($value === 0 || $value === "0") {
+            $value = "0";
+        }
+
         $cdataStrategyFactory = new CdataStrategyFactory();
 
         if (!isset(XmlExportEngine::$exportOptions['custom_xml_cdata_logic'])) {
@@ -166,11 +171,16 @@ class PMXE_XMLWriter extends XMLWriter
             }
 
             foreach ($article as $key => $value) {
+				$value = $value ?? '';
+
                 switch ($key) {
                     case 'id':
                         $node_tpl = str_replace('{'.$key.'}', '{' . $value . '}', $node_tpl);
                         break;
                     default:
+						// Preprocess the value to handle any nested fields.
+						$nested = $this->buildCustomXmlSubFields($value, $key);
+
                         // replace [ and ]
                         $v = str_replace(']', 'CLOSEBRAKET', str_replace('[', 'OPENBRAKET', $value));
                         // replace { and }
@@ -201,7 +211,10 @@ class PMXE_XMLWriter extends XMLWriter
                             $v = str_replace('<','**LT**', $v);
                             $v = str_replace('>','**GT**', $v);
                         } else {
-                            $v = '{' . $v . '}';
+							// Don't wrap nested fields.
+							if( !$nested ) {
+								$v = '{' . $v . '}';
+							}
                         }
 
                         $arrayTypes = array(
@@ -237,6 +250,58 @@ class PMXE_XMLWriter extends XMLWriter
         $xmlPrepreocesor = new WpaeXmlProcessor($wpaeString);
         return $xmlPrepreocesor->process($xml);
     }
+
+	public function buildCustomXmlSubFields(&$subfields, $parent){
+
+		if(!is_array($subfields)){
+			return false;
+		}
+
+		$xml = '';
+
+		// Check for nested array and process each element.
+		if( wp_all_export_is_array_nested($subfields) ){
+
+			$row_el_name = apply_filters('wp_all_export_custom_xml_subfield_row_element_name', 'row', $parent);
+
+			$rows = '';
+
+			foreach ( $subfields as $nested_values ) {
+				if ( is_array( $nested_values ) ) {
+					$this->buildCustomXmlSubFields( $nested_values, $parent );
+					$rows .= "<$row_el_name>".$nested_values."</$row_el_name>";
+				}
+
+			}
+
+			$subfields = $rows;
+
+			return true;
+		}
+
+		foreach($subfields as $element_name => $value){
+
+			// If the subfields have keys with the parent element then we need to process them as subfields and not just values.
+			if ( strpos( $element_name, $parent ) === 0 ) {
+
+				$element_name = str_replace($parent.'_', '', $element_name);
+				if(is_array($value)){
+					$this->buildCustomXmlSubFields($value, $parent);
+				}
+
+				$xml .= '<' . $element_name . '>' . $value . '</' . $element_name . '>';
+
+			}else{
+				// It's expected that either all the values will be subfields or none of them will be at this point.
+				return false;
+			}
+
+		}
+
+		$subfields = $xml ?: $subfields;
+
+		return true;
+	}
 
     public static function getIndentationCount($content, $str)
     {

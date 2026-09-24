@@ -170,7 +170,11 @@ class ExportController extends BaseController
             return new JsonResponse(array( 'redirect' => esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-manage', 'pmxe_nt' => urlencode(__('Options updated', 'pmxi_plugin'))) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php')))));
         }
 
-        return new JsonResponse(array());
+	    return new JsonResponse( array( 'redirect' => esc_url_raw( add_query_arg( array( 'page'             => 'pmxe-admin-export',
+	                                                                                     'action'           => 'options',
+	                                                                                     '_wpnonce_options' => wp_create_nonce( 'options' )
+	    ), admin_url( 'admin.php' ) ) )
+	    ) );
     }
 
     /**

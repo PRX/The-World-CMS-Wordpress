@@ -104,7 +104,7 @@ $l10n = array(
 						<input type="hidden" name="is_confirmed" value="1" />
 
                         <?php if(current_user_can(PMXE_Plugin::$capabilities)) {?>
-						    <a href="<?php echo esc_url(apply_filters('pmxi_options_back_link', add_query_arg('id', $item->id, add_query_arg('action', 'template', $this->baseUrl)), $isWizard)); ?>" class="back rad3"><?php esc_html_e('Edit Template', 'wp_all_export_plugin') ?></a>
+                            <a href="<?php echo esc_url(apply_filters('pmxi_options_back_link', add_query_arg('id', $item->id, add_query_arg(['action'=>'template','_wpnonce_template' => wp_create_nonce('template')], $this->baseUrl)), $isWizard)); ?>" class="back rad3"><?php esc_html_e('Edit Template', 'wp_all_export_plugin') ?></a>
 						<?php } else { ?>
                             <a href="<?php echo esc_url($this->baseUrl); ?>" class="back rad3"><?php esc_html_e('Manage Exports', 'wp_all_export_plugin'); ?></a>
 

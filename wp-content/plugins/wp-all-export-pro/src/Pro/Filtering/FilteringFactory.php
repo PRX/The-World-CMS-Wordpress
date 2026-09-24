@@ -30,11 +30,11 @@ class FilteringFactory
             return new \FilteringUsers();
         } else if(\XmlExportEngine::$is_user_export && !$addonService->isUserAddonActive()) {
 
-            throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+            throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if ( (!\XmlExportEngine::$is_comment_export && !\XmlExportEngine::$is_woo_review_export) && ( isset(\XmlExportEngine::$exportOptions['cc_type']) && in_array('acf', \XmlExportEngine::$exportOptions['cc_type']) ) && !$addonService->isAcfAddonActive() ){
-            throw new AddonNotFoundException(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+            throw new AddonNotFoundException(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if (\XmlExportEngine::$is_woo_customer_export && $addonService->isUserAddonActive()){
@@ -42,23 +42,31 @@ class FilteringFactory
             return new \FilteringCustomers();
         } else if(\XmlExportEngine::$is_woo_customer_export && !$addonService->isUserAddonActive()) {
 
-            throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+            throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+        }
+
+        if (\XmlExportEngine::$is_woo_guest_customer_export && $addonService->isUserAddonActive()){
+
+            return new FilteringGuestCustomers();
+        } else if(\XmlExportEngine::$is_woo_guest_customer_export && !$addonService->isUserAddonActive()) {
+
+            throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
 
         if(isset (\XmlExportEngine::$exportOptions['cpt']) && 'product' === \XmlExportEngine::$exportOptions['cpt'] && !$addonService->isWooCommerceAddonActive() && !$addonService->isWooCommerceProductAddonActive() && \class_exists('WooCommerce')) {
-            throw new AddonNotFoundException(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+            throw new AddonNotFoundException(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if(isset (\XmlExportEngine::$exportOptions['cpt']) && 'shop_order' === \XmlExportEngine::$exportOptions['cpt'] && !$addonService->isWooCommerceAddonActive() && !$addonService->isWooCommerceOrderAddonActive()) {
-            throw new AddonNotFoundException(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+            throw new AddonNotFoundException(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
 
         }
 
 	    // Block Google Merchant Exports if the supporting add-on isn't active.
 	    if(isset(\XmlExportEngine::$exportOptions['xml_template_type']) && \XmlExportEngine::$exportOptions['xml_template_type'] == \XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS && !$addonService->isWooCommerceAddonActive()) {
 
-		    die(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+		    die(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
 
 	    }
 
@@ -72,7 +80,7 @@ class FilteringFactory
             if (@in_array("product", \XmlExportEngine::$post_types)){
 
                 if(!\XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() && !\XmlExportEngine::get_addons_service()->isWooCommerceProductAddonActive()) {
-                    throw new AddonNotFoundException(\__('The WooCommerce add-on is required. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+                    throw new AddonNotFoundException(\__('The WooCommerce add-on is required. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
                 }
 
                 return new \Wpae\Pro\Filtering\FilteringProducts();
@@ -80,10 +88,14 @@ class FilteringFactory
             if (@in_array("shop_order", \XmlExportEngine::$post_types)){
 
                 if(!\XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() && !\XmlExportEngine::get_addons_service()->isWooCommerceOrderAddonActive()) {
-                    throw new AddonNotFoundException(\__('The WooCommerce add-on is required. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', \PMXE_Plugin::LANGUAGE_DOMAIN));
+                    throw new AddonNotFoundException(\__('The WooCommerce add-on is required. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
                 }
 
-                return new \Wpae\Pro\Filtering\FilteringOrders();
+                if ( class_exists('Automattic\WooCommerce\Utilities\OrderUtil') && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+                    return new \Wpae\Pro\Filtering\FilteringOrdersHPOS();
+                } else {
+                    return new \Wpae\Pro\Filtering\FilteringOrders();
+                }
             }
         }
         return new FilteringCPT();

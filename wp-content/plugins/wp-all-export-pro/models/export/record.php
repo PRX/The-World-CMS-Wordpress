@@ -13,8 +13,10 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
     /**
      * Import all files matched by path
+     *
      * @param callable[optional] $logger Method where progress messages are submmitted
-     * @return PMXI_Export_Record
+     *
+     * @return PMXE_Export_Record|void
      * @chainable
      */
     public function execute($logger = NULL, $cron = false, $post_id = false) {
@@ -28,9 +30,9 @@ class PMXE_Export_Record extends PMXE_Model_Record {
         wp_reset_postdata();
 
         $functions = $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . WP_ALL_EXPORT_UPLOADS_BASE_DIRECTORY . DIRECTORY_SEPARATOR . 'functions.php';
-
+	    $functions = apply_filters( 'wp_all_export_functions_file_path', $functions );
         if (@file_exists($functions)) {
-            require_once $functions;
+	        \Wpae\Integrations\CodeBox::requireFunctionsFile();
         }
 
         XmlExportEngine::$exportOptions  	 = $this->options;
@@ -94,6 +96,59 @@ class PMXE_Export_Record extends PMXE_Model_Record {
                 add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
                 $exportQuery = eval('return new WP_User_Query(array(' . $this->options['wp_query'] . ', \'offset\' => ' . $this->exported . ', \'number\' => ' . $this->options['records_per_iteration'] . '));');
                 remove_action('pre_user_query', 'wp_all_export_pre_user_query');
+
+
+            }
+            elseif (XmlExportEngine::$is_woo_guest_customer_export)
+            {
+                if(!XmlExportEngine::get_addons_service()->isUserAddonActive()) {
+                    throw new \Wpae\App\Service\Addons\AddonNotFoundException('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>');
+                }
+
+                // Query guest customers from WooCommerce customer lookup table
+                global $wpdb;
+
+                // Check if WooCommerce customer lookup table exists
+                $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}wc_customer_lookup'");
+                if (!$table_exists) {
+                    $exportQuery = new stdClass();
+                    $exportQuery->results = array();
+                    $exportQuery->total_users = 0;
+                } else {
+                    // Start with base guest customer condition
+                    $where_clause = "user_id IS NULL";
+
+                    // Apply basic filtering if needed
+                    if (!empty($this->options['export_only_customers_that_made_purchases'])) {
+                        $where_clause .= " AND order_count > 0";
+                    }
+
+                    // Apply advanced filtering rules if they exist
+                    $whereclause = PMXE_Plugin::$session->get('whereclause');
+                    if (!empty($whereclause)) {
+                        // The filtering system generates WHERE clauses that start with " AND "
+                        // We need to append them to our base condition
+                        $where_clause .= $whereclause;
+                    }
+                    $offset = $this->exported;
+                    $limit = $this->options['records_per_iteration'];
+
+                    $guest_customers = $wpdb->get_results("
+                        SELECT * FROM {$wpdb->prefix}wc_customer_lookup
+                        WHERE {$where_clause}
+                        ORDER BY customer_id ASC
+                        LIMIT {$limit} OFFSET {$offset}
+                    ");
+
+                    $total_count = $wpdb->get_var("
+                        SELECT COUNT(*) FROM {$wpdb->prefix}wc_customer_lookup
+                        WHERE {$where_clause}
+                    ");
+
+                    $exportQuery = new stdClass();
+                    $exportQuery->results = $guest_customers ?: array();
+                    $exportQuery->total_users = intval($total_count);
+                }
             }
             elseif (XmlExportEngine::$is_comment_export || XmlExportEngine::$is_woo_review_export )
             {
@@ -125,17 +180,70 @@ class PMXE_Export_Record extends PMXE_Model_Record {
             $this->set(array( 'options' => XmlExportEngine::$exportOptions ))->update();
             // [\ Update where clause]
 
-            if ( in_array('users', $this->options['cpt']) or in_array('shop_customer', $this->options['cpt']))
+            if ( in_array('users', $this->options['cpt']) or in_array('shop_customer', $this->options['cpt']) or in_array('shop_guest_customer', $this->options['cpt']))
             {
-                add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
+                if (in_array('shop_guest_customer', $this->options['cpt'])) {
+                    // Handle guest customers separately
+                    global $wpdb;
 
-                if($post_id) {
-                    $exportQuery = new WP_User_Query(array('search' => $post_id, 'search_columns' => ['ID'], 'orderby' => 'ID', 'order' => 'ASC'));
+                    // Check if WooCommerce customer lookup table exists
+                    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}wc_customer_lookup'");
+                    if (!$table_exists) {
+                        $exportQuery = new stdClass();
+                        $exportQuery->results = array();
+                        $exportQuery->total_users = 0;
+                    } else {
+                        $where_conditions = array("user_id IS NULL");
+
+                        // Apply filtering if needed
+                        if (!empty($this->options['export_only_customers_that_made_purchases'])) {
+                            $where_conditions[] = "order_count > 0";
+                        }
+
+                        $where_clause = implode(' AND ', $where_conditions);
+
+                        if($post_id) {
+                            // Search for specific guest customer by ID
+                            $guest_customers = $wpdb->get_results("
+                                SELECT * FROM {$wpdb->prefix}wc_customer_lookup
+                                WHERE {$where_clause} AND customer_id = {$post_id}
+                                ORDER BY customer_id ASC
+                            ");
+                        } else {
+                            $offset = $this->exported;
+                            $limit = $this->options['records_per_iteration'];
+
+                            $guest_customers = $wpdb->get_results("
+                                SELECT * FROM {$wpdb->prefix}wc_customer_lookup
+                                WHERE {$where_clause}
+                                ORDER BY customer_id ASC
+                                LIMIT {$limit} OFFSET {$offset}
+                            ");
+                        }
+
+                        $total_count = $wpdb->get_var("
+                            SELECT COUNT(*) FROM {$wpdb->prefix}wc_customer_lookup
+                            WHERE {$where_clause}
+                        ");
+
+                        $exportQuery = new stdClass();
+                        $exportQuery->results = $guest_customers ?: array();
+                        $exportQuery->total_users = intval($total_count);
+                    }
                 } else {
-                    $exportQuery = new WP_User_Query(array('orderby' => 'ID', 'order' => 'ASC', 'number' => $this->options['records_per_iteration'], 'offset' => $this->exported));
-                }
+                    // Handle regular users and registered customers
+                    add_action('pre_user_query', 'wp_all_export_pre_user_query', 10, 1);
 
-                remove_action('pre_user_query', 'wp_all_export_pre_user_query');
+                    if($post_id) {
+                        $exportQuery = new WP_User_Query(array('search' => $post_id, 'search_columns' => ['ID'], 'orderby' => 'ID', 'order' => 'ASC'));
+                    } else {
+                        $exportQuery = new WP_User_Query(array('orderby' => 'ID', 'order' => 'ASC', 'number' => $this->options['records_per_iteration'], 'offset' => $this->exported));
+                    }
+
+                    remove_action('pre_user_query', 'wp_all_export_pre_user_query');
+
+
+                }
             }
             elseif ( in_array('comments', $this->options['cpt']))
             {
@@ -224,7 +332,26 @@ class PMXE_Export_Record extends PMXE_Model_Record {
                     $foundPosts = count($totalQuery->results);
                     $postCount = count($exportQuery->results);
 
-                } else {
+                }
+                else if (in_array('shop_order', $this->options['cpt']) && $this->hposEnabled()) {
+                        add_filter('posts_where', 'wp_all_export_numbering_where', 15, 1);
+
+                        if(XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() || XMLExportEngine::get_addons_service()->isWooCommerceOrderAddonActive()) {
+                            $exportQuery = new \Wpae\WordPress\OrderQuery();
+
+                            $totalOrders = $exportQuery->getOrders();
+                            $foundOrders = $exportQuery->getOrders($this->exported, $this->options['records_per_iteration'], $post_id);
+
+                            $foundPosts = count($totalOrders);
+                            $postCount = count($foundOrders);
+
+
+
+                        remove_filter('posts_where', 'wp_all_export_numbering_where');
+
+                    }
+                }
+                else {
                     remove_all_actions('parse_query');
                     remove_all_filters('posts_clauses');
                     wp_all_export_remove_before_post_except_toolset_actions();
@@ -402,10 +529,28 @@ class PMXE_Export_Record extends PMXE_Model_Record {
             $foundPosts = count($result->get_terms());
             remove_filter('terms_clauses', 'wp_all_export_terms_clauses');
         }
+        else if (in_array('shop_order', $this->options['cpt']) && $this->hposEnabled()) {
+            add_filter('posts_where', 'wp_all_export_numbering_where', 15, 1);
+
+            if(XmlExportEngine::get_addons_service()->isWooCommerceAddonActive() || XMLExportEngine::get_addons_service()->isWooCommerceOrderAddonActive()) {
+                $exportQuery = new \Wpae\WordPress\OrderQuery();
+
+                $totalOrders = $exportQuery->getOrders();
+                $foundOrders = $exportQuery->getOrders($this->exported, $this->options['records_per_iteration'], $post_id);
+
+                $foundPosts = count($totalOrders);
+                $postCount = count($foundOrders);
+
+
+
+                remove_filter('posts_where', 'wp_all_export_numbering_where');
+
+            }
+        }
         else
         {
             $exportOptions = $this->options;
-            if(strpos($exportOptions['cpt'][0], 'custom_') === 0) {
+            if(isset($exportOptions['cpt'][0]) && strpos($exportOptions['cpt'][0], 'custom_') === 0) {
 
                 $addon = GF_Export_Add_On::get_instance();
 
@@ -421,12 +566,13 @@ class PMXE_Export_Record extends PMXE_Model_Record {
                 $foundPosts = count($totalQuery->results);
                 $postCount = count($exportQuery->results);
 
-                XmlExportEngine::$exportQuery = $exportQuery;
-
             } else {
                 if (XmlExportEngine::$is_user_export || XmlExportEngine::$is_woo_customer_export) {
                     $foundPosts = $exportQuery->get_total();
                     $postCount = count($exportQuery->get_results());
+                } elseif (XmlExportEngine::$is_woo_guest_customer_export) {
+                    $foundPosts = $exportQuery->total_users;
+                    $postCount = count($exportQuery->results);
                 } else {
                     $foundPosts = $exportQuery->found_posts;
                     $postCount = $exportQuery->post_count;
@@ -463,9 +609,11 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
                     if($post_id) {
                         // Add an opening tag also if the file is empty
-                        $content = file_get_contents($file_path);
-                        if (strpos($content, $main_xml_tag) === false) {
-                            file_put_contents($file_path, '<' . $main_xml_tag . '>', FILE_APPEND);
+                        if(file_exists($file_path)) {
+                            $content = file_get_contents($file_path);
+                            if (strpos($content, $main_xml_tag) === false) {
+                                file_put_contents($file_path, '<' . $main_xml_tag . '>', FILE_APPEND);
+                            }
                         }
                     }
 
@@ -804,17 +952,17 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
                         $new_fields = array('title', 'caption', 'description', 'alt');
 
-                        foreach ($new_fields as $value)
+                        foreach ($new_fields as $new_value)
                         {
                             $new_field = array(
-                                'cc_label' => $value,
+                                'cc_label' => $new_value,
                                 'cc_php' => empty($options['cc_php'][$ID]) ? '' : $options['cc_php'][$ID],
                                 'cc_code' => empty($options['cc_code'][$ID]) ? '' : $options['cc_code'][$ID],
                                 'cc_sql' => empty($options['cc_sql'][$ID]) ? '' : $options['cc_sql'][$ID],
-                                'cc_type' => 'image_' . $value,
+                                'cc_type' => 'image_' . $new_value,
                                 'cc_options' => '{"is_export_featured":true,"is_export_attached":true,"image_separator":"|"}',
-                                'cc_value' => $value,
-                                'cc_name' => $field_name . '_' . $value,
+                                'cc_value' => $new_value,
+                                'cc_name' => $field_name . '_' . $new_value,
                                 'cc_settings' => ''
                             );
 
@@ -895,7 +1043,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
     /**
      * Clear associations with posts
-     * @return PMXE_Import_Record
+     * @return PMXE_Export_Record
      * @chainable
      */
     public function deletePosts() {
@@ -947,6 +1095,10 @@ class PMXE_Export_Record extends PMXE_Model_Record {
         if ( @file_exists($file_for_remote_access)) @unlink($file_for_remote_access);
 
         return parent::delete();
+    }
+
+    private function hposEnabled() {
+        return class_exists('Automattic\WooCommerce\Utilities\OrderUtil') && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
     }
 
 }

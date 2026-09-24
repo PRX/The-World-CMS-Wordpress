@@ -182,6 +182,14 @@ final class PMXE_Wpallimport
 				'export_id' => $export->id
 			);
 
+            $addons = \XmlExportEngine::get_addons();
+            foreach ( $addons as $addon ) {
+                self::$templateOptions[ $addon ]                = [];
+                self::$templateOptions[ $addon . '_groups' ]    = [];
+                self::$templateOptions[ $addon . '_switchers' ] = [];
+                self::$templateOptions[ $addon . '_multiple' ]  = [];
+            }
+
 			if(XmlExportEngine::$is_custom_addon_export) {
 
                 $gf_addon = \GF_Export_Add_On::get_instance();
@@ -476,15 +484,40 @@ final class PMXE_Wpallimport
 					'deleted' => 0,
 					'iteration' => 1,		
 					'count' => $foundPosts				
-				))->save();				
+				))->save();
 
+				// Get a list of all files linked to the related import.
+				$history_file_list = new PMXI_File_List();
+				$history_file_list->getBy( array('import_id' => $import->id), 'id DESC' );
+
+				// If there is more than one file linked, delete them all as something is wrong.
+				// However, do not delete the linked files themselves as there should only be one file
+				// and it should be the export file.
+				if($history_file_list->total() > 1){
+					foreach($history_file_list->convertRecords() as $hs_file){
+						// Delete each of the existing history files since we have more than expected.
+						$hs_file->delete(false); // Passing false is required otherwise the export file we just generated could be deleted.
+					}
+				}
+
+				// Create a new file record for the new export file.
+				// Try to get the current record if one exists.
 				$history_file = new PMXI_File_Record();
-				$history_file->set(array(
+				$history_file->getBy( array('import_id' => $import->id), 'id DESC' );
+
+				$history_file_data = array(
 					'name' => $import->name,
 					'import_id' => $import->id,
 					'path' => $historyPath,
 					'registered_on' => date('Y-m-d H:i:s')
-				))->save();		
+				);
+
+				// Update the history file record if it exists, insert it otherwise.
+				if(!$history_file->isEmpty()){
+					$history_file->set($history_file_data)->update();
+				}else{
+					$history_file->set($history_file_data)->insert();
+				}
 
 				$exportOptions['import_id']	= $import->id;					
 				
@@ -625,6 +658,22 @@ final class PMXE_Wpallimport
 
                         XmlExportWooCommerceOrder::prepare_import_template($options, self::$templateOptions, $element_name, $ID);
                     }
+
+					// Run addon hooks
+					foreach (\XmlExportEngine::get_addons() as $addon) {
+						apply_filters("pmxe_{$addon}_addon_prepare_import_template", $options, self::$templateOptions, $element_name, $ID);
+					}
+
+                    $field_options = maybe_unserialize($options['cc_options'][$ID]);
+
+                    foreach (\XmlExportEngine::get_addons() as $addon) {
+                        apply_filters("pmxe_{$addon}_addon_prepare_import_template", $options, self::$templateOptions, $element_name, $ID);
+
+                        if ( isset($field_options['addon']) && $field_options['addon'] == $addon ) {
+                            self::$templateOptions = apply_filters("pmxe_{$addon}_addon_override_import_template", self::$templateOptions, $options, $element_name, $field_options );
+                        }
+                    }
+
 					break;
 			}
 		}		

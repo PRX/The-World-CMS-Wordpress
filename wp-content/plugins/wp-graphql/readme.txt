@@ -4,7 +4,7 @@ Tags: GraphQL, Headless, REST API, Decoupled, React
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.20.0
+Stable tag: 2.23.1
 License: GPL-3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Author: WPGraphQL, WordPress.org
@@ -77,6 +77,10 @@ Learn more about how [Appsero collects and uses this data](https://appsero.com/p
 2. WPGraphQL settings — configure the GraphQL endpoint, batch queries, query depth limiting, debug mode, and more.
 
 == Upgrade Notice ==
+
+= 2.23.1 =
+
+**Security release.** Fixes an authorization issue in the `updateMediaItem` mutation that let users with the Author or Contributor role take over, and then delete, media items owned by other users. Updating is recommended. See GHSA-4h2c-85f8-g3jh.
 
 = 2.15.1 =
 
@@ -309,6 +313,91 @@ The `uri` field was non-null on some Types in the Schema but has been changed to
 Composer dependencies are no longer versioned in Github. Recommended install source is WordPress.org or using Composer to get the code from Packagist.org or WPackagist.org.
 
 == Changelog ==
+
+= 2.23.1 =
+
+**Security**
+
+* tighten media item update authorization: `updateMediaItem` now verifies that the requesting user can edit the targeted media item, and its new parent, before applying changes. Previously, users with the Author or Contributor role could reassign, and then delete, media items owned by other users. See [GHSA-4h2c-85f8-g3jh](https://github.com/wp-graphql/wp-graphql/security/advisories/GHSA-4h2c-85f8-g3jh) ([#4353](https://github.com/wp-graphql/wp-graphql/issues/4353))
+
+= 2.23.0 =
+
+**New Features**
+
+* **deps:** bump @wordpress/components from 38.0.0 to 39.0.0 ([#4330](https://github.com/wp-graphql/wp-graphql/issues/4330))
+* **deps:** bump the npm-prod-minor-patch group across 1 directory with 11 updates ([#4294](https://github.com/wp-graphql/wp-graphql/issues/4294))
+
+**Bug Fixes**
+
+* **deps-dev:** bump @wordpress/jest-preset-default from 13.0.0 to 14.0.0 ([#4328](https://github.com/wp-graphql/wp-graphql/issues/4328))
+* **deps-dev:** bump composer/composer from 2.2.29 to 2.2.30 in /plugins/wp-graphql ([#4282](https://github.com/wp-graphql/wp-graphql/issues/4282))
+* **deps-dev:** bump phpstan/phpstan from 2.2.10 to 2.2.13 in /plugins/wp-graphql in the wp-graphql-composer-dev-minor-patch group ([#4323](https://github.com/wp-graphql/wp-graphql/issues/4323))
+* **deps-dev:** bump the npm-dev-minor-patch group across 1 directory with 11 updates ([#4290](https://github.com/wp-graphql/wp-graphql/issues/4290))
+* **deps-dev:** bump the npm-dev-minor-patch group with 4 updates ([#4326](https://github.com/wp-graphql/wp-graphql/issues/4326))
+* extensions page detects installed plugins by file and restores the card grid on WordPress 7 ([#4302](https://github.com/wp-graphql/wp-graphql/issues/4302))
+
+= 2.22.3 =
+
+**Bug Fixes**
+
+* **security:** guard root plugin files against direct file access ([#4272](https://github.com/wp-graphql/wp-graphql/issues/4272))
+* **security:** validate createMediaItem filePath against the resolved host address (GHSA-p8rh)
+
+= 2.22.2 =
+
+**Bug Fixes**
+
+* **security:** do not invoke bare callable-string field definitions in Model ([#4270](https://github.com/wp-graphql/wp-graphql/issues/4270))
+* **security:** enforce object-level and publish capabilities in updatePost (GHSA-5mmc)
+
+= 2.22.1 =
+
+**Bug Fixes**
+
+* validate user roles before assignment in user mutations (GHSA-66rg)
+
+= 2.22.0 =
+
+**New Features**
+
+* **deps:** bump @wordpress/components from 37.0.0 to 38.0.0 ([#4260](https://github.com/wp-graphql/wp-graphql/issues/4260))
+* **deps:** bump @wordpress/compose from 7.46.0 to 8.5.0 ([#4262](https://github.com/wp-graphql/wp-graphql/issues/4262))
+* **deps:** bump the npm-prod-minor-patch group across 1 directory with 5 updates ([#4267](https://github.com/wp-graphql/wp-graphql/issues/4267))
+
+**Bug Fixes**
+
+* **deps-dev:** bump the npm-dev-minor-patch group with 5 updates ([#4257](https://github.com/wp-graphql/wp-graphql/issues/4257))
+
+= 2.21.1 =
+
+**Bug Fixes**
+
+* **deps-dev:** bump @testing-library/jest-dom from 6.9.1 to 7.0.0 ([#4250](https://github.com/wp-graphql/wp-graphql/issues/4250))
+* **deps-dev:** bump @wordpress/jest-preset-default from 12.51.0 to 13.0.0 ([#4249](https://github.com/wp-graphql/wp-graphql/issues/4249))
+* **deps-dev:** bump the wp-graphql-composer-dev-minor-patch group in /plugins/wp-graphql with 2 updates ([#4242](https://github.com/wp-graphql/wp-graphql/issues/4242))
+* return memoized model field values as data instead of re-invoking them ([#4252](https://github.com/wp-graphql/wp-graphql/issues/4252))
+
+= 2.21.0 =
+
+**New Features**
+
+* add request-level preview context (X-GraphQL-Preview header / extensions.preview) ([#3969](https://github.com/wp-graphql/wp-graphql/issues/3969))
+* **deps:** bump @wordpress/components from 34.0.0 to 37.0.0 ([#4204](https://github.com/wp-graphql/wp-graphql/issues/4204))
+* **deps:** bump the npm-prod-minor-patch group across 1 directory with 5 updates ([#4202](https://github.com/wp-graphql/wp-graphql/issues/4202))
+* **deps:** bump the npm-prod-minor-patch group with 7 updates ([#4218](https://github.com/wp-graphql/wp-graphql/issues/4218))
+* preview ACF field values under the request-level preview context ([#4222](https://github.com/wp-graphql/wp-graphql/issues/4222))
+
+**Bug Fixes**
+
+* **deps-dev:** bump @typescript-eslint/eslint-plugin from 6.21.0 to 8.65.0 ([#4220](https://github.com/wp-graphql/wp-graphql/issues/4220))
+* **deps-dev:** bump lint-staged from 16.4.0 to 17.2.0 ([#4221](https://github.com/wp-graphql/wp-graphql/issues/4221))
+* **deps-dev:** bump phpstan/phpstan from 2.2.7 to 2.2.8 in /plugins/wp-graphql in the wp-graphql-composer-dev-minor-patch group ([#4199](https://github.com/wp-graphql/wp-graphql/issues/4199))
+* **deps-dev:** bump sort-package-json from 3.7.1 to 4.0.0 ([#4219](https://github.com/wp-graphql/wp-graphql/issues/4219))
+* **deps-dev:** bump the npm-dev-minor-patch group across 1 directory with 12 updates ([#4226](https://github.com/wp-graphql/wp-graphql/issues/4226))
+* **deps-dev:** bump the npm-dev-minor-patch group with 5 updates ([#4200](https://github.com/wp-graphql/wp-graphql/issues/4200))
+* **deps:** bump webonyx/graphql-php from 15.37.1 to 15.37.2 in /plugins/wp-graphql in the wp-graphql-composer-patch group ([#4215](https://github.com/wp-graphql/wp-graphql/issues/4215))
+* point acf.wpgraphql.com links at the wpgraphql.com docs portal ([#4251](https://github.com/wp-graphql/wp-graphql/issues/4251))
+* remove WordPress internals from schema field descriptions ([#4161](https://github.com/wp-graphql/wp-graphql/issues/4161))
 
 = 2.20.0 =
 
@@ -586,7 +675,7 @@ Composer dependencies are no longer versioned in Github. Recommended install sou
 * **deps:** bump webonyx/graphql-php from 15.29.4 to 15.30.0 in /plugins/wp-graphql in the composer-minor-patch group across 1 directory ([#3521](https://github.com/wp-graphql/wp-graphql/issues/3521))
 * nodeByUri returns null for REST API endpoints and static file paths ([#3530](https://github.com/wp-graphql/wp-graphql/issues/3530))
 * Prevent password from being changed when updating user without password field ([#3532](https://github.com/wp-graphql/wp-graphql/issues/3532))
-* replace x-release-please-version placeholders with 2.20.0
+* replace x-release-please-version placeholders with 2.23.1
 * use clean build directory for WordPress.org deployment ([#3502](https://github.com/wp-graphql/wp-graphql/issues/3502))
 
 = 2.7.0 =

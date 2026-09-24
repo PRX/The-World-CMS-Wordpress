@@ -254,18 +254,35 @@ if (!class_exists('XmlExportTaxonomy')) {
 
                     $snippets = self::$engine->get_fields_options($snippets);
 
-                    $articleData = self::prepare_data($term, $snippets, $xmlWriter = false, $acfs, $implode_delimiter, $preview);
+                    $articleData = self::prepare_data($term, $snippets, false, $acfs, $implode_delimiter, $preview);
 
-                    $functions = $snippetParser->parseFunctions($combineMultipleFieldsValue);
-                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($functions, $combineMultipleFieldsValue, $articleData);
+                    $combineMultipleFieldsValue = \Wpae\App\Service\CombineFields::prepareMultipleFieldsValue($articleData, true, $combineMultipleFieldsValue, $preview);
 
-                    if($preview) {
-                        $combineMultipleFieldsValue = trim(preg_replace('~[\r\n]+~', ' ', htmlspecialchars($combineMultipleFieldsValue)));
-                    }
 
                     wp_all_export_write_article($article, $element_name, pmxe_filter($combineMultipleFieldsValue, $fieldSnipped));
 
                 } else {
+                    // Run addons export field hooks
+                    $addons = XmlExportEngine::get_addons();
+                    $addonFieldOptions = maybe_unserialize($fieldOptions);
+
+                    if (in_array($fieldType, $addons)) {
+                        $article = apply_filters(
+                            "pmxe_{$fieldType}_addon_export_field",
+                            $article,
+                            $addonFieldOptions,
+                            $exportOptions,
+                            $ID,
+                            $term,
+                            $term->term_id,
+                            $xmlWriter,
+                            $element_name,
+                            $element_name_ns,
+                            $fieldSnipped,
+                            $preview
+                        );
+                    }
+
                     switch ($fieldType) {
                         case 'term_id':
                             wp_all_export_write_article($article, $element_name, apply_filters('pmxe_term_id', pmxe_filter($term->term_id, $fieldSnipped), $term->term_id));
