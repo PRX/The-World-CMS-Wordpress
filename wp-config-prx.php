@@ -149,4 +149,10 @@ if ( false !== getenv( 'WP_REDIS_HOST' ) ) {
 	if ( false !== getenv( 'WP_REDIS_SCHEME' ) ) {
 		define( 'WP_REDIS_SCHEME', getenv( 'WP_REDIS_SCHEME' ) );
 	}
+
+	if ( false !== getenv( 'WP_REDIS_PERSISTENT' ) ) {
+		define( 'WP_REDIS_PERSISTENT', filter_var( getenv( 'WP_REDIS_PERSISTENT' ), FILTER_VALIDATE_BOOLEAN ) );
+	} else {
+		define( 'WP_REDIS_PERSISTENT', true );
+	}
 }
