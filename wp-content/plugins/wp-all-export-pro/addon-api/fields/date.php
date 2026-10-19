@@ -19,8 +19,8 @@ class PMXE_Addon_Date_Field extends PMXE_Addon_Field {
             return '';
         }
 
-        $timestamp = $this->isTimestamp( $this->value ) ?
-            $this->value : strtotime( $this->value );
+        $is_timestamp = $this->isTimestamp( $this->value );
+        $timestamp    = $is_timestamp ? $this->value : strtotime( $this->value );
 
         // We need a default value for the settings if they're blank.
         $this->settings = $this->settings ?: 'Y-m-d';
@@ -28,7 +28,8 @@ class PMXE_Addon_Date_Field extends PMXE_Addon_Field {
         return prepare_date_field_value(
             $this->settings,
             $timestamp,
-            "Y-m-d"
+            "Y-m-d",
+            ! $is_timestamp
         );
     }
 }

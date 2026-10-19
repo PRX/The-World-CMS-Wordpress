@@ -10,7 +10,7 @@ function pmxe_admin_menu() {
 
 	if (current_user_can( PMXE_Plugin::$capabilities )) { // admin management options
 		
-		add_menu_page(__('WP All Export', 'wp_all_export_plugin'), __('All Export', 'wp_all_export_plugin'), PMXE_Plugin::$capabilities, 'pmxe-admin-home', array(PMXE_Plugin::getInstance(), 'adminDispatcher'), 'data:image/svg+xml;base64,' . $icon_base64, 111);
+		add_menu_page(__('WP All Export', 'wp_all_export_plugin'), __('All Export', 'wp_all_export_plugin'), PMXE_Plugin::$capabilities, 'pmxe-admin-home', array(PMXE_Plugin::getInstance(), 'adminDispatcher'), 'data:image/svg+xml;base64,' . $icon_base64, 112);
 		// workaround to rename 1st option to `Home`
 		$submenu['pmxe-admin-home'] = array();
 		add_submenu_page('pmxe-admin-home', esc_html__('Export to XML', 'wp_all_export_plugin') . ' &lsaquo; ' . __('WP All Export', 'wp_all_export_plugin'), __('New Export', 'wp_all_export_plugin'), PMXE_Plugin::$capabilities, 'pmxe-admin-export', array(PMXE_Plugin::getInstance(), 'adminDispatcher'));
@@ -20,7 +20,7 @@ function pmxe_admin_menu() {
 
 	} elseif (!current_user_can( PMXE_Plugin::$capabilities ) && current_user_can(PMXE_Plugin::CLIENT_MODE_CAP)) {
 
-		add_menu_page(__('WP All Export', 'wp_all_export_plugin'), esc_html__('All Export', 'wp_all_export_plugin'), PMXE_Plugin::CLIENT_MODE_CAP, 'pmxe-admin-manage', array(PMXE_Plugin::getInstance(), 'adminDispatcher'), 'data:image/svg+xml;base64,' . $icon_base64, 111);
+		add_menu_page(__('WP All Export', 'wp_all_export_plugin'), esc_html__('All Export', 'wp_all_export_plugin'), PMXE_Plugin::CLIENT_MODE_CAP, 'pmxe-admin-manage', array(PMXE_Plugin::getInstance(), 'adminDispatcher'), 'data:image/svg+xml;base64,' . $icon_base64, 112);
 	}
 }
 

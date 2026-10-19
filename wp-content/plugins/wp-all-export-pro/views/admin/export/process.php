@@ -12,7 +12,7 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
 ?>
 <h2 class="wpallexport-wp-notices"></h2>
 
-<div class="inner-content wpallexport-step-6 wpallexport-wrapper">
+<div class="inner-content wpallexport-step-6 wpallexport-wrapper" data-wpae-section="export-step6-process">
 
     <div class="wpallexport-header">
         <div class="wpallexport-logo"></div>
@@ -97,6 +97,17 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
                         <h4 style="width: 78%; line-height: 25px;"><?php esc_html_e("Ask your host to check your server's error log. They will be able to determine why your server is terminating the export process.", "wp_all_export_plugin"); ?></h4>
                     </div>
                 </div>
+            </div>
+        </span>
+        <span id="wpallexport-license-stopped" style="display: none;">
+            <div class="wpallexport-content-section" style="display:block; position: relative;">
+                <div class="wpallexport-notify-wrapper">
+                    <div class="found_records terminated" style="background-position: 0 50% !important;">
+                        <h3><?php echo esc_html(\Wpae\App\Gate\Gate::instance()->messages()->executionStoppedSummary()); ?></h3>
+                        <h4 style="width: 78%; line-height: 25px;" class="wpae-license-stopped-message"></h4>
+                    </div>
+                </div>
+                <a style="position: absolute; top: 35%; right: 10px; display: block; padding-top: 1px;" class="button wpallexport-large-button" href="<?php echo esc_url(\Wpae\App\Gate\Gate::instance()->messages()->settingsUrl()); ?>"><?php esc_html_e('Settings', 'wp_all_export_plugin'); ?></a>
             </div>
         </span>
         <?php if($update_previous->options['enable_real_time_exports']) { ?>
@@ -234,6 +245,30 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
                         }
                     },
                     error: function (request, status, error) {
+
+                        // A licence refusal is not a server crash: the handler
+                        // below injects the raw JSON body into the page.
+                        var refusal = null;
+                        try {
+                            refusal = (request && request.responseJSON)
+                                ? request.responseJSON
+                                : JSON.parse((request && request.responseText) || 'null');
+                        } catch (e) {
+                            refusal = null;
+                        }
+
+                        if (refusal && refusal.code === '<?php echo esc_js(\Wpae\App\Gate\Gate::REFUSAL_CODE); ?>') {
+                            $('#process_notice').hide();
+                            $('#wpallexport-license-stopped').find('.wpae-license-stopped-message').text(refusal.message);
+                            $('#wpallexport-license-stopped').show();
+                            $('#status').text('<?php echo esc_js(__('stopped', 'wp_all_export_plugin')); ?>');
+                            // Or leaving for Settings warns about interrupting a
+                            // stopped run.
+                            window.onbeforeunload = false;
+
+                            return;
+                        }
+
                         $('#status').html('Error');
                         window.onbeforeunload = false;
                         $('#process_notice').after(request.responseText);

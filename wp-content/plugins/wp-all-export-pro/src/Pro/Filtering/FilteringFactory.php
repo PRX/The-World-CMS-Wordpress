@@ -37,18 +37,18 @@ class FilteringFactory
             throw new AddonNotFoundException(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
-        if (\XmlExportEngine::$is_woo_customer_export && $addonService->isUserAddonActive()){
+        if (\XmlExportEngine::$is_woo_customer_export && $addonService->isUserProAddonActive()){
 
             return new \FilteringCustomers();
-        } else if(\XmlExportEngine::$is_woo_customer_export && !$addonService->isUserAddonActive()) {
+        } else if(\XmlExportEngine::$is_woo_customer_export && !$addonService->isUserProAddonActive()) {
 
             throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
-        if (\XmlExportEngine::$is_woo_guest_customer_export && $addonService->isUserAddonActive()){
+        if (\XmlExportEngine::$is_woo_guest_customer_export && $addonService->isUserProAddonActive()){
 
             return new FilteringGuestCustomers();
-        } else if(\XmlExportEngine::$is_woo_guest_customer_export && !$addonService->isUserAddonActive()) {
+        } else if(\XmlExportEngine::$is_woo_guest_customer_export && !$addonService->isUserProAddonActive()) {
 
             throw new AddonNotFoundException(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }

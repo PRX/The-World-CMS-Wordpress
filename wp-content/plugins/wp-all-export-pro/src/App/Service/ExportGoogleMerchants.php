@@ -191,7 +191,7 @@ class ExportGoogleMerchants
     {
         $in  = fopen($file, 'r');
 
-        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 
         fclose($in);
 

@@ -54,7 +54,7 @@ if ( current_user_can( PMXE_Plugin::$capabilities ) ) {
             </div>
         </div>
         <div class="input">
-            <button class="button button-primary button-hero wpallexport-large-button download_data"
+            <button class="button wpallexport-large-button download_data"
                     style="width: 220px;"
                     rel="<?php echo add_query_arg( array( 'page'     => 'pmxe-admin-manage',
 			                                              'action'   => 'download',
@@ -63,7 +63,7 @@ if ( current_user_can( PMXE_Plugin::$capabilities ) ) {
 			        ), $this->baseUrl ); ?>">Download
                 Test <?php echo strtoupper( wp_all_export_get_export_format( $update_previous->options ) ); ?></button>
 			<?php if ( ! empty( $update_previous->options['split_large_exports'] ) ): ?>
-                <button class="button button-primary button-hero wpallexport-large-button download_data"
+                <button class="button wpallexport-large-button download_data"
                         rel="<?php echo add_query_arg( array( 'page'     => 'pmxe-admin-manage',
 				                                              'id'       => $update_previous->id,
 				                                              'action'   => 'split_bundle',

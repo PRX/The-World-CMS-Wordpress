@@ -188,9 +188,6 @@ class User_Role_Editor {
                 add_filter('enable_edit_any_user_configuration', '__return_true');
                 // make this as early as you can, to not provide superadmin privilege when it's not needed
                 add_action('admin_head', array($this, 'edit_user_permission_check'), 1);
-                if ($pagenow === 'user-new.php') {
-                    add_filter('site_option_site_admins', array($this, 'allow_add_user_as_superadmin'));
-                }
             }
             
             if ( $pagenow==='site-users.php' ) {
@@ -228,43 +225,6 @@ class User_Role_Editor {
     // end of plugin_init()
 
 
-    /**
-   * Allow non-superadmin user to add/create users to the site as superadmin does.
-   * Include current user to the list of superadmins - for the user-new.php page only, and 
-   * if user really can create_users and promote_users
-   * @global string $pagenow
-   * @param array $site_admins
-   * @return array
-   */
-  public function allow_add_user_as_superadmin($site_admins) {  
-      global $pagenow;
-      
-      $this->lib->set_raised_permissions(false);
-      
-      if ($pagenow!=='user-new.php') {
-          return $site_admins;
-      }
-      
-      // Check if current user really can create and promote users
-      remove_filter('site_option_site_admins', array($this, 'allow_add_user_as_superadmin'));
-      $can_add_user = current_user_can('create_users') && current_user_can('promote_users');
-      add_filter('site_option_site_admins', array($this, 'allow_add_user_as_superadmin'));
-      
-      if (!$can_add_user) {
-          return $site_admins; // no help in this case
-      }
-
-      $current_user = wp_get_current_user();
-      if (!in_array($current_user->user_login, $site_admins)) {
-          $this->lib->set_raised_permissions(true);
-          $site_admins[] = $current_user->user_login;
-      }
-      
-      return $site_admins;      
-  }
-  // end of allow_add_user_as_superadmin()
-  
-  
   public function show_move_users_from_no_role_button() {
       
       if ( !current_user_can( 'promote_users' ) ) {
@@ -279,10 +239,11 @@ class User_Role_Editor {
       
   
   public function add_css_to_users_page() {
-      
+
+      $ure_css_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
       wp_enqueue_style( 'wp-jquery-ui-dialog' );
-      wp_enqueue_style( 'ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen' );
-      
+      wp_enqueue_style( 'ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin' . $ure_css_suffix . '.css', array(), URE_Core::PLUGIN_VERSION, 'screen' );
+
   }
   // end of add_css_to_users_page()
   
@@ -290,9 +251,10 @@ class User_Role_Editor {
   public function add_js_to_users_page() {
       global $wp_version;
       
+      $ure_js_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
       wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core','jquery-ui-button', 'jquery'), $wp_version, true );
-      wp_register_script( 'ure-users', plugins_url( '/js/users.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
-      wp_enqueue_script ( 'ure-users' );      
+      wp_register_script( 'ure-users', plugins_url( '/js/users' . $ure_js_suffix . '.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
+      wp_enqueue_script ( 'ure-users' );
       wp_localize_script( 'ure-users', 'ure_users_data', array(
         'wp_nonce' => wp_create_nonce('user-role-editor'),
         'move_from_no_role_title' => esc_html__('Change role for users without role', 'user-role-editor' ),
@@ -306,9 +268,17 @@ class User_Role_Editor {
   
   
   /**
-   * restore edit_users, delete_users, create_users capabilities for non-superadmin users under multisite
+   * restore edit_users capability for non-superadmin users under multisite
+   * create_users is intentionally left alone - WordPress core's own "Allow site administrators
+   * to add new users to their site via the 'Users -> Add User' page" network setting
+   * (the add_new_users site option) already covers that capability.
+   * delete_users is intentionally left alone too - WordPress core blocks the actual
+   * wp_delete_user() action on multisite outside of Network Admin regardless of capability
+   * (wp-admin/users.php and the REST API's user-delete endpoint both hard-refuse on
+   * is_multisite()), so restoring it here would grant a capability that can't be exercised
+   * through any standard WordPress delete path anyway.
    * (code is provided by http://wordpress.org/support/profile/sjobidoo)
-   * 
+   *
    * @param type $caps
    * @param type $cap
    * @param type $user_id
@@ -326,13 +296,6 @@ class User_Role_Editor {
                 case 'edit_user':
                 case 'edit_users':
                     $caps[$key] = 'edit_users';
-                    break;
-                case 'delete_user':
-                case 'delete_users':
-                    $caps[$key] = 'delete_users';
-                    break;
-                case 'create_users':
-                    $caps[$key] = $cap;
                     break;
             }
         }
@@ -647,18 +610,19 @@ class User_Role_Editor {
 
     public function admin_css_action() {
 
-        wp_enqueue_style('wp-jquery-ui-selectable');        
+        $ure_css_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
+        wp_enqueue_style('wp-jquery-ui-selectable');
         wp_enqueue_style('ure-jquery-ui-general', URE_Core::get_plugin_url() . 'css/jquery-ui.min.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
-        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
+        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin' . $ure_css_suffix . '.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
     }
     // end of admin_css_action()
-    
-    
+
+
     public function settings_css_action() {
 
-
+        $ure_css_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
         wp_enqueue_style('ure-jquery-ui-tabs', URE_Core::get_plugin_url() . 'css/jquery-ui.min.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
-        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
+        wp_enqueue_style('ure-admin', URE_Core::get_plugin_url() . 'css/ure-admin' . $ure_css_suffix . '.css', array(), URE_Core::PLUGIN_VERSION, 'screen');
 
     }
     // end of admin_css_action()
@@ -750,7 +714,8 @@ class User_Role_Editor {
         wp_enqueue_script('jquery-ui-selectable', '', array('jquery-ui-core', 'jquery'), $wp_version, true );        
         wp_enqueue_script('notifyjs', plugins_url('/js/notify.min.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         
-        wp_register_script('ure', plugins_url('/js/ure.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
+        $ure_js_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
+        wp_register_script('ure', plugins_url( '/js/ure' . $ure_js_suffix . '.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure');
         wp_localize_script('ure', 'ure_data', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),
@@ -772,6 +737,7 @@ class User_Role_Editor {
             'add_role' => esc_html__('Add Role', 'user-role-editor'),
             'rename_role' => esc_html__('Rename Role', 'user-role-editor'),
             'delete_role' => esc_html__('Delete Role', 'user-role-editor'),
+            'role_not_selected' => esc_html__('Please select at least one role to delete', 'user-role-editor'),
             'cancel' => esc_html__('Cancel', 'user-role-editor'),
             'add_capability' => esc_html__('Add Capability', 'user-role-editor'),
             'delete_capability' => esc_html__('Delete Capability', 'user-role-editor'),
@@ -798,7 +764,8 @@ class User_Role_Editor {
         wp_enqueue_script('jquery-ui-tabs', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
         wp_enqueue_script('jquery-ui-button', '', array('jquery-ui-core', 'jquery'), $wp_version, true );
-        wp_register_script('ure-settings', plugins_url('/js/settings.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
+        $ure_js_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
+        wp_register_script('ure-settings', plugins_url('/js/settings' . $ure_js_suffix . '.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-settings');
         
         wp_localize_script('ure-settings', 'ure_data', array(

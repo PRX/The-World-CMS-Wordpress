@@ -2,11 +2,11 @@
 
 function pmxe_wp_ajax_wpae_send_to_codebox(){
 	if ( ! check_ajax_referer( 'wp_all_export_secure', 'security', false ) ){
-		exit( json_encode(array('html' => __('Security check failed.', 'wp-all-export-pro'))) );
+		exit( json_encode(array('html' => __('Security check failed.', 'wp_all_export_plugin'))) );
 	}
 
 	if ( ! current_user_can( PMXE_Plugin::$capabilities ) ){
-		exit( json_encode(array('html' => __('Permission denied.', 'wp-all-export-pro'))) );
+		exit( json_encode(array('html' => __('Permission denied.', 'wp_all_export_plugin'))) );
 	}
 
 	// Check if 'codeboxaction' is set and handle accordingly
@@ -15,13 +15,13 @@ function pmxe_wp_ajax_wpae_send_to_codebox(){
 	if ($codeboxAction === 'revert') {
 		\Wpae\Integrations\CodeBox::revertToFunctionsFile();
 
-		exit( json_encode(array('html' => __('Successfully reverted to functions file.', 'wp-all-export-pro'))) );
+		exit( json_encode(array('html' => __('Successfully reverted to functions file.', 'wp_all_export_plugin'))) );
 	}
 
 	$code = isset($_POST['code']) ? wp_unslash($_POST['code']) : '';
 
 	if (empty($code)) {
-		exit( json_encode(array('html' => __('No code provided.', 'wp-all-export-pro'))) );
+		exit( json_encode(array('html' => __('No code provided.', 'wp_all_export_plugin'))) );
 	}
 
 	$response = \Wpae\Integrations\CodeBox::saveSnippetToCodeBox($code);
@@ -33,7 +33,7 @@ function pmxe_wp_ajax_wpae_send_to_codebox(){
 		$currentFunctionsContent = file_get_contents($functions);
 		
 		if( \Wpae\Integrations\CodeBox::isUsingCodeBox($currentFunctionsContent)){
-			exit( json_encode(array('html' => __('CodeBox is already in use.', 'wp-all-export-pro'))) );
+			exit( json_encode(array('html' => __('CodeBox is already in use.', 'wp_all_export_plugin'))) );
 		}
 		
 		$backupFunctions = str_replace('.php', '_backup.php', $functions);
@@ -43,8 +43,8 @@ function pmxe_wp_ajax_wpae_send_to_codebox(){
 
 		file_put_contents($functions, $functionsContent);
 
-		exit( json_encode(array('html' => __('Code successfully sent to CodeBox.', 'wp-all-export-pro'), 'codeboxid' => $response, 'functions' => $functionsContent)) );
+		exit( json_encode(array('html' => __('Code successfully sent to CodeBox.', 'wp_all_export_plugin'), 'codeboxid' => $response, 'functions' => $functionsContent)) );
 	} else {
-		exit( json_encode(array('html' => __('Failed to send code to CodeBox.', 'wp-all-export-pro'))) );
+		exit( json_encode(array('html' => __('Failed to send code to CodeBox.', 'wp_all_export_plugin'))) );
 	}
 }

@@ -1,9 +1,23 @@
 <?php
 
+// Call from inside the authenticated arm of each endpoint, never in front of
+// the group: refusing before the key check makes any URL a licence-state probe.
+function pmxe_gate_zapier_refusal() {
+
+    if ( ! \Wpae\App\Gate\Gate::instance()->blocksZapier() ) {
+        return;
+    }
+
+    pmxe_send_json( array(
+        'status'  => 'error',
+        'code'    => 'license_required',
+        'message' => \Wpae\App\Gate\Gate::instance()->apiRefusal(),
+    ), 403 );
+}
+
 function pmxe_wp_loaded() {
 
     $scheduledExport = new \Wpae\Scheduling\Export();
-
 
     if ( ! empty($_GET['get_exports']) and ! empty($_GET['api_key'])) {
         pmxe_set_max_execution_time();
@@ -11,6 +25,8 @@ function pmxe_wp_loaded() {
 
         $response = [];
         if (!empty($zapier_api_key) and $zapier_api_key == $_GET['api_key']) {
+
+            pmxe_gate_zapier_refusal();
 
             global $wpdb;
             $table_prefix = PMXE_Plugin::getInstance()->getTablePrefix();
@@ -44,6 +60,8 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
+
             $subscriptions = get_option('zapier_subscribe', array());
 
             $body = json_decode(file_get_contents("php://input"), true);
@@ -73,6 +91,8 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
+
             $subscriptions = get_option('zapier_subscribe', array());
 
             $body = json_decode(file_get_contents("php://input"), true);
@@ -99,6 +119,8 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
+
             $subscriptions = get_option('rte_zapier_subscribe', array());
 
             $exportId = intval($_GET['export_id']);
@@ -123,6 +145,8 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
+
             $subscriptions = get_option('rte_zapier_subscribe', array());
 
             $exportId = intval($_GET['export_id']);
@@ -157,6 +181,7 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
 
             global $wpdb;
 
@@ -265,6 +290,7 @@ function pmxe_wp_loaded() {
 
         if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
         {
+            pmxe_gate_zapier_refusal();
 
             global $wpdb;
 
@@ -348,7 +374,23 @@ function pmxe_wp_loaded() {
     /* Check if cron is manualy, then execute export */
     $cron_job_key = PMXE_Plugin::getInstance()->getOption('cron_job_key');
 
-    if ( ! empty($cron_job_key) and ! empty($_GET['export_id']) and ! empty($_GET['export_key']) and $_GET['export_key'] == $cron_job_key and !empty($_GET['action']) and in_array($_GET['action'], array('processing', 'trigger', 'cancel'))) {
+    if ( ! empty($_GET['export_id']) and ! empty($_GET['export_key']) and !empty($_GET['action']) and in_array($_GET['action'], array('processing', 'trigger', 'cancel'))) {
+        if ( empty($cron_job_key) or ! hash_equals( $cron_job_key, sanitize_text_field( wp_unslash( $_GET['export_key'] ) ) ) ) {
+            pmxe_send_json( array(
+                'message' => 'Export hash is invalid',
+            ), 401 );
+        }
+        // Authenticated scheduled request: let the addon-installer SDK self-heal a missing companion.
+        do_action( 'pmxe_scheduled_request_authenticated', isset( $_GET['export_id'] ) ? intval( $_GET['export_id'] ) : 0 );
+
+        if ( \Wpae\App\Gate\Gate::instance()->blocksCronAction( sanitize_text_field( wp_unslash( $_GET['action'] ) ) ) ) {
+            pmxe_send_json( array(
+                'status'  => 403,
+                'code'    => 'license_required',
+                'message' => \Wpae\App\Gate\Gate::instance()->apiRefusal(),
+            ), 403 );
+        }
+
         pmxe_set_max_execution_time();
         $logger = function($m) {
             echo "<p>$m</p>\\n";
@@ -387,7 +429,9 @@ function pmxe_wp_loaded() {
 
                 $addons = new \Wpae\App\Service\Addons\AddonService();
                 if(
-                    ((in_array('users', $cpt) || in_array('shop_customer', $cpt)) && !$addons->isUserAddonActive())
+                    (in_array('users', $cpt) && !$addons->isUserAddonActive())
+                    ||
+                    ((in_array('shop_customer', $cpt) || in_array('shop_guest_customer', $cpt)) && !$addons->isUserProAddonActive())
                     ||
                     ($export->options['export_type'] == 'advanced' && $export->options['wp_query_selector'] == 'wp_user_query' && !$addons->isUserAddonActive())
                 ) {
@@ -482,6 +526,19 @@ function pmxe_wp_loaded() {
 
                         case 'processing':
 
+                            // Decided against the record, not the action: refusing a
+                            // continuation here would abandon a run mid-flight.
+                            if ( \Wpae\App\Gate\Gate::instance()->blocksRun( $export ) ) {
+                                // Before the response, because this exits.
+                                \Wpae\App\Gate\Gate::instance()->stopRun( $export );
+
+                                pmxe_send_json( array(
+                                    'status'  => 403,
+                                    'code'    => 'license_required',
+                                    'message' => \Wpae\App\Gate\Gate::instance()->stopRefusal( $export ),
+                                ), 403 );
+                            }
+
                             if ( $export->processing == 1 and (time() - strtotime($export->registered_on)) > 120){ // it means processor crashed, so it will reset processing to false, and terminate. Then next run it will work normally.
                                 $export->set(array(
                                     'processing' => 0
@@ -556,8 +613,18 @@ function pmxe_wp_loaded() {
             $export->getById(intval($_GET['export_id']));
         }
 
-        if ( (isset($_GET['security_token']) && $_GET['security_token'] == substr(md5($cron_job_key . $_GET['export_id']), 0, 16)) || (isset($_GET['security_key']) && isset($export->options['security_token']) && $_GET['security_key'] === $export->options['security_token']) )
+        if ( (isset($_GET['security_token']) && hash_equals( substr( md5( $cron_job_key . absint( $_GET['export_id'] ) ), 0, 16 ), sanitize_text_field( wp_unslash( $_GET['security_token'] ) ) )) || (isset($_GET['security_key']) && isset($export->options['security_token']) && hash_equals( (string) $export->options['security_token'], sanitize_text_field( wp_unslash( $_GET['security_key'] ) ) )) )
         {
+            // After the token comparison, not before it: refusing first would
+            // answer a caller who presented no token.
+            if ( \Wpae\App\Gate\Gate::instance()->blocksDownload() ) {
+                pmxe_send_json( array(
+                    'status'  => 403,
+                    'code'    => 'license_required',
+                    'message' => \Wpae\App\Gate\Gate::instance()->apiRefusal(),
+                ), 403 );
+            }
+
             $export = new PMXE_Export_Record();
 
             $export->getById($_GET['export_id']);

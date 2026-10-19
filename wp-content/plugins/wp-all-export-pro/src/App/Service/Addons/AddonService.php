@@ -9,6 +9,10 @@ class AddonService
         return defined('PMUE_EDITION');
     }
 
+    public function isUserProAddonActive() {
+        return (defined('PMUE_EDITION') && PMUE_EDITION === 'paid') || defined('PMUE_PRO_VERSION');
+    }
+
     public function isWooCommerceAddonActive() {
         return defined('PMWE_VERSION');
     }
@@ -54,7 +58,8 @@ class AddonService
 		    }
 
 		    if (
-			    ((in_array('users', $item['options']['cpt']) || in_array('shop_customer', $item['options']['cpt'])) && !$this->isUserAddonActive()) ||
+			    (in_array('users', $item['options']['cpt']) && !$this->isUserAddonActive()) ||
+			    ((in_array('shop_customer', $item['options']['cpt']) || in_array('shop_guest_customer', $item['options']['cpt'])) && !$this->isUserProAddonActive()) ||
 			    ($item['options']['export_type'] == 'advanced' && $item['options']['wp_query_selector'] == 'wp_user_query' && !$this->isUserAddonActive())
 		    ) {
 			    return true;
@@ -64,6 +69,31 @@ class AddonService
 
 	    return false;
 	}
+
+    public function customerExportsExistAndProUserAddonNotInstalled()
+    {
+        if ($this->isUserProAddonActive()) {
+            return false;
+        }
+
+        $exports = new \PMXE_Export_List();
+        $exports->getBy('parent_id', 0)->convertRecords();
+
+        foreach ($exports as $item) {
+
+            if (!isset($item['options']['cpt'])) {
+                continue;
+            }
+
+            $cpt = is_array($item['options']['cpt']) ? $item['options']['cpt'] : array($item['options']['cpt']);
+
+            if (in_array('shop_customer', $cpt) || in_array('shop_guest_customer', $cpt)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     public function hasExportAtOlderVersionThan($version)
     {
@@ -170,7 +200,8 @@ class AddonService
             }
 
             if (
-                ((in_array('users', $item['options']['cpt']) || in_array('shop_customer', $item['options']['cpt'])) && !$this->isUserAddonActive()) ||
+                (in_array('users', $item['options']['cpt']) && !$this->isUserAddonActive()) ||
+                (in_array('shop_customer', $item['options']['cpt']) && !$this->isUserProAddonActive() && !empty($item['options']['enable_real_time_exports'])) ||
                 ($item['options']['export_type'] == 'advanced' && $item['options']['wp_query_selector'] == 'wp_user_query' && !$this->isUserAddonActive() && isset($item['options']['enable_real_time_exports']) && $item['options']['enable_real_time_exports'])
             ) {
                 return true;

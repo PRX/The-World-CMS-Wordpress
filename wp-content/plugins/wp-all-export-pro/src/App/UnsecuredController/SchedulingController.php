@@ -30,6 +30,12 @@ class SchedulingController extends BaseController
             return new JsonResponse(array('message' => 'Export hash is invalid'), 401);
         }
 
+        $refusal = $this->licenceGateRefusal();
+
+        if ($refusal !== null) {
+            return $refusal;
+        }
+
         $exportId = intval($request->get('export_id'));
 
         $export = new \PMXE_Export_Record();
@@ -79,6 +85,16 @@ class SchedulingController extends BaseController
         $export = new \PMXE_Export_Record();
         $export->getById($exportId);
 
+        // Decided against the record, not the action: this is how a scheduled
+        // run advances, one chunk per request, and refusing it outright would
+        // abandon a run mid-flight. triggerAction() above, which is what starts
+        // a run, is refused without consulting anything.
+        $refusal = $this->licenceGateRefusal($export);
+
+        if ($refusal !== null) {
+            return $refusal;
+        }
+
         if(isset($export->options['enable_real_time_exports']) && $export->options['enable_real_time_exports'] ) {
             wp_send_json(array(
                 'status'     => 403,
@@ -115,7 +131,7 @@ class SchedulingController extends BaseController
             try {
                 $export->set(array('canceled' => 0))->execute($logger, true);
             } catch (AddonNotFoundException $e) {
-                die($e->getMessage());
+                $this->denyScheduledRun($e->getMessage());
             }
             if (!(int)$export->triggered and !(int)$export->processing) {
                 $this->scheduledExportService->process($export);
@@ -129,6 +145,30 @@ class SchedulingController extends BaseController
         }
 
         return new JsonResponse(array("message" => "Can't process"), 500);
+    }
+
+    // 403, not the 401 used above: a licence refusal is authenticated but unauthorised.
+    private function licenceGateRefusal($export = null)
+    {
+        $gate = \Wpae\App\Gate\Gate::instance();
+
+        $refused = $export === null ? $gate->blocks() : $gate->blocksRun($export);
+
+        if (! $refused) {
+            return null;
+        }
+
+        if ($export !== null) {
+            $gate->stopRun($export);
+        }
+
+        return new JsonResponse(array(
+            'status' => 403,
+            'code' => 'license_required',
+            'message' => $export === null
+                ? $gate->apiRefusal()
+                : $gate->stopRefusal($export),
+        ), 403);
     }
 
     public function versionAction()
@@ -146,7 +186,7 @@ class SchedulingController extends BaseController
             !empty($cron_job_key) and
             !empty($_GET['export_id']) and
             !empty($_GET['export_key']) and
-            $_GET['export_key'] == $cron_job_key;
+            hash_equals( $cron_job_key, sanitize_text_field( wp_unslash( $_GET['export_key'] ) ) );
     }
 
     /**
@@ -154,6 +194,10 @@ class SchedulingController extends BaseController
      */
     private function disableExportsThatDontHaveAddon($export)
     {
+        // Authenticated scheduled request: let the addon-installer SDK self-heal a missing
+        // companion before the add-on checks below decide whether to stop the export.
+        do_action('pmxe_scheduled_request_authenticated', $export->id);
+
         $cpt = $export->options['cpt'];
         if (!is_array($cpt)) {
             $cpt = array($cpt);
@@ -162,15 +206,17 @@ class SchedulingController extends BaseController
         $addons = new AddonService();
 
         if (
-            ((in_array('users', $cpt) || in_array('shop_customer', $cpt)) && !$addons->isUserAddonActive())
+            (in_array('users', $cpt) && !$addons->isUserAddonActive())
+            ||
+            ((in_array('shop_customer', $cpt) || in_array('shop_guest_customer', $cpt)) && !$addons->isUserProAddonActive())
             ||
             ($export->options['export_type'] == 'advanced' && $export->options['wp_query_selector'] == 'wp_user_query' && !$addons->isUserAddonActive())
         ) {
-            die(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+            $this->denyScheduledRun(\__('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if (strpos(reset($cpt), 'custom_') === 0 && !class_exists('GF_Export_Add_On')) {
-            die(\__('The Gravity Forms Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+            $this->denyScheduledRun(\__('The Gravity Forms Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if (
@@ -182,19 +228,35 @@ class SchedulingController extends BaseController
 	        ||
             ($export->options['export_type'] == 'advanced' && in_array($export->options['exportquery']->query['post_type'], array(array('product', 'product_variation'), )) && !$addons->isWooCommerceAddonActive() && !$addons->isWooCommerceProductAddonActive())
         ) {
-            die(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+            $this->denyScheduledRun(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
         if((in_array('acf', $export->options['cc_type']) || $export->options['xml_template_type'] == 'custom' && in_array('acf', $export->options['custom_xml_template_options']['cc_type'])) && !$addons->isAcfAddonActive()) {
-            die(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+            $this->denyScheduledRun(\__('The ACF Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
         }
 
 	    // Block Google Merchant Exports if the supporting add-on isn't active.
 	    if(isset($export->options['xml_template_type']) && $export->options['xml_template_type'] == \XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS && !$addons->isWooCommerceAddonActive()) {
 
-		    die(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
+		    $this->denyScheduledRun(\__('The WooCommerce Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin'));
 
 	    }
+    }
+
+    /**
+     * Ends a scheduled run that cannot proceed, with a status the caller can act on.
+     *
+     * These refusals used to be a bare die(), which answers 200. Cron runners and monitors read the
+     * status code, so a refusal at 200 reads as a completed run and the skipped export repeats
+     * unnoticed. 424 matches what the addon-installer SDK returns for the same class of refusal.
+     *
+     * @param string $message
+     * @return void
+     */
+    private function denyScheduledRun($message)
+    {
+        $response = new JsonResponse(array('message' => $message), 424);
+        $response->render();
     }
 
 }

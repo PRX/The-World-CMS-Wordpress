@@ -1,9 +1,9 @@
 === User Role Editor ===
 Contributors: shinephp
 Tags: user, role, editor, security, access
-Requires at least: 4.6
-Tested up to: 7.1
-Stable tag: 4.66.1
+Requires at least: 4.7
+Tested up to: 7.1.2
+Stable tag: 4.66.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -79,6 +79,22 @@ https://translate.wordpress.org/projects/wp-plugins/user-role-editor/
 
 
 == Changelog =
+
+= [4.66.2] 25.09.2026 =
+* Security Fix: administrator-role protection (URE_Protect_Admin::exclude_admin_role()) only excluded the "administrator" role from the assignable-roles list on the classic user edit screens, not on the plugin's own admin-ajax.php actions; a user holding the "promote_users" capability (without the plugin's own key capability) could therefore grant themselves or another user the "administrator" role via the "Add Role"/"Grant Roles" AJAX action, bypassing the same protection the classic Users screen correctly enforced. Discovered and responsibly reported by Humberto (SVO, https://svo.com.br).
+* Fix: the "Grant Roles" dialog's AJAX request (get_grant_roles) incorrectly required the plugin's own key capability instead of "promote_users", refusing users who only had "promote_users" - the capability the Grant Roles feature is designed for - with an "Insufficient permissions" error.
+* Fix: "Add Role" dialog kept showing the previously entered Role name (ID) and Display Role Name after a role was added, instead of blank fields.
+* Fix: opening a user's edit-profile screen and leaving without making any changes could show a spurious "Changes you made may not be saved" browser warning whenever the user had any "Other Roles" assigned; the Other Roles multi-select now renders its selected options directly in HTML instead of relying on JavaScript to select them after page load.
+* Update: "Delete Role" dialog now lists deletable roles in a checkbox table (Role Name / Role ID columns) instead of a single-select dropdown, so multiple roles can be deleted in one action; the old "Delete All Unused Roles" option is replaced by a "select all" checkbox in the table header.
+* Update: "Delete Capability" dialog now has a "Quick Filter" text field next to its "select all" checkbox, to narrow down the capability list the same way the main page's "Quick filter" field does.
+* Update: The multisite "Allow non super administrators to create, edit, and delete users" option is narrowed to "Allow non super administrators to edit users". The "create" part duplicated WordPress core's own "Allow site administrators to add new users to their site via the 'Users -> Add User' page" network setting, and the "delete" part granted a capability that WordPress core never actually lets a single site administrator exercise (user deletion is blocked outside Network Admin regardless of capability) - both are dropped, along with the temporary superadmin-impersonation workaround they relied on.
+* Update: Plugin's own JavaScript files (ure.js, settings.js, users.js, user-profile-other-roles.js, users-grant-roles.js) now have minified .min.js builds, generated with esbuild; each is enqueued via WordPress's SCRIPT_DEBUG constant, same convention already used for the vendored notify.js/multiple-select.js (unminified source when SCRIPT_DEBUG is on, minified build otherwise).
+* Update: Plugin's own CSS (css/ure-admin.css) now has a minified .min.css build, generated with esbuild; it's enqueued via WordPress's SCRIPT_DEBUG constant, same convention already used for the plugin's own JS files (unminified source when SCRIPT_DEBUG is on, minified build otherwise).
+* Update: js/users-grant-roles.js's loose global functions (Grant Roles dialog, Add/Revoke role buttons on the Users page) were consolidated into a single URE_Users_Grant_Roles object.
+* Update: Replaced the deprecated jQuery .click()/.click(fn) event-binding shorthand with .on('click', fn) in users-grant-roles.js and users.js, clearing a jQuery Migrate deprecation warning on the Users page.
+* Update: js/users.js's loose global functions (the "Without role" button's dialog on the Users page) were consolidated into a single URE_No_Role_Users object; the button's onclick markup in URE_Assign_Role::show_html() was updated to match.
+* Update: js/user-profile-other-roles.js's loose global functions (the user profile "Other Roles" multi-select control) were consolidated into a single URE_User_Profile_Other_Roles object.
+* Update: js/settings.js's loose global functions (the Settings page's "Reset User Roles" confirmation dialog) were consolidated into a single URE_Settings object.
 
 = [4.66.1] 25.08.2026 =
 * Fix: URE_Assign_Role::$lib property was changed to protected.

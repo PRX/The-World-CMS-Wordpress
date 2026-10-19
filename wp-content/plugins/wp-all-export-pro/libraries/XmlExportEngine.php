@@ -697,7 +697,9 @@ if (!class_exists('XmlExportEngine')) {
             } elseif (self::$is_woo_customer_export) {
 
                 // Prepare existing WooCommerce Customers data
-                self::$woo_customer_export->init($this->_existing_meta_keys);
+                if (self::$woo_customer_export) {
+                    self::$woo_customer_export->init($this->_existing_meta_keys);
+                }
 
             } elseif (self::$is_woo_guest_customer_export) {
 
@@ -784,7 +786,7 @@ if (!class_exists('XmlExportEngine')) {
                         $fields['cc_type'][] = (is_array($field)) ? $field['type'] : $slug;
                         $fields['cc_value'][] = (is_array($field)) ? $field['label'] : $field;
                         $fields['cc_name'][] = $field_key;
-                        $fields['cc_settings'][] = '';
+                        $fields['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                         $fields['cc_combine_multiple_fields'][] = '';
                         $fields['cc_combine_multiple_fields_value'][] = '';
                     }
@@ -813,7 +815,7 @@ if (!class_exists('XmlExportEngine')) {
                             $fields['cc_type'][] = (is_array($field)) ? $field['type'] : $sub_slug;
                             $fields['cc_value'][] = (is_array($field)) ? $field['label'] : $field;
                             $fields['cc_name'][] = $key_to_check;
-                            $fields['cc_settings'][] = '';
+                            $fields['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                             $fields['cc_combine_multiple_fields'][] = '';
                             $fields['cc_combine_multiple_fields_value'][] = '';
                         }
@@ -866,9 +868,21 @@ if (!class_exists('XmlExportEngine')) {
                 <p class="wpae-available-fields-group"><?php echo esc_html($section['title']); ?><span
                             class="wpae-expander">+</span></p>
                 <div class="wpae-custom-field">
-                    <ul>
+                    <?php
+                    $elementClass = '';
+                    if ($slug == 'cf' && XmlExportEngine::$is_user_export && !self::get_addons_service()->isUserProAddonActive()) {
+                        $elementClass = 'wpallexport_disabled';
+                        ?>
+                        <div class="wpallexport-free-edition-notice">
+                            <a class="upgrade_link" target="_blank"
+                               href="https://www.wpallimport.com/portal/discounts/?utm_source=user-export-free&utm_medium=upgrade-notice&utm_campaign=user-meta">Purchase
+                                the User Export Add-On Pro to Export User Meta</a>
+                        </div>
+                        <?php
+                    }
+                    ?><ul>
                         <?php if (!empty($this->available_data[$section['content']])): ?>
-                            <li>
+                            <li<?php if ($elementClass) echo ' class="' . esc_attr($elementClass) . '"'; ?>>
                                 <div class="default_column" rel="">
                                     <label class="wpallexport-element-label"><?php esc_html_e("All", "wp_all_export_plugin" . ' ' . $section['title']); ?></label>
                                     <input type="hidden" name="rules[]"
@@ -889,7 +903,7 @@ if (!class_exists('XmlExportEngine')) {
                                 }
 
                                 ?>
-                                <li class="pmxe_<?php echo esc_attr($slug); ?> <?php if ($is_auto_field) echo 'wp_all_export_auto_generate'; ?>">
+                                <li class="pmxe_<?php echo esc_attr($slug); ?> <?php if ($is_auto_field && !$elementClass) echo 'wp_all_export_auto_generate'; ?><?php if ($elementClass) echo ' ' . esc_attr($elementClass); ?>">
                                     <div class="custom_column" rel="<?php echo(intval($i) + 1); ?>">
                                         <label class="wpallexport-xml-element"><?php echo (is_array($field)) ? esc_html($field['name']) : esc_html($field); ?></label>
                                         <input type="hidden" name="ids[]" value="1"/>
@@ -1295,11 +1309,12 @@ if (!class_exists('XmlExportEngine')) {
                                         $field_options = empty  ($field['options']) ? '' : $field['options'];
 
                                         if ($field_type == 'cf' && $field_name == '_thumbnail_id') continue;
+                                        $elementDisabled = ($slug == 'cf' && XmlExportEngine::$is_user_export && !self::get_addons_service()->isUserProAddonActive());
                                         ?>
                                         <option
                                                 value="<?php echo esc_attr($field_type); ?>"
                                                 label="<?php echo esc_attr($field_label); ?>"
-                                                options="<?php echo esc_attr($field_options); ?>"><?php echo esc_html($field_name); ?></option>
+                                                options="<?php echo esc_attr($field_options); ?>"<?php if ($elementDisabled) echo ' disabled'; ?>><?php echo esc_html($field_name); ?></option>
                                         <?php
                                     }
                                 }

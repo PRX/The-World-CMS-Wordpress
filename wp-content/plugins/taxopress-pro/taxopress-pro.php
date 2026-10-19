@@ -4,7 +4,7 @@
  * Plugin Name: TaxoPress Pro
  * Plugin URI: https://wordpress.org/plugins/simple-tags/
  * Description: TaxoPress allows you to create and manage Tags, Categories, and all your WordPress taxonomy terms.
- * Version: 3.54.0
+ * Version: 3.55.0
  * Author: TaxoPress
  * Author URI: https://taxopress.com
  * Text Domain: taxopress-pro
@@ -126,10 +126,65 @@ if (! defined('STAGS_URL')) {
 }
 
 define('TAXOPRESS_VERSION', STAGS_VERSION);
-define('TAXOPRESS_PRO_VERSION', '3.54.0');
+define('TAXOPRESS_PRO_VERSION', '3.55.0');
 define('TAXOPRESS_PRO_EDD_ITEM_ID', 608);
 define('TAXOPRESS_EDD_STORE_URL', 'https://taxopress.com');
 define('TAXOPRESS_PLUGIN_AUTHOR', 'PublishPress');
+
+/**
+ * Display a permanent notice about receiving future TaxoPress updates.
+ *
+ * @return void
+ */
+function taxopress_pro_publishpress_contact_notice()
+{
+    $current_screen      = function_exists('get_current_screen') ? get_current_screen() : null;
+    $is_plugins_screen   = $current_screen && in_array($current_screen->id, ['plugins', 'plugins-network'], true);
+    $is_taxopress_screen = function_exists('is_taxopress_admin_page') && is_taxopress_admin_page();
+
+    if (
+        ! current_user_can('manage_options')
+        || (! $is_taxopress_screen && ! $is_plugins_screen)
+    ) {
+        return;
+    }
+    ?>
+    <div class="notice notice-success taxopress-notice taxopress-pro-publishpress-contact-notice">
+        <h2><?php esc_html_e('Please contact us about your version of TaxoPress.', 'taxopress-pro'); ?></h2>
+        <p><?php esc_html_e('The TaxoPress plugin is still going strong, but it has moved to a new website. You will need to contact us to keep getting plugin updates.', 'taxopress-pro'); ?></p>
+        <p>
+            <a
+                class="button button-primary"
+                href="<?php echo esc_url('https://taxopress.com/publishpress/'); ?>"
+                target="_blank"
+                rel="noopener noreferrer"
+            ><?php esc_html_e('Click here to contact us', 'taxopress-pro'); ?></a>
+        </p>
+    </div>
+    <style>
+        .taxopress-pro-publishpress-contact-notice {
+            border-left-color: #1f48ac;
+        }
+
+        .taxopress-pro-publishpress-contact-notice p,
+        .taxopress-pro-publishpress-contact-notice .button {
+            font-size: 15px;
+        }
+
+        .taxopress-pro-publishpress-contact-notice .button-primary,
+        .taxopress-pro-publishpress-contact-notice .button-primary:hover,
+        .taxopress-pro-publishpress-contact-notice .button-primary:active,
+        .taxopress-pro-publishpress-contact-notice .button-primary:focus {
+            border-color: #1f48ac;
+            background: #1f48ac;
+        }
+    </style>
+    <?php
+}
+
+add_action('admin_notices', 'taxopress_pro_publishpress_contact_notice');
+add_action('network_admin_notices', 'taxopress_pro_publishpress_contact_notice');
+
 if (function_exists('init_free_simple_tags')) {
     remove_action('init', 'init_free_simple_tags', 0);
 }

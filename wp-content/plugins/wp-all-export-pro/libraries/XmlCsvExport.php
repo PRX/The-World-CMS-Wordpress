@@ -896,7 +896,7 @@ final Class XmlCsvExport
 
         $in = fopen($file, 'r');
 
-        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 
         fclose($in);
 
@@ -968,11 +968,11 @@ final Class XmlCsvExport
 
             apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
 
-            $exclude_old_headers = fgetcsv($in);
+            $exclude_old_headers = fgetcsv($in, 0, ',', '"', '\\');
 
             if (is_resource($in)) {
                 while (!feof($in)) {
-                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
                     if (empty($data)) continue;
 
                     // Handle CSV parsing issues by ensuring proper column count
@@ -1097,7 +1097,7 @@ final Class XmlCsvExport
                         $auto_generate['cc_php'][] = 0;
                         $auto_generate['cc_code'][] = '';
                         $auto_generate['cc_sql'][] = '';
-                        $auto_generate['cc_settings'][] = '';
+                        $auto_generate['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                         $auto_generate['cc_type'][] = is_array($field) ? $field['type'] : $slug;
                         $auto_generate['cc_options'][] = '';
                         $auto_generate['cc_value'][] = is_array($field) ? $field['label'] : $field;
@@ -1134,7 +1134,7 @@ final Class XmlCsvExport
                             $auto_generate['cc_php'][] = 0;
                             $auto_generate['cc_code'][] = '';
                             $auto_generate['cc_sql'][] = '';
-                            $auto_generate['cc_settings'][] = '';
+                            $auto_generate['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                             $auto_generate['cc_type'][] = is_array($field) ? $field['type'] : $sub_slug;
                             $auto_generate['cc_options'][] = $field_options;
                             $auto_generate['cc_value'][] = is_array($field) ? $field['label'] : $field;
@@ -1154,7 +1154,7 @@ final Class XmlCsvExport
                         $auto_generate['cc_php'][] = 0;
                         $auto_generate['cc_code'][] = '';
                         $auto_generate['cc_sql'][] = '';
-                        $auto_generate['cc_settings'][] = '';
+                        $auto_generate['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                         $auto_generate['cc_type'][] = is_array($field) ? $field['type'] : 'woo_order';
                         $auto_generate['cc_options'][] = is_array($field) ? $field['options'] : $slug;
                         $auto_generate['cc_value'][] = is_array($field) ? $field['label'] : $cur_meta_key;
@@ -1182,7 +1182,7 @@ final Class XmlCsvExport
                         $auto_generate['cc_php'][] = 0;
                         $auto_generate['cc_code'][] = '';
                         $auto_generate['cc_sql'][] = '';
-                        $auto_generate['cc_settings'][] = '';
+                        $auto_generate['cc_settings'][] = (is_array($field) && !empty($field['settings'])) ? $field['settings'] : '';
                         $auto_generate['cc_type'][] = $field['type'];
                         $auto_generate['cc_value'][] = $field['label'];
                         $auto_generate['cc_name'][] = $field['name'];

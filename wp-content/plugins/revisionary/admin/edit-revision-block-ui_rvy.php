@@ -1,6 +1,7 @@
 <?php
-if (isset($_SERVER['SCRIPT_FILENAME']) && basename(__FILE__) == basename(esc_url_raw(wp_unslash($_SERVER['SCRIPT_FILENAME']))) )
-	die();
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 /*
  * Revision Edit: UI modifications for Gutenberg Editor
@@ -19,7 +20,7 @@ class RevisionaryEditRevisionBlockUI {
 				/* <![CDATA[ */
 				jQuery(document).ready( function($) {
 					setInterval(function() {
-						$("div.edit-post-post-status label:not(:contains('<?php esc_html_e('Enable public preview');?>')):not('[for=public-post-preview-url]')").closest('div').closest('div.components-panel__row').hide();
+						$("div.edit-post-post-status label:not(:contains('<?php esc_html_e('Enable public preview', 'revisionary');?>')):not('[for=public-post-preview-url]')").closest('div').closest('div.components-panel__row').hide();
 					}, 100);
 				});
 				/* ]]> */
@@ -44,7 +45,7 @@ class RevisionaryEditRevisionBlockUI {
         global $pagenow;
 
         // Return if not a post editor request
-        if (!in_array($pagenow, ['post.php', 'post-new.php'])) {
+        if (!in_array($pagenow, ['post.php', 'post-new.php'], true)) {
             return;
         }
 

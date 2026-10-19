@@ -31,7 +31,7 @@ if ($_post_id = rvy_detect_post_id()) {
                 if (!empty($_SERVER['REQUEST_URI'])) {
                     if (!get_transient("revisionary-post-edit-redirect-{$_post_id}")) {
                         set_transient("revisionary-post-edit-redirect-{$_post_id}", true, 30);
-                        wp_redirect(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])));
+                        wp_safe_redirect(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])));
                         exit;
                     }
                 }
@@ -164,7 +164,7 @@ class RVY_PostBlockEditUI {
         $args['nowCaption'] = esc_html__('Now', 'revisionary');
         $args['revisionCaption'] = esc_html__('Revision', 'revisionary');
 
-        $args['approveButtonReplacesSubmit'] = defined('PUBLISHPRESS_STATUSES_PRO_VERSION') && class_exists('PublishPress_Statuses') && method_exists('PublishPress_Statuses', 'getEnabledPostTypes') && in_array($post->post_type, \PublishPress_Statuses::getEnabledPostTypes());   // @todo: possible setting
+        $args['approveButtonReplacesSubmit'] = defined('PUBLISHPRESS_STATUSES_PRO_VERSION') && class_exists('PublishPress_Statuses') && method_exists('PublishPress_Statuses', 'getEnabledPostTypes') && in_array($post->post_type, \PublishPress_Statuses::getEnabledPostTypes(), true);   // @todo: possible setting
 
         wp_localize_script( 'rvy_object_edit', 'rvyObjEdit', $args );
     }
@@ -209,7 +209,7 @@ class RVY_PostBlockEditUI {
                 if (!$('div.rvy-author-selection').length) {
                     $('div.rvy-submission-div').append(
                         "<br /><div class='rvy-author-selection'>"
-                        + '<label>' + '<?php _e("Author", 'revisionary');?>&nbsp;</label>'
+                        + '<label for="rvy_post_author">' + '<?php esc_html_e("Author", 'revisionary');?>&nbsp;</label>'
                         + '</div>'
                         + "<div class='rvy-author-selection'>"
                         + "<?php echo $select_html;  // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>"
@@ -221,7 +221,8 @@ class RVY_PostBlockEditUI {
             $(document).on('change', 'div.rvy-author-selection select', function(e) {
                 var data = {'rvy_ajax_field': 'author_select', 'rvy_ajax_value': <?php echo esc_attr($post->ID);?>, 'rvy_selection': $('div.rvy-author-selection select').val(), '_rvynonce': '<?php echo esc_attr(wp_create_nonce('author_select'));?>'};
 
-                $('div.rvy-author-selection select').attr('disabled', 'disabled');
+                // Keep focus on the select while saving (WCAG 2.4.3); announce the result (WCAG 4.1.3)
+                $('div.rvy-author-selection select').attr('aria-busy', 'true');
 
                 $.ajax({
                     url: rvyObjEdit.ajaxurl,
@@ -233,11 +234,19 @@ class RVY_PostBlockEditUI {
             });
 
             function revisionarySelectAuthorDone() {
-                $('div.rvy-author-selection select').removeAttr('disabled');
+                $('div.rvy-author-selection select').removeAttr('aria-busy');
+                rvyAuthorSpeak('<?php echo esc_js(__('Author saved.', 'revisionary'));?>');
             }
 
             function revisionarySelectAuthorError() {
-                $('div.rvy-author-selection select').removeAttr('disabled');
+                $('div.rvy-author-selection select').removeAttr('aria-busy');
+                rvyAuthorSpeak('<?php echo esc_js(__('The author could not be saved.', 'revisionary'));?>');
+            }
+
+            function rvyAuthorSpeak(msg) {
+                if (window.wp && wp.a11y && wp.a11y.speak) {
+                    wp.a11y.speak(msg);
+                }
             }
         });
 		/* ]]> */

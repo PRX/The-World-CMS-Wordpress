@@ -15,6 +15,11 @@ $config = array(
 	"secure" => 1,
 	"license" => "",
 	"license_status" => "",
+	// Declared here so getOption() and the wp_all_export_config_options filter resolve them.
+	"license_checked_at" => 0,
+	"license_grace_until" => 0,
+	"license_gate_migrated" => 0,
+	"license_state" => array(),
 	"scheduling_license" => "",
 	"scheduling_license_status" => "",
 	"zapier_api_key" => wp_all_export_rand_char(32),

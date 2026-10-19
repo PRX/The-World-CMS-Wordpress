@@ -1285,61 +1285,66 @@ class URE_Editor {
     // end of delete_wp_roles()    
     
     
-    protected function delete_all_unused_roles() {        
-        
-        $roles_to_del = array_keys( $this->get_roles_can_delete() );  
-        if ( empty( $roles_to_del ) || !is_array( $roles_to_del ) ) {
-            $result = array(
-                'result'=>false, 
-                'deleted_roles'=>array(), 
-                'message'=>esc_html__( 'There are no roles for deletion','user-role-editor' ));
-            return $result;
-        }
-        
-        $result = $this->delete_wp_roles( $roles_to_del );
-        
-        return $result;        
-    }
-    // end of delete_all_unused_roles()
-    
-    
     /**
-     * Process user request for user role deletion
-     * @return string
+     * Whitelist the role IDs checked for deletion in the Delete Role dialog's checkbox table
+     * against the roles the current user is actually allowed to delete.
+     *
+     * @param array $roles_can_delete
+     * @return array
      */
-    public function delete_role() {        
-        
+    private function get_role_ids_for_deletion_from_post( $roles_can_delete ) {
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- only reached via delete_role(), itself only reached via URE_Ajax_Processor's delete_role action, already nonce-gated by dispatch()'s valid_nonce() before routing here; each posted value is only ever checked against $roles_can_delete (real deletable role IDs fetched from the database) via isset() before being kept, so unslashing/sanitizing the raw POST value first would be a no-op.
+        $input_buff = ( isset( $_POST['values'] ) && is_array( $_POST['values'] ) ) ? $_POST['values'] : array();
+
+        $role_ids = array();
+        foreach ( $input_buff as $key => $value ) {
+            if ( substr( $key, 0, 4 ) !== 'del_' ) {
+                continue;
+            }
+            if ( !isset( $roles_can_delete[ $value ] ) ) {
+                continue;
+            }
+            $role_ids[] = $value;
+        }
+
+        return $role_ids;
+    }
+    // end of get_role_ids_for_deletion_from_post()
+
+
+    /**
+     * Process user request for user role(s) deletion
+     * @return array
+     */
+    public function delete_role() {
+
         $response = array('result'=>'error', 'message'=>'', 'deleted_roles'=>array());
         if ( !current_user_can('ure_delete_roles') ) {
             $response['message'] = esc_html__('Insufficient permissions to work with User Role Editor','user-role-editor');
             return $response;
         }
 
-        $role_id = $this->lib->get_request_var( 'user_role_id', 'post');
-        if ( (int) $role_id === -1 ) { // delete all unused roles
-            $result = $this->delete_all_unused_roles();
-        } else {
-            if ( empty( $role_id ) ) {
-                $response['message'] = esc_html__( 'Wrong role ID','user-role-editor');
-                return $response;
-            }
-            $result = $this->delete_wp_roles( array( $role_id ) );
+        $roles_can_delete = $this->get_roles_can_delete();
+        $role_ids = $this->get_role_ids_for_deletion_from_post( $roles_can_delete );
+        if ( empty( $role_ids ) ) {
+            $response['message'] = esc_html__( 'Wrong role ID','user-role-editor');
+            return $response;
         }
+
+        $result = $this->delete_wp_roles( $role_ids );
         if ( $result['result']===true ) {
             $response['result'] = 'success';
             $response['deleted_roles'] = $result['deleted_roles'];
-            if ( (int) $role_id === -1 ) {
-                $response['message'] = esc_html__( 'Unused roles are deleted successfully', 'user-role-editor' );
+            if ( count( $result['deleted_roles'] )===1 ) {
+                // translators: placeholder %s is replaced by deleted user role id string value
+                $response['message'] = sprintf( esc_html__( 'Role %s is deleted successfully', 'user-role-editor' ), $result['deleted_roles'][0] );
             } else {
-                // translators: placeholder %s is replaced by not deleted user role id string value
-                $response['message'] = sprintf( esc_html__( 'Role %s is deleted successfully', 'user-role-editor' ), $role_id );
+                $short_list_str = $this->lib->get_short_list_str( $result['deleted_roles'] );
+                $response['message'] = count( $result['deleted_roles'] ) .' '. esc_html__( 'roles are deleted successfully', 'user-role-editor' ) .': '. $short_list_str;
             }
         } else {
             $response['message'] = $result['message'];
-        }
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- delete_role() is an AJAX-gated entry point; dispatch()'s valid_nonce() already runs before routing here, WPCS just can't trace nonce verification across that method-call boundary, same limitation documented for check_nonce()/valid_nonce() in custom-ruleset.xml's WordPress.Security.NonceVerification rule comment.
-        if ( isset( $_POST['user_role_id'] ) ) {
-            unset( $_POST['user_role_id'] );
         }
 
         return $response;

@@ -52,13 +52,22 @@ class URE_Protect_Admin {
     
     /**
      * exclude administrator role from the roles list
-     * 
+     *
+     * Unlike the other protections below, this one is not scoped to the
+     * classic user edit pages via is_protection_applicable() - it must also
+     * apply on admin-ajax.php, since the plugin's own AJAX role-assignment
+     * actions (add_role_to_user, revoke_role_from_user, grant_roles) validate
+     * the submitted role against this same editable_roles list. This class
+     * is only ever instantiated for a non-admin current user (see
+     * User_Role_Editor::plugin_init()), so there is no page on which
+     * excluding 'administrator' here would be wrong.
+     *
      * @param string $roles
      * @return array
      */
     public function exclude_admin_role( $roles ) {
 
-        if ( $this->is_protection_applicable() && isset( $roles['administrator'] ) ) {
+        if ( isset( $roles['administrator'] ) ) {
             unset( $roles['administrator'] );
         }
 

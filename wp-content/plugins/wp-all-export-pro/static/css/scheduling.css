@@ -732,12 +732,18 @@
 }
 
 .wpallexport-plugin .tiered-pricing-options h3 {
-    background:none;
-    color: #464646;
-    padding:5px;
-    border:unset;
-    margin-top:20px;
+    background: none !important;
+    background-color: transparent !important;
+    color: #3c434a !important;
+    padding: 5px;
+    border: unset;
+    margin-top: 20px;
     font-size: 13px;
+}
+
+.wpallexport-plugin .tiered-pricing-options .faq-section h4 {
+    background-color: transparent !important;
+    color: #3c434a !important;
 }
 
 .wpallexport-plugin .tiered-pricing-options .blue {

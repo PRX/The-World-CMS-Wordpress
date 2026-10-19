@@ -65,7 +65,7 @@
                                                 <input type="password" id="add-subscription-field"
                                                        placeholder="<?php _e('Enter your license', 'wp_all_export_plugin'); ?>"/>
                                                 <span id="find-subscription-link"><a
-		                                                href="http://www.wpallimport.com/portal/automatic-scheduling/"
+		                                                href="https://www.wpallimport.com/portal/automatic-scheduling/"
 		                                                target="_blank"><?php _e('Find your license', 'wp_all_export_plugin'); ?></a></span>
                                             </span>
                                         </span>

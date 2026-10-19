@@ -23,7 +23,7 @@
 					</div>
 				</div>
 				<p style="color:#374151; margin-top: 20px; font-size: 14px !important;">
-					Easily upgrade now—no interruptions, no downtime.
+					Easily upgrade now, with no interruptions and no downtime.
 				</p>
 				<span class="button-and-text-container">
                                         <span class="subscribe-button-group" id="subscribe-button-group" style="flex: 2;">

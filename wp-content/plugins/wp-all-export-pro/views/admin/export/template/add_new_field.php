@@ -79,14 +79,13 @@ if(!defined('ABSPATH')) {
 
                 if( elementType == 'date' ||
                     elementType == 'comment_date' ||
+                    elementType == 'comment_date_gmt' ||
+                    elementType == 'comment_parent_date' ||
+                    elementType == 'comment_parent_date_gmt' ||
                     elementType == 'user_registered' ||
                     elementType == 'post_modified') {
 
-                    var $dateType = $('select.date_field_export_data').val();
-                    if ($dateType == 'unix')
-                        $element.find('input[name^=cc_settings]').val('unix');
-                    else
-                        $element.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
+                    $element.find('input[name^=cc_settings]').val(window.wpaeDateFieldSettings.read($('fieldset.wp-all-export-edit-column')));
                 }
                 else {
                     //cc_settings
@@ -160,22 +159,16 @@ if(!defined('ABSPATH')) {
 
                 if( elementTypeVal == 'date' ||
                     elementTypeVal == 'comment_date' ||
+                    elementTypeVal == 'comment_date_gmt' ||
+                    elementTypeVal == 'comment_parent_date' ||
+                    elementTypeVal == 'comment_parent_date_gmt' ||
                     elementTypeVal == 'user_registered' ||
                     elementTypeVal == 'post_modified') {
 
-                    var dateType = $addAnotherForm.find('select.date_field_export_data').val();
-                    if (dateType == 'unix') {
-                        requestData.push({
-                            name: "cc_settings[]",
-                            value: 'unix'
-                        });
-                    }
-                    else {
-                        requestData.push({
-                            name: "cc_settings[]",
-                            value: $addAnotherForm.find('.pmxe_date_format').val()
-                        });
-                    }
+                    requestData.push({
+                        name: "cc_settings[]",
+                        value: window.wpaeDateFieldSettings.read($addAnotherForm)
+                    });
                 }
                 else {
                     requestData.push({

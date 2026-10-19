@@ -503,9 +503,10 @@ class URE_Grant_Roles {
         global $wp_version;
 
         $show_wp_change_role = apply_filters('ure_users_show_wp_change_role', true);
-        
+        $ure_js_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
+
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core','jquery-ui-button', 'jquery'), $wp_version, true );
-        wp_register_script('ure-users-grant-roles', plugins_url('/js/users-grant-roles.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
+        wp_register_script('ure-users-grant-roles', plugins_url('/js/users-grant-roles' . $ure_js_suffix . '.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-users-grant-roles');
         wp_localize_script('ure-users-grant-roles', 'ure_users_grant_roles_data', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),

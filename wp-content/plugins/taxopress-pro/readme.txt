@@ -3,7 +3,7 @@ Contributors: publishpress, kevinB, stevejburge, andergmartins, olatechpro, ojop
 Tags: category, tag, taxonomy, categories, tag cloud
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 3.54.0
+Stable tag: 3.55.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -225,13 +225,12 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 
 == Changelog ==
 
-## [3.54.0] - 22 September, 2026
-* Security: Prevent reflected XSS in Terms row-action URLs
-* Fixed: Prevent creation of a destination term when merging terms and no source terms exist
-* Fixed: Preserve the destination term when it is included among the terms being merged
-* Fixed: Fix Auto Links excluded-term matching
-* Update: Add per-post Auto Terms status controls
-* Update: Add per-post Auto Links status controls and enable overrides
+## [3.55.0] - 12 October, 2026
+* Update: Add a permanent TaxoPress-branded contact notice to TaxoPress and Plugins screens
+
+## [3.54.0] - 08 September, 2026
+* Fixed: Fix Auto Links excluded term matching, #3031
+* Fixed: Add per-post Auto Terms toggles, #3032
 
 ## [3.53.0] - 01 September, 2026
 * Fixed: Mass Edit pagination is broken, #3014
@@ -251,14 +250,5 @@ If you have a busy WooCommerce site, it can be difficult to organize all your pr
 * Tighten access checks for term suggestion lookups, #2993
 * Add request validation to legacy tag creation, #2991
 * Harden TaxoPress AI term result rendering, #2989
-
-## [3.51.0] - 21 July, 2026 =
-* Fixed: Fatal memory exhaustion on Terms screen (st_terms) with hierarchical taxonomy — not related to term count, #2967
-* Fixed: Related Posts thumbnail image resolution setting is ignored, #2964
-* Fixed: Terms screen causes memory exhaustion on large sites, #2962
-* Fixed: Improve AI preview post validation, #2968. Thanks to Duy for the report
-* Fixed: Terms screen can run out of memory on large sites, #2961
-* Update: Remove the lock icon in the Pro version, #2963
-* Update: Include changelog in readme.txt for plugin update dialog box, #2959
 
 The full changelog can be found on [GitHub](https://github.com/taxopress/taxopress-pro/blob/master/CHANGELOG.md).

@@ -30,7 +30,7 @@ class RevisionaryVisualCompare {
 
             add_filter( 
                 'visual_post_compare_listed_revisions', 
-                function ( $listed, $revision ) {
+                function ( $listed, $revision, $args = [] ) {
                     global $wpdb;
     
                     $comparison_key = '';
@@ -40,9 +40,9 @@ class RevisionaryVisualCompare {
                         $comparison_key = 'compare-past-revision';
 
                     } else {
-                        if (is_string($revision) && rvy_is_revision_status($revision)) {
-                            $main_post_id = rvy_post_id($revision);
-                            $is_new_revision = $revision;
+                        if (!empty($args['post']) && !empty($args['revision_status']) && rvy_is_revision_status($args['revision_status'])) {
+                            $main_post_id = (int) $args['post'];
+                            $is_new_revision = $args['revision_status'];
 
                         } elseif ($is_new_revision = rvy_in_revision_workflow($revision)) {
                             $main_post_id = rvy_post_id($revision);
@@ -55,11 +55,13 @@ class RevisionaryVisualCompare {
                                 $comparison_key = 'compare-future-revision';
                             
                             } elseif ('pending-revision' == $is_new_revision) {
-                                $listed = self::get_associated_posts($main_post_id, 'pending-revision', 30);
+                                $revision_status = (rvy_get_option('revision_limit_per_post')) ? array_diff(rvy_revision_statuses(), ['future-revision']) : 'pending-revision';
+                                $listed = self::get_associated_posts($main_post_id, $revision_status, 30, ['is_new_revision' => true]);
                                 $comparison_key = 'compare-pending-revision';
 
                             } elseif ('draft-revision' == $is_new_revision) {
-                                $listed = self::get_associated_posts($main_post_id, 'draft-revision', 30);
+                                $revision_status = (rvy_get_option('revision_limit_per_post')) ? array_diff(rvy_revision_statuses(), ['future-revision']) : 'draft-revision';
+                                $listed = self::get_associated_posts($main_post_id, $revision_status, 30, ['is_new_revision' => true]);
                                 $comparison_key = 'compare-pending-revision';
 
                             } else {
@@ -79,28 +81,13 @@ class RevisionaryVisualCompare {
                 'visual_post_compare_compare_screen_headline',
                 function ( $headline, $revision_id, $comparison_key ) {
                     if ($revision_status = rvy_in_revision_workflow($revision_id)) {
-                        if (!empty($_REQUEST['revision']) && rvy_is_revision_status(sanitize_key($_REQUEST['revision']))) {                 // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                            $status_obj = get_post_status_object(sanitize_key($_REQUEST['revision']));                                      // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-                            $status_caption = (is_object($status_obj) && !empty($status_obj->label)) ? '(' . $status_obj->label . ')' : '';
-
-                            $headline = sprintf(
-                                __('Compare Revisions %s', 'revisionary'),
-                                $status_caption
-                            );
-                        } elseif ('future-revision' == $revision_status) {
-                            $headline = __('Compare Scheduled Revisions', 'revisionary');
-
-                        } elseif ('pending-revision' == $revision_status) {
-                            $headline = __('Compare Submitted Revisions', 'revisionary');
-
-                        } elseif ('draft-revision' == $revision_status) {
-                            $headline = __('Compare Unsubmitted Revisions', 'revisionary');
-
+                        if ('future-revision' == $revision_status) {
+                            $headline = esc_html__('Compare Scheduled Revisions', 'revisionary');
                         } else {
-                            $headline = __('Compare New Revision', 'revisionary');
+                            $headline = esc_html__('Compare New Revisions', 'revisionary');
                         }
                     } elseif (wp_is_post_revision($revision_id)) {
-                        $headline = __('Compare Past Revisions', 'revisionary');
+                        $headline = esc_html__('Compare Past Revisions', 'revisionary');
                     }
 
                     return $headline;
@@ -111,7 +98,7 @@ class RevisionaryVisualCompare {
                 'visual_post_compare_compare_screen_approve_caption',
                 function ( $caption, $revision_id, $comparison_key ) {
                     if (!rvy_in_revision_workflow($revision_id) && (wp_is_post_revision($revision_id))) {
-                        $caption = __('Restore', 'revisionary');
+                        $caption = esc_html__('Restore', 'revisionary');
                     }
 
                     return $caption;
@@ -153,7 +140,7 @@ class RevisionaryVisualCompare {
                     if ($past_revisions || ('compare-past-revision' == $args['key'])) {
                         $sidebars []= $compare_class::comparison_sidebar_definition(
                             'compare-past-revision',
-                            __( 'Past Revisions', 'revisionary' ),
+                            esc_html__( 'Past Revisions', 'revisionary' ),
                             $past_revisions,
                             [
                                 'currentPostFirst' => false,
@@ -170,7 +157,7 @@ class RevisionaryVisualCompare {
                     if ($pending_revisions || ('compare-pending-revision' == $args['key'])) {
                         $sidebars []= $compare_class::comparison_sidebar_definition(
                             'compare-pending-revision',
-                            __( 'Submitted Revisions', 'revisionary' ),
+                            esc_html__( 'Submitted Revisions', 'revisionary' ),
                             $pending_revisions,
                             [
                                 'mime_type_status' => !rvy_get_option('permissions_compat_mode')
@@ -185,12 +172,12 @@ class RevisionaryVisualCompare {
                     if ($scheduled_revisions || ('compare-future-revision' == $args['key'])) {
                         $sidebars []= $compare_class::comparison_sidebar_definition(
                             'compare-future-revision',
-                            __( 'Scheduled Revisions', 'revisionary' ),
+                            esc_html__( 'Scheduled Revisions', 'revisionary' ),
                             $scheduled_revisions,
                             [   
                                 'sort_by' => 'post_date',
                                 'slider_post_date' => true,
-                                'post_date_prefix' => __( 'Scheduled:', 'revisionary' ),
+                                'post_date_prefix' => esc_html__( 'Scheduled:', 'revisionary' ),
                                 'mime_type_status' => !rvy_get_option('permissions_compat_mode'),
                             ]
                         );
@@ -264,14 +251,14 @@ class RevisionaryVisualCompare {
 			$posts = wp_get_post_revisions($main_post_id);
 
 		} elseif (is_array($status) && !empty($args['is_new_revision'])) {
-            $status_csv = implode("','", array_map('sanitize_key', $status));
+            $statuses = array_map('sanitize_key', $status);
+            $status_placeholders = implode(', ', array_fill(0, count($statuses), '%s'));
 
             // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$posts = $wpdb->get_col(
-				$wpdb->prepare(
-					"SELECT ID FROM $wpdb->posts WHERE post_mime_type IN ('" . $status_csv . "') AND comment_count = %d ORDER BY ID DESC LIMIT %d",  // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					$main_post_id,
-					$limit
+				$wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The merged array supplies all dynamic and literal placeholders.
+					"SELECT ID FROM $wpdb->posts WHERE post_mime_type IN ($status_placeholders) AND comment_count = %d ORDER BY ID DESC LIMIT %d",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					array_merge($statuses, [$main_post_id, $limit])
 				)
 			);
 		} elseif (rvy_is_revision_status($status)) {

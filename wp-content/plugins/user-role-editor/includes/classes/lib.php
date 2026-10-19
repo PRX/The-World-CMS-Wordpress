@@ -21,12 +21,7 @@ class URE_Lib extends URE_Base_Lib {
     protected $advert = null;
     protected $bbpress = null; // reference to the URE_bbPress class instance
     protected $settings_capability = ''; // User capability for access to User Role Editor Settings
-    
-    // when allow_edit_users_to_not_super_admin option is turned ON, we set this property to true 
-    // when we raise single site admin permissions up to the superadmin for the 'Add new user' new-user.php page
-    // User_Role_Editor::allow_add_user_as_superadmin()
-    protected $raised_permissions = false; 
-    
+
     // roles sorting order: false - do not sort, 'id' - by role ID, 'name' - by role name
     protected $roles_sorting_order = false;
  
@@ -107,14 +102,6 @@ class URE_Lib extends URE_Base_Lib {
     // end of is_pro()    
                 
     
-    public function set_raised_permissions($value) {
-        
-        $this->raised_permissions = !empty($value) ? true : false;
-        
-    }
-    // end of set_raised_permissions()
-        
-        
     /**
      * get options for User Role Editor plugin
      * User Role Editor stores its options at the main blog/site only and applies them to the all network
@@ -413,16 +400,14 @@ class URE_Lib extends URE_Base_Lib {
     
     /**
      * Returns true if user has a real super administrator permissions
-     * It takes into account $this->raised_permissions value, in order do not count a user with temporally raised permissions 
-     * of a real superadmin under WP Multisite
      * For WP Singlesite superadmin is a user with 'administrator' role only in opposite the WordPress's is_super_admin(),
      * which counts as superadmin any user with 'delete_users' capability
-     * 
+     *
      * @param int $user_id
      * @return boolean
      */
     public function is_super_admin( $user_id = false ) {
-                
+
         if (empty($user_id)) {
             $user = wp_get_current_user();
             $user_id = $user->ID;
@@ -432,8 +417,8 @@ class URE_Lib extends URE_Base_Lib {
         if (!$user || !$user->exists()) {
             return false;
         }
-        
-        if ( $this->multisite && !$this->raised_permissions && is_super_admin( $user_id ) ) {
+
+        if ( $this->multisite && is_super_admin( $user_id ) ) {
             return true;
         }
         
@@ -480,7 +465,7 @@ class URE_Lib extends URE_Base_Lib {
         }
         
         // Do not replace with $this->is_super_admin() to exclude recursion
-        if ($this->multisite && !$this->raised_permissions && is_super_admin($user->ID)) {  
+        if ($this->multisite && is_super_admin($user->ID)) {
             return true;
         }
 

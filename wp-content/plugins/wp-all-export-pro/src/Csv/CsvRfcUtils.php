@@ -43,7 +43,7 @@ class CsvRfcUtils
         if ($eol !== self::EOL_WRITE_DEFAULT || self::hasAnyValueWithEscapeFollowedByEnclosure($fields, $enclosure)) {
             \fwrite($handle, self::strPutCsv($fields, $delimiter, $enclosure, $eol));
         } else {
-            \fputcsv($handle, $fields, $delimiter, $enclosure);
+            \fputcsv($handle, $fields, $delimiter, $enclosure, '\\');
         }
     }
 
@@ -127,7 +127,7 @@ class CsvRfcUtils
     public static function strPutCsv(array $fields, $delimiter = ',', $enclosure = '"', $eol = self::EOL_WRITE_DEFAULT)
     {
         $file = new \SplTempFileObject();
-        $file->fputcsv($fields, $delimiter, $enclosure);
+        $file->fputcsv($fields, $delimiter, $enclosure, '\\');
         $file->rewind();
 
         $line = '';

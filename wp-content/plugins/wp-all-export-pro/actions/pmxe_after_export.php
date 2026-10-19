@@ -1,6 +1,6 @@
 <?php
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use Soflyy\WpAllExportPro\Vendor\PhpOffice\PhpSpreadsheet\IOFactory;
 
 function pmxe_prepend($string, $orig_filename)
 {
@@ -67,12 +67,12 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             $in = fopen($tmp_file, 'r');
             $out = fopen($filepath, 'w');
 
-            $headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+            $headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 
             if (is_resource($in)) {
                 $lineNumber = 0;
                 while (!feof($in)) {
-                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
                     if (empty($data)) continue;
                     $data_assoc = array_combine($headers, array_values($data));
                     $line = array();
@@ -185,9 +185,9 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 
                         $rowCount = 0;
                         $fileCount = 1;
-                        $headers = fgetcsv($in);
+                        $headers = fgetcsv($in, 0, ',', '"', '\\');
                         while (!feof($in)) {
-                            $data = fgetcsv($in);
+                            $data = fgetcsv($in, 0, ',', '"', '\\');
                             if (empty($data)) continue;
                             if (($rowCount % $splitSize) == 0) {
                                 if ($rowCount > 0) {
@@ -258,10 +258,10 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             if ($export->options['export_to'] == 'csv') {
                 $f = fopen($filepath, 'r');
 
-                $headers = fgetcsv($f, null, $export->options['delimiter']);
+                $headers = fgetcsv($f, null, $export->options['delimiter'], '"', '\\');
 
                 while(!feof($f)) {
-                    $data = fgetcsv($f, null, $export->options['delimiter']);
+                    $data = fgetcsv($f, null, $export->options['delimiter'], '"', '\\');
                     $currentLine = [];
                     if(is_array($data)) {
                         foreach ($data as $key => $value) {
@@ -373,12 +373,12 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 		    }
 
 		    // Read the header row.
-		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 		    $columnCount = count($header);
 		    $nonEmptyColumns = array_fill(0, $columnCount, false);
 
 		    // Determine non-empty columns by scanning through each data row.
-		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'])) !== FALSE) {
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\')) !== FALSE) {
 			    foreach ($row as $index => $value) {
 				    if (!empty($value)) {
 					    $nonEmptyColumns[$index] = true;
@@ -391,18 +391,18 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 		    $in = fopen($filepath, 'r');
 
 		    // Write the header row with filtered columns.
-		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter']);
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 		    $filteredHeader = array_filter($header, function($key) use ($nonEmptyColumns) {
 			    return $nonEmptyColumns[$key];
 		    }, ARRAY_FILTER_USE_KEY);
-		    fputcsv($out, array_values($filteredHeader), XmlExportEngine::$exportOptions['delimiter']);
+		    fputcsv($out, array_values($filteredHeader), XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 
 		    // Write the filtered data rows.
-		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'])) !== FALSE) {
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\')) !== FALSE) {
 			    $filteredRow = array_filter($row, function($key) use ($nonEmptyColumns) {
 				    return $nonEmptyColumns[$key];
 			    }, ARRAY_FILTER_USE_KEY);
-			    fputcsv($out, array_values($filteredRow), XmlExportEngine::$exportOptions['delimiter']);
+			    fputcsv($out, array_values($filteredRow), XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
 		    }
 
 		    // Close the files.

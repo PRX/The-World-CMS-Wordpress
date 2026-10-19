@@ -11,6 +11,18 @@ function pmxe_init()
 
             if ( ! empty($zapier_api_key) and $zapier_api_key == $_GET['api_key'] )
             {
+                // Inside the matched arm on purpose: refusing ahead of the key
+                // compare would make every URL an anonymous licence-state probe.
+                if ( \Wpae\App\Gate\Gate::instance()->blocksZapier() )
+                {
+                    http_response_code(403);
+                    exit(wp_json_encode(array(
+                        'status'  => 'error',
+                        'code'    => 'license_required',
+                        'message' => \Wpae\App\Gate\Gate::instance()->apiRefusal(),
+                    )));
+                }
+
                 exit(json_encode(array('status' => 'success')));
             }
             else

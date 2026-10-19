@@ -111,7 +111,7 @@ class RevisionCreation {
 			return $copy_id;
 		}
 
-		wp_redirect($url);
+		wp_safe_redirect($url);
 		exit;
 	}
 
@@ -201,17 +201,17 @@ class RevisionCreation {
 
 
 		if (is_array($enabled_fields)) {
-			$skip_post_meta = array_filter(
+			$skip_meta_keys = array_filter(
 				$enabled_fields, 
 				function($val) {
 					return is_null($val) || !$val;
 				}
 			);
 		} else {
-			$skip_post_meta = [];
+			$skip_meta_keys = [];
 		}
 
-		revisionary_copy_postmeta($post_id, $copy_id, compact('skip_post_meta'));
+		revisionary_copy_postmeta($post_id, $copy_id, compact('skip_meta_keys'));
 
 		if ($post_id != $copy_id) {
 			rvy_update_post_meta($copy_id, '_rvy_source_post_id', $post_id);
@@ -245,6 +245,32 @@ class RevisionCreation {
 		$main_post_id = $is_revision ? rvy_post_id($post_id) : $post_id;
 
         $published_post = get_post($main_post_id);
+
+        if (!$is_revision && !empty($args['reuse_unsubmitted']) && 'future-revision' !== $revision_status) {
+            // Keep each author's unfinished changes together; do not overwrite a saved draft.
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+            $existing_ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT ID FROM $wpdb->posts WHERE comment_count = %d AND post_author = %d
+                 AND post_mime_type = 'draft-revision' AND post_status IN ('draft', 'draft-revision')
+                 AND post_type = %s ORDER BY post_modified_gmt DESC, ID DESC",
+                    $main_post_id, get_current_user_id(), get_post_type($main_post_id)
+            ));
+            foreach ($existing_ids as $existing_id) {
+                if (!current_user_can('edit_post', $existing_id)) {
+                    continue;
+                }
+                $url = isset($args['redirect_url']) ? $args['redirect_url'] : rvy_admin_url("post.php?post=$existing_id&action=edit");
+                $url = apply_filters('revisionary_create_revision_redirect', $url, (int) $existing_id);
+                if (!$url || !empty($args['suppress_redirect'])) {
+                    return (int) $existing_id;
+                }
+                wp_safe_redirect($url);
+                exit;
+            }
+
+        }
+
 
 		$set_post_properties = [       
 			'post_content',          
@@ -340,7 +366,7 @@ class RevisionCreation {
 			return $revision_id;
 		}
 
-		wp_redirect($url);
+		wp_safe_redirect($url);
 		exit;
 	}
 
@@ -383,7 +409,7 @@ class RevisionCreation {
 		$data['post_modified'] = current_time( 'mysql' );
 		$data['post_modified_gmt'] = current_time( 'mysql', 1 );
 
-		if ( $future_date = ! empty($data['post_date']) && ( strtotime($data['post_date_gmt'] ) > agp_time_gmt() ) ) {  // in past versions, $future_date was also passed to get_revision_msg()
+		if ( $future_date = ! empty($data['post_date']) && ( strtotime($data['post_date_gmt'] ) > agp_time_gmt() + 30 ) ) {  // in past versions, $future_date was also passed to get_revision_msg()
 			// round down to zero seconds
 			$data['post_date_gmt'] = gmdate( 'Y-m-d H:i:00', strtotime( $data['post_date_gmt'] ) );
 			$data['post_date'] = gmdate( 'Y-m-d H:i:00', strtotime( $data['post_date'] ) );

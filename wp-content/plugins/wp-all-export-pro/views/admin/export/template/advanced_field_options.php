@@ -65,6 +65,7 @@ if(!defined('ABSPATH')) {
         <div class="input cc_field date_field_type">
             <select class="date_field_export_data" style="width: 100%; height: 30px;">
                 <option value="unix"><?php esc_html_e("UNIX timestamp - PHP time()", "wp_all_export_plugin"); ?></option>
+                <option value="iso8601"><?php esc_html_e("ISO 8601 - PHP date('c')", "wp_all_export_plugin"); ?></option>
                 <option value="php"><?php esc_html_e("Natural Language PHP date()", "wp_all_export_plugin"); ?></option>
             </select>
             <div class="input pmxe_date_format_wrapper">
@@ -72,6 +73,14 @@ if(!defined('ABSPATH')) {
                     style="padding:4px; display: block;"><?php esc_html_e("date() Format", "wp_all_export_plugin"); ?></label>
                 <input type="text" class="pmxe_date_format" value="" placeholder="Y-m-d H:i:s"
                        style="width: 100%;"/>
+            </div>
+            <div class="input pmxe_date_timezone_wrapper">
+                <label
+                    style="padding:4px; display: block;"><?php esc_html_e("Timezone", "wp_all_export_plugin"); ?></label>
+                <select class="date_field_timezone" style="width: 100%; height: 30px;">
+                    <option value="utc"><?php esc_html_e("UTC", "wp_all_export_plugin"); ?></option>
+                    <option value="site"><?php printf(esc_html__("Site timezone (%s)", "wp_all_export_plugin"), esc_html(wp_timezone_string())); ?></option>
+                </select>
             </div>
         </div>
         <!-- Options for Time field -->

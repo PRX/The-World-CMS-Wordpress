@@ -34,6 +34,23 @@ function pmxe_wp_ajax_wpallexport()
         die('Security check');
     }
 
+    // Gated here rather than at the hook: this handler is one chunk of a run spanning
+    // many ajax requests, and refusing at the hook would abandon a half-written file.
+    if (\Wpae\App\Gate\Gate::instance()->blocksRun($export)) {
+        \Wpae\App\Gate\Gate::instance()->stopRun($export);
+
+        $message = \Wpae\App\Gate\Gate::instance()->stopRefusal($export)
+            . \Wpae\App\Gate\Gate::instance()->messages()->capabilitySuffix();
+
+        pmxe_send_json(array(
+            'status'  => 403,
+            'code'    => \Wpae\App\Gate\Gate::REFUSAL_CODE,
+            'message' => $message,
+            'html'    => $message,
+        ), 403);
+        exit;
+    }
+
     $exportOptions = $export->options + PMXE_Plugin::get_default_import_options();
 
     wp_reset_postdata();

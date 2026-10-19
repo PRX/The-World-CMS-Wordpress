@@ -95,12 +95,12 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 
             <select name="bulk-action">
                 <option value=""
-                        selected="selected"><?php esc_html_e('Bulk Actions', 'wp_all_export_plugin') ?></option>
+                        selected="selected"><?php esc_html_e('Bulk actions', 'wp_all_export_plugin') ?></option>
                 <option value="delete"><?php esc_html_e('Delete', 'wp_all_export_plugin') ?></option>
                 <option value="allow_client_mode"><?php esc_html_e('Toggle Client Mode', 'wp_all_export_plugin') ?></option>
             </select>
             <input type="submit" value="<?php esc_attr_e('Apply', 'wp_all_export_plugin') ?>" name="doaction"
-                   id="doaction" class="button-secondary action"/>
+                   id="doaction" class="button button-secondary action"/>
         </div>
 
         <?php } ?>
@@ -270,7 +270,8 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                             }
                                             // Disable scheduling options for User exports if User Export Add-On isn't enabled
                                             if (
-                                                ((in_array('users', $item['options']['cpt']) || in_array('shop_customer', $item['options']['cpt'])) && !$addons->isUserAddonActive()) ||
+                                                (in_array('users', $item['options']['cpt']) && !$addons->isUserAddonActive()) ||
+                                                ((in_array('shop_customer', $item['options']['cpt']) || in_array('shop_guest_customer', $item['options']['cpt'])) && !$addons->isUserProAddonActive()) ||
                                                 ($item['options']['export_type'] == 'advanced' && $item['options']['wp_query_selector'] == 'wp_user_query' && !$addons->isUserAddonActive())
                                             ) {
                                                 ?>
@@ -506,6 +507,13 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 											</span>
                                             <?php
                                         }
+                                    } elseif ($item['canceled'] and \Wpae\App\Gate\Gate::stoppedThisRun($item['canceled_on'], $item['options'])) {
+                                        // Ahead of the branch below because the gate stops a run by
+                                        // writing the same two columns cancel writes, and this row
+                                        // was not cancelled by anybody.
+                                        printf(esc_html__('Export Attempt at %s', 'wp_all_export_plugin'), get_date_from_gmt($item['canceled_on'], $datetime_format));
+                                        echo '<br/>';
+                                        echo esc_html(\Wpae\App\Gate\Gate::instance()->messages()->executionStoppedSummary());
                                     } elseif ($item['canceled'] and $item['canceled_on'] != '0000-00-00 00:00:00') {
                                         printf(esc_html__('Export Attempt at %s', 'wp_all_export_plugin'), get_date_from_gmt($item['canceled_on'], $datetime_format));
                                         echo '<br/>';
@@ -554,11 +562,11 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                                             </h2>
                                         <?php elseif ($item['processing']) : ?>
                                             <h2 style="float:left;"><a class="add-new-h2"
-                                                                       href="<?php echo esc_url_raw(add_query_arg(array('id' => $item['id'], 'action' => 'cancel'), $this->baseUrl)); ?>"><?php esc_html_e('Cancel Cron', 'wp_all_export_plugin'); ?></a>
+                                                                       href="<?php echo esc_url_raw(wp_nonce_url(add_query_arg(array('id' => $item['id'], 'action' => 'cancel'), $this->baseUrl), 'cancel-export', '_wpnonce_cancel-export')); ?>"><?php esc_html_e('Cancel Cron', 'wp_all_export_plugin'); ?></a>
                                             </h2>
                                         <?php elseif ($item['executing']) : ?>
                                             <h2 style="float:left;"><a class="add-new-h2"
-                                                                       href="<?php echo esc_url_raw(add_query_arg(array('id' => $item['id'], 'action' => 'cancel'), $this->baseUrl)); ?>"><?php esc_html_e('Cancel', 'wp_all_export_plugin'); ?></a>
+                                                                       href="<?php echo esc_url_raw(wp_nonce_url(add_query_arg(array('id' => $item['id'], 'action' => 'cancel'), $this->baseUrl), 'cancel-export', '_wpnonce_cancel-export')); ?>"><?php esc_html_e('Cancel', 'wp_all_export_plugin'); ?></a>
                                             </h2>
                                         <?php endif; ?>
                                     <?php else: ?>
@@ -607,7 +615,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
 
                 <select name="bulk-action2">
                     <option value=""
-                            selected="selected"><?php esc_html_e('Bulk Actions', 'wp_all_export_plugin') ?></option>
+                            selected="selected"><?php esc_html_e('Bulk actions', 'wp_all_export_plugin') ?></option>
                     <?php if (empty($type) or 'trash' != $type): ?>
                         <option value="delete"><?php esc_html_e('Delete', 'wp_all_export_plugin') ?></option>
                         <option value="allow_client_mode"><?php esc_html_e('Toggle Client Mode', 'wp_all_export_plugin') ?></option>
@@ -617,7 +625,7 @@ $columns = apply_filters('pmxe_manage_imports_columns', $columns);
                     <?php endif ?>
                 </select>
                 <input type="submit" value="<?php esc_attr_e('Apply', 'wp_all_export_plugin') ?>" name="doaction2"
-                       id="doaction2" class="button-secondary action"/>
+                       id="doaction2" class="button button-secondary action"/>
             <?php } ?>
 
         </div>

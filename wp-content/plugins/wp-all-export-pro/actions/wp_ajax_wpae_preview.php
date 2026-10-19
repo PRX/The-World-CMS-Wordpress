@@ -497,7 +497,7 @@ function pmxe_wp_ajax_wpae_preview(){
 							<table class="pmxe_preview" cellpadding="0" cellspacing="0">
 							<?php
 							foreach ($csv_rows as $rkey => $row) {
-								$cells = str_getcsv($row, $exportOptions['delimiter']);
+								$cells = str_getcsv($row, $exportOptions['delimiter'], '"', '\\');
 								if ($cells){
 									?>
 									<tr>

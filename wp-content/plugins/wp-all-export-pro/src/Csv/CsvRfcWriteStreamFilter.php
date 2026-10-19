@@ -30,6 +30,7 @@ class CsvRfcWriteStreamFilter extends \php_user_filter
     /**
      * @return bool
      */
+    #[\ReturnTypeWillChange]
     public function onCreate()
     {
         $this->extractEnclosureFromFilternameIfAvailable();
@@ -52,6 +53,7 @@ class CsvRfcWriteStreamFilter extends \php_user_filter
      *
      * @return int
      */
+    #[\ReturnTypeWillChange]
     public function filter($in, $out, &$consumed, $closing)
     {
         $enclosure = $this->resolveEnclosure();

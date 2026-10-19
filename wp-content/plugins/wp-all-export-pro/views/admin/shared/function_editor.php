@@ -16,8 +16,8 @@
 <?php if( ! \Wpae\Integrations\CodeBox::isUsingCodeBox($functions_content)):?>
 <div id="wpae_function_editor_buttons" class="input wpae_function_editor_buttons" style="margin-top: 10px;">
 	<div class="input" style="display:inline-block; margin-right: 20px;">
-		<input type="button" class="button-primary wp_all_export_save_functions <?php echo $wpae_editor_save_ref ?? '';?>" value="<?php _e("Save Functions", 'wp-all-export-pro'); ?>"/>
-		<input type="button" class="button-secondary wp_all_export_send_to_codebox <?php echo $wpae_editor_ref ?? 'wp_all_export_code';?>" style="font-family:inherit; font-size:13px;" value="<?php _e("Send to CodeBox", 'wp-all-export-pro'); ?>"/>
+		<input type="button" class="button-primary wp_all_export_save_functions <?php echo $wpae_editor_save_ref ?? '';?>" value="<?php _e("Save Functions", 'wp_all_export_plugin'); ?>"/>
+		<input type="button" class="button-secondary wp_all_export_send_to_codebox <?php echo $wpae_editor_ref ?? 'wp_all_export_code';?>" style="font-family:inherit; font-size:13px;" value="<?php _e("Send to CodeBox", 'wp_all_export_plugin'); ?>"/>
 		<a href="#help" class="wpallexport-help" title="<?php printf(__("Add functions here for use during your export. You can access this file at %s", "wp-all-export-pro"), preg_replace("%.*wp-content%", "wp-content", $functions));?>" style="top: 0;">?</a>
 		<div class="wp_all_export_functions_preloader"></div>
 	</div>
@@ -53,8 +53,8 @@
     <div id="wpae_revert_to_functions_file" style="margin-top: 10px;">
         <input type="button"
                class="button-secondary wp_all_export_revert_functions"
-               value="<?php _e("Revert to Functions File", 'wp-all-export-pro'); ?>" />
-        <p class="custom-error-notice" style="margin-top: 5px;"><?php _e("WPCodeBox is not active. Click 'Revert to Functions File' to attempt to restore the previous functions file. Alternatively, activate WPCodeBox for continued use.", 'wp-all-export-pro'); ?></p>
+               value="<?php _e("Revert to Functions File", 'wp_all_export_plugin'); ?>" />
+        <p class="custom-error-notice" style="margin-top: 5px;"><?php _e("WPCodeBox is not active. Click 'Revert to Functions File' to attempt to restore the previous functions file. Alternatively, activate WPCodeBox for continued use.", 'wp_all_export_plugin'); ?></p>
     </div>
 <?php endif; ?>
 

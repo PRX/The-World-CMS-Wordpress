@@ -1,0 +1,753 @@
+/*--------------------------------------------------------------------------
+*
+*	Settings screen
+*
+*	Scoped under .wpae-set so none of this leaks into the export wizard.
+*
+*-------------------------------------------------------------------------*/
+
+.wpallexport-plugin .wpae-set {
+	--wpae-set-ink: #1d2327;
+	--wpae-set-muted: #50575e;
+	--wpae-set-brand: #425f9a;
+	--wpae-set-line: #dcdcde;
+	--wpae-set-line-soft: #f0f0f1;
+	--wpae-set-surface: #fff;
+	--wpae-set-radius: 4px;
+	--wpae-set-label-col: 210px;
+	--wpae-set-field-col: 640px;
+	--wpae-set-gap: 24px;
+
+	max-width: 1100px;
+	color: var(--wpae-set-ink);
+	/* Lets the last row scroll clear of the pinned save bar. */
+	padding-bottom: 80px;
+}
+
+/*@+ Header */
+/* The legacy `hr` rule in admin.css gives core's notice anchor a 15px top margin,
+ * which collapses into .wrap's and sets the whole page 13px lower than WP All Import. */
+.wpallexport-plugin hr.wp-header-end {
+	margin-top: -2px;
+}
+.wpallexport-plugin .wpae-set__header {
+	overflow: hidden;
+	padding-top: 10px;
+	margin-bottom: 4px;
+}
+.wpallexport-plugin .wpae-set__links {
+	float: right;
+	margin-top: 26px;
+	font-size: 13px;
+}
+/*@*/
+
+/*@+ Tabs */
+.wpallexport-plugin .wpae-set__tabs {
+	margin: 0 0 -1px;
+	padding-top: 6px;
+	border-bottom: 1px solid var(--wpae-set-line);
+}
+.wpallexport-plugin .wpae-set__tabs .nav-tab {
+	font-size: 14px;
+	font-weight: 500;
+	margin-left: 0;
+	margin-right: 4px;
+	transition: color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+	            background-color 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wpallexport-plugin .wpae-set__tabs .nav-tab:focus-visible {
+	outline: 2px solid var(--wpae-set-brand);
+	outline-offset: -2px;
+	box-shadow: none;
+}
+.wpallexport-plugin .wpae-set__tabs .nav-tab-active,
+.wpallexport-plugin .wpae-set__tabs .nav-tab-active:hover {
+	color: var(--wpae-set-brand);
+	font-weight: 600;
+	background: var(--wpae-set-surface);
+	border-bottom-color: var(--wpae-set-surface);
+}
+/*@*/
+
+/*@+ Panel */
+.wpallexport-plugin .wpae-set__panel {
+	margin-top: 0;
+	padding: 4px 28px 28px;
+	border-top-left-radius: 0;
+}
+.wpallexport-plugin .wpae-set__panel + .wpae-set__form .wpae-set__panel,
+.wpallexport-plugin .wpae-set__form + .wpae-set__form .wpae-set__panel {
+	border-top-left-radius: var(--wpae-set-radius);
+}
+.wpallexport-plugin .wpae-set__errors,
+.wpallexport-plugin .wpae-set__notice {
+	margin: 16px 0 0;
+}
+/*@*/
+
+/*@+ Group heading */
+.wpallexport-plugin .wpae-set-group {
+	margin: 32px 0 4px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--wpae-set-line-soft);
+}
+.wpallexport-plugin .wpae-set-group:first-child {
+	margin-top: 24px;
+}
+.wpallexport-plugin .wpae-set-group__title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+	letter-spacing: 0.01em;
+	color: var(--wpae-set-brand);
+}
+/* Three classes deep on purpose: the legacy admin stylesheet outweighs a two-class selector here. */
+.wpallexport-plugin .wpae-set .wpae-set-group__desc {
+	margin: 6px 0 0;
+	max-width: 58ch;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: var(--wpae-set-muted);
+}
+/*@*/
+
+/*@+ Field row */
+.wpallexport-plugin .wpae-set-row {
+	display: grid;
+	grid-template-columns: var(--wpae-set-label-col) minmax(0, var(--wpae-set-field-col));
+	gap: 4px var(--wpae-set-gap);
+	padding: 18px 0;
+	border-bottom: 1px solid var(--wpae-set-line-soft);
+}
+.wpallexport-plugin .wpae-set-row:last-child {
+	border-bottom: 0;
+}
+/* Wide controls need the room, but dropping the label above them breaks the label column
+ * every other row shares. Keep the column, give the control the rest of the width. */
+.wpallexport-plugin .wpae-set-row--stack {
+	grid-template-columns: var(--wpae-set-label-col) minmax(0, 1fr);
+}
+.wpallexport-plugin .wpae-set-row__label {
+	padding-top: 5px;
+}
+.wpallexport-plugin .wpae-set-row__label label,
+.wpallexport-plugin .wpae-set-row__label-text {
+	display: inline-block;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.5;
+	color: var(--wpae-set-ink);
+	margin: 0 !important;
+}
+.wpallexport-plugin .wpae-set-row__label label {
+	cursor: pointer;
+}
+.wpallexport-plugin .wpae-set-row__field {
+	min-width: 0;
+}
+/*@*/
+
+/*@+ Help text */
+.wpallexport-plugin .wpae-set-help {
+	margin: 8px 0 0;
+	max-width: 58ch;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: var(--wpae-set-muted);
+}
+.wpallexport-plugin .wpae-set-help code {
+	font-size: 12px;
+	padding: 1px 5px;
+	background: var(--wpae-set-line-soft);
+	border-radius: 3px;
+	overflow-wrap: anywhere;
+}
+/*@*/
+
+/*@+ Inputs */
+.wpallexport-plugin .wpae-set-input {
+	box-sizing: border-box;
+	min-height: 32px;
+	padding: 0 10px;
+	font-size: 14px;
+	line-height: 30px;
+	color: var(--wpae-set-ink);
+	background: var(--wpae-set-surface);
+	border: 1px solid #8c8f94;
+	border-radius: var(--wpae-set-radius);
+	box-shadow: none;
+	transition: border-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+	            box-shadow 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wpallexport-plugin .wpae-set-input:focus {
+	border-color: var(--wpae-set-brand);
+	box-shadow: 0 0 0 1px var(--wpae-set-brand);
+	outline: 2px solid transparent;
+}
+.wpallexport-plugin .wpae-set-input--number {
+	width: 110px;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+.wpallexport-plugin .wpae-set-input--key {
+	width: 340px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 13px;
+	letter-spacing: 0.02em;
+}
+.wpallexport-plugin .wpae-set-input--url {
+	width: 100%;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	color: var(--wpae-set-muted);
+	background: #fbfbfc;
+}
+.wpallexport-plugin .wpae-set-input[readonly] {
+	cursor: text;
+}
+.wpallexport-plugin .wpae-set-input.wpae-set-input--invalid,
+.wpallexport-plugin .wpae-set-input:invalid {
+	border-color: #b32d2e;
+}
+.wpallexport-plugin .wpae-set-input.wpae-set-input--invalid:focus {
+	box-shadow: 0 0 0 1px #b32d2e;
+}
+
+.wpallexport-plugin .wpae-set-numeric,
+.wpallexport-plugin .wpae-set-inputgroup {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+.wpallexport-plugin .wpae-set-inputgroup--wide {
+	flex-wrap: nowrap;
+}
+.wpallexport-plugin .wpae-set-inputgroup--wide .wpae-set-input {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+.wpallexport-plugin .wpae-set-inputgroup--file {
+	gap: 12px;
+}
+/* A bare file input next to a styled button still looks like raw browser chrome. */
+.wpallexport-plugin .wpae-set-inputgroup--file input[type="file"] {
+	height: 32px;
+	padding: 4px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: var(--wpae-set-radius);
+	background: var(--wpae-set-surface);
+	font-size: 13px;
+	line-height: 1.5;
+	box-sizing: border-box;
+}
+.wpallexport-plugin .wpae-set-inputgroup--file input[type="file"]::file-selector-button {
+	margin: 0 10px 0 0;
+	padding: 3px 10px;
+	border: 1px solid var(--wpae-set-line);
+	border-radius: var(--wpae-set-radius);
+	background: #f6f7f7;
+	color: var(--wpae-set-ink);
+	font-size: 13px;
+	cursor: pointer;
+}
+.wpallexport-plugin .wpae-set-inputgroup--file input[type="file"]:focus {
+	border-color: var(--wpae-set-brand);
+	box-shadow: 0 0 0 1px var(--wpae-set-brand);
+	outline: 2px solid transparent;
+}
+.wpallexport-plugin .wpae-set-unit {
+	font-size: 13px;
+	color: var(--wpae-set-muted);
+}
+/*@*/
+
+/*@+ Generated URL block
+ * Wrapping text rather than a single-line input: these URLs differ only in the trailing
+ * action=, which is what a narrow field clips.
+ */
+.wpallexport-plugin .wpae-set-urlblock {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin-top: 2px;
+}
+.wpallexport-plugin .wpae-set-urlblock__value {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 9px 12px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.6;
+	color: var(--wpae-set-ink);
+	background: #fbfbfc;
+	border: 1px solid var(--wpae-set-line);
+	border-radius: var(--wpae-set-radius);
+	overflow-wrap: anywhere;
+	word-break: normal;
+	user-select: all;
+}
+.wpallexport-plugin .wpae-set-urlblock .wpae-set-iconbtn {
+	margin-top: 1px;
+}
+
+/* Reason a control is unavailable, and inline warnings that aren't errors. */
+.wpallexport-plugin .wpae-set-hint {
+	font-size: 13px;
+	color: var(--wpae-set-muted);
+}
+.wpallexport-plugin .wpae-set-hint[hidden] {
+	display: none;
+}
+.wpallexport-plugin .wpae-set-note {
+	display: flex;
+	gap: 7px;
+	margin: 8px 0 0;
+	max-width: 58ch;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: #8a5200;
+}
+.wpallexport-plugin .wpae-set-note:empty {
+	display: none;
+}
+.wpallexport-plugin .wpae-set-note::before {
+	content: "!";
+	flex: 0 0 auto;
+	width: 15px;
+	height: 15px;
+	margin-top: 2px;
+	font-size: 11px;
+	font-weight: 700;
+	line-height: 15px;
+	text-align: center;
+	color: #fff;
+	background: #bd8600;
+	border-radius: 50%;
+}
+/*@*/
+
+/*@+ Checkbox rows */
+.wpallexport-plugin .wpae-set-check {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 9px;
+	margin: 5px 0 0 !important;
+	font-size: 14px;
+	line-height: 1.5;
+	color: var(--wpae-set-ink);
+	cursor: pointer;
+}
+.wpallexport-plugin .wpae-set-check input[type="checkbox"] {
+	flex: 0 0 auto;
+	margin: 2px 0 0;
+}
+.wpallexport-plugin .wpae-set-checklist {
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.wpallexport-plugin .wpae-set-checklist .wpae-set-check {
+	display: flex;
+	margin: 0 0 8px !important;
+}
+/*@*/
+
+/*@+ Small buttons inside input groups */
+.wpallexport-plugin .wpae-set-iconbtn {
+	flex: 0 0 auto;
+	min-height: 32px;
+	padding: 0 11px;
+	font-size: 13px;
+	line-height: 30px;
+	color: #2c3338;
+	background: #f6f7f7;
+	border: 1px solid #8c8f94;
+	border-radius: var(--wpae-set-radius);
+	cursor: pointer;
+	transition: background-color 140ms cubic-bezier(0.22, 1, 0.36, 1),
+	            color 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wpallexport-plugin .wpae-set-iconbtn:hover {
+	background: #f0f0f1;
+	border-color: #7e8285;
+}
+.wpallexport-plugin .wpae-set-iconbtn:focus-visible {
+	outline: 2px solid var(--wpae-set-brand);
+	outline-offset: 1px;
+}
+.wpallexport-plugin .wpae-set-iconbtn--danger {
+	color: #b32d2e;
+	border-color: #b32d2e;
+	background: var(--wpae-set-surface);
+}
+.wpallexport-plugin .wpae-set-iconbtn--danger:hover {
+	color: #fff;
+	background: #b32d2e;
+	border-color: #b32d2e;
+}
+.wpallexport-plugin .wpae-set-iconbtn.is-done {
+	color: #007017;
+	border-color: #007017;
+}
+
+/* Destructive actions must not read as the primary path. */
+.wpallexport-plugin .wpae-set-danger,
+.wpallexport-plugin a.wpae-set-danger {
+	color: #b32d2e;
+	border-color: #b32d2e;
+	background: var(--wpae-set-surface, #fff);
+	text-shadow: none;
+	box-shadow: none;
+}
+.wpallexport-plugin .wpae-set-danger:hover,
+.wpallexport-plugin a.wpae-set-danger:hover,
+.wpallexport-plugin .wpae-set-danger:focus,
+.wpallexport-plugin a.wpae-set-danger:focus {
+	color: #fff;
+	background: #b32d2e;
+	border-color: #b32d2e;
+}
+/* The confirm action inside a dialog is the destructive one; make it read that way. */
+.wpallexport-plugin .wpae-set-dialog__actions .wpae-set-danger {
+	color: #fff;
+	background: #b32d2e;
+	border-color: #b32d2e;
+}
+.wpallexport-plugin .wpae-set-dialog__actions .wpae-set-danger:hover,
+.wpallexport-plugin .wpae-set-dialog__actions .wpae-set-danger:focus {
+	background: #8f2426;
+	border-color: #8f2426;
+}
+/*@*/
+
+/*@+ License status chip */
+.wpallexport-plugin .wpae-set-row--license .wpae-set-row__field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+.wpallexport-plugin .wpae-set-row--license .wpae-set-help {
+	/* `flex: 1 0 100%` alone does not break the line: flex sizing uses the hypothetical
+	 * main size, which the inherited `max-width: 58ch` clamps, so the paragraph still
+	 * fits beside the buttons. Take the surplus out of the measure with padding instead. */
+	box-sizing: border-box;
+	flex: 1 0 100%;
+	max-width: none;
+	padding-right: max(0px, 100% - 58ch);
+}
+
+/* The remediation lives inside the status region, so the region has to take the full
+   line or Activate/Remove render above a link that follows them in the DOM. */
+.wpallexport-plugin .wpae-set-row--license .wpae-set-status:has(.wpae-set-license-help:not(:empty)) {
+	flex: 1 0 100%;
+}
+.wpallexport-plugin .wpae-set-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	line-height: 18px;
+	border-radius: 11px;
+	border: 1px solid;
+	white-space: nowrap;
+}
+.wpallexport-plugin .wpae-set-chip::before {
+	content: "";
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+	flex: 0 0 auto;
+}
+.wpallexport-plugin .wpae-set-chip--pending {
+	color: #50575e;
+	border-color: var(--wpae-set-line);
+	background: #f6f7f7;
+}
+.wpallexport-plugin .wpae-set-chip--pending::before {
+	animation: wpae-set-pulse 1.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+.wpallexport-plugin .wpae-set-chip--active {
+	color: #005c1f;
+	border-color: #9ad4ac;
+	background: #edfaef;
+}
+.wpallexport-plugin .wpae-set-chip--warning {
+	color: #8a5200;
+	border-color: #f0c48a;
+	background: #fdf6ec;
+}
+.wpallexport-plugin .wpae-set-chip--error {
+	color: #a5111a;
+	border-color: #f0aeb1;
+	background: #fdf0f0;
+}
+.wpallexport-plugin .wpae-set-chip--unknown {
+	color: #4a4f55;
+	border-color: var(--wpae-set-line);
+	background: #f6f7f7;
+}
+.wpallexport-plugin .wpae-set-license-help {
+	/* It lives inside the status live region, so it must declare its own box:
+	   flex/max-width/margins are inert on an inline element. */
+	display: block;
+	margin: 2px 0 0;
+	max-width: 58ch;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: #a5111a;
+}
+.wpallexport-plugin .wpae-set-license-help:empty {
+	display: none;
+}
+.wpallexport-plugin .wpae-set-license-help.is-neutral {
+	color: var(--wpae-set-muted);
+}
+
+@keyframes wpae-set-pulse {
+	0%, 100% { opacity: 1; }
+	50%      { opacity: 0.3; }
+}
+/*@*/
+
+/*@+ Templates + empty state */
+.wpallexport-plugin .wpae-set-templates {
+	margin: 18px 0 0;
+	padding: 0;
+	border: 0;
+}
+.wpallexport-plugin .wpae-set-templates__list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 2px 24px;
+}
+.wpallexport-plugin .wpae-set-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 18px 0 0;
+}
+.wpallexport-plugin .wpae-set-empty {
+	margin: 18px 0 0;
+	padding: 22px 24px;
+	background: #fbfbfc;
+	border: 1px solid var(--wpae-set-line-soft);
+	border-radius: var(--wpae-set-radius);
+}
+.wpallexport-plugin .wpae-set-empty__title {
+	margin: 0;
+	font-size: 14px !important;
+	font-weight: 600;
+	color: var(--wpae-set-ink);
+}
+.wpallexport-plugin .wpae-set-empty__body {
+	margin: 5px 0 0;
+	max-width: 62ch;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: var(--wpae-set-muted);
+}
+/*@*/
+
+/*@+ System report */
+.wpallexport-plugin .wpae-set-report {
+	margin-top: 4px;
+}
+/* A textarea can't take a Copy button inline, so align it to the field's right edge. */
+.wpallexport-plugin .wpae-set-report .wpae-set-actions {
+	max-width: 720px;
+	margin-top: 10px;
+	justify-content: flex-end;
+}
+.wpallexport-plugin .wpae-set-report__text {
+	width: 100%;
+	max-width: 720px;
+	padding: 12px 14px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.6;
+	color: var(--wpae-set-ink);
+	background: #fbfbfc;
+	border: 1px solid var(--wpae-set-line);
+	border-radius: var(--wpae-set-radius);
+	resize: vertical;
+	white-space: pre;
+	overflow: auto;
+}
+.wpallexport-plugin .wpae-set-report__text:focus {
+	border-color: var(--wpae-set-brand);
+	box-shadow: 0 0 0 1px var(--wpae-set-brand);
+	outline: 2px solid transparent;
+}
+/*@*/
+
+/*@+ Save row */
+/* Inline at the end of the panel, the same component the Client Mode and Templates
+ * tabs use. Nothing sticky: no settings tab is taller than a viewport. */
+.wpallexport-plugin .wpae-set-actions--save {
+	margin-top: 26px;
+}
+/*@*/
+
+
+/*@+ Confirm dialog */
+.wpallexport-plugin .wpae-set-dialog {
+	width: min(460px, calc(100vw - 32px));
+	max-height: calc(100vh - 64px);
+	padding: 0;
+	overflow: auto;
+	/* Literal fallbacks: the dialog is promoted to the top layer, so never rely on
+	   inheriting tokens from an ancestor. */
+	border: 1px solid var(--wpae-set-line, #dcdcde);
+	border-radius: 6px;
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+	color: var(--wpae-set-ink, #1d2327);
+	background: var(--wpae-set-surface, #fff);
+}
+dialog.wpae-set-dialog::backdrop,
+.wpallexport-plugin .wpae-set-dialog::backdrop {
+	background: rgba(0, 0, 0, 0.45);
+}
+.wpallexport-plugin .wpae-set-dialog__body {
+	padding: 22px 24px 0;
+}
+.wpallexport-plugin .wpae-set-dialog__title {
+	margin: 0 0 8px;
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+.wpallexport-plugin .wpae-set-dialog__text {
+	margin: 0;
+	font-size: 13px !important;
+	line-height: 1.6;
+	color: var(--wpae-set-muted, #50575e);
+}
+.wpallexport-plugin .wpae-set-dialog__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 20px 24px 22px;
+}
+/*@*/
+
+/*@+ Responsive */
+
+@media screen and (max-width: 960px) {
+	.wpallexport-plugin .wpae-set-row {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 6px;
+	}
+	.wpallexport-plugin .wpae-set-row__label {
+		padding-top: 0;
+	}
+	/* The header lays out on floats, so the links need their own line. */
+	.wpallexport-plugin .wpae-set__header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0 10px;
+	}
+	.wpallexport-plugin .wpae-set__header .wpallexport-logo,
+	.wpallexport-plugin .wpae-set__header .wpallexport-title {
+		float: none;
+	}
+	.wpallexport-plugin .wpae-set__links {
+		float: none;
+		order: 3;
+		flex: 1 0 100%;
+		margin-top: 0;
+		padding-bottom: 10px;
+	}
+	.wpallexport-plugin .wpae-set__panel {
+		padding: 4px 18px 22px;
+	}
+
+}
+
+/* A11Y: an unbreakable template name must not blow out the page. */
+.wpallexport-plugin .wpae-set-templates__list li,
+.wpallexport-plugin .wpae-set-check { min-width: 0; }
+.wpallexport-plugin .wpae-set-check span { min-width: 0; overflow-wrap: anywhere; }
+.wpallexport-plugin .wpae-set-inputgroup--file input[type="file"] { max-width: 100%; }
+
+@media screen and (max-width: 782px) {
+	.wpallexport-plugin .wpae-set__tabs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+		border-bottom: 0;
+		padding-bottom: 8px;
+	}
+	.wpallexport-plugin .wpae-set__tabs .nav-tab {
+		margin: 0;
+		border-radius: var(--wpae-set-radius);
+		border-bottom: 1px solid #c3c4c7;
+	}
+	.wpallexport-plugin .wpae-set__panel {
+		border-radius: var(--wpae-set-radius);
+	}
+	.wpallexport-plugin .wpae-set-input--key {
+		width: 100%;
+	}
+	.wpallexport-plugin .wpae-set-iconbtn,
+	.wpallexport-plugin .wpae-set-input {
+		min-height: 40px;
+		line-height: 38px;
+	}
+
+	.wpallexport-plugin .wpae-set-check input[type="checkbox"] {
+		/* WP core sizes its own checkboxes at 1.5625rem here; match the native rows. */
+		width: 22px;
+		height: 22px;
+	}
+
+	/* The licence field is inside a shrink-to-fit inputgroup, so it never grows and the
+	 * masked tail, the only distinguishing part, gets clipped. */
+	/* nowrap is load-bearing: the base rule wraps, and a wrapping column flex container
+	 * pushes overflow into a second column off to the right. The flex resets matter for
+	 * the same reason: `flex: 1 0 100%` resolves against the container's height once the
+	 * direction is column. */
+	.wpallexport-plugin .wpae-set-row--license .wpae-set-row__field {
+		flex-direction: column;
+		flex-wrap: nowrap;
+		align-items: flex-start;
+	}
+	.wpallexport-plugin .wpae-set-row--license .wpae-set-inputgroup,
+	.wpallexport-plugin .wpae-set-row--license .wpae-set-status,
+	.wpallexport-plugin .wpae-set-row--license .wpae-set-help {
+		flex: 0 0 auto;
+		width: 100%;
+	}
+	/* Repeated with the :has() selector on purpose: :has() carries the specificity of its
+	 * most specific argument and a media query adds none, so the rule above loses to the
+	 * base one the moment the status carries remediation text. */
+	.wpallexport-plugin .wpae-set-row--license .wpae-set-status:has(.wpae-set-license-help:not(:empty)) {
+		flex: 0 0 auto;
+	}
+	.wpallexport-plugin .wpae-set-urlblock {
+		flex-wrap: wrap;
+	}
+}
+/*@*/
+
+@media (prefers-reduced-motion: reduce) {
+	.wpallexport-plugin .wpae-set *,
+	.wpallexport-plugin .wpae-set *::before {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+	.wpallexport-plugin .wpae-set-chip--pending::before {
+		opacity: 0.55;
+	}
+}

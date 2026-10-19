@@ -110,9 +110,9 @@ $l10n = array(
 
                         <?php } ?>
                         <?php if (empty(PMXE_Plugin::$session->found_posts)):?>
-						<input type="submit" class="button button-primary button-hero wpallexport-large-button confirm_and_run_bottom" value="<?php esc_html_e('Save Export Configuration', 'wp_all_export_plugin') ?>" />
+						<input type="submit" class="button wpallexport-large-button confirm_and_run_bottom" value="<?php esc_html_e('Save Export Configuration', 'wp_all_export_plugin') ?>" />
 						<?php else:?>
-						<input type="submit" class="button button-primary button-hero wpallexport-large-button confirm_and_run_bottom" value="<?php esc_html_e('Confirm & Run Export', 'wp_all_export_plugin') ?>" />
+						<input type="submit" class="button wpallexport-large-button confirm_and_run_bottom" value="<?php esc_html_e('Confirm & Run Export', 'wp_all_export_plugin') ?>" />
 						<?php endif;?>
 					</p>
 
