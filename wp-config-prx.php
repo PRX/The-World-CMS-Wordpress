@@ -116,22 +116,43 @@ if ( getenv( 'WP_ENVIRONMENT_TYPE' ) === false ) {
 	}
 }
 
-if ( null !== getenv( 'WP_REDIS_HOST' ) ) {
+if ( false !== getenv( 'WP_REDIS_HOST' ) ) {
 	// Adjust Redis host and port if necessary.
 	define( 'WP_REDIS_HOST', getenv( 'WP_REDIS_HOST' ) );
-	define( 'WP_REDIS_PORT', getenv( 'WP_REDIS_PORT' ) );
+
+	if ( false !== getenv( 'WP_REDIS_PORT' ) ) {
+		define( 'WP_REDIS_PORT', getenv( 'WP_REDIS_PORT' ) );
+	}
 
 	// Change the prefix and database for each site to avoid cache data collisions.
-	define( 'WP_REDIS_PREFIX', getenv( 'WP_REDIS_PREFIX' ) );
-	define( 'WP_REDIS_DATABASE', getenv( 'WP_REDIS_DATABASE' ) ); // 0-15
+	if ( false !== getenv( 'WP_REDIS_PREFIX' ) ) {
+		define( 'WP_REDIS_PREFIX', getenv( 'WP_REDIS_PREFIX' ) );
+	}
+
+	if ( false !== getenv( 'WP_REDIS_DATABASE' ) ) {
+		define( 'WP_REDIS_DATABASE', getenv( 'WP_REDIS_DATABASE' ) ); // 0-15
+	}
 
 	// Reasonable connection and read+write timeouts.
-	define( 'WP_REDIS_TIMEOUT', getenv( 'WP_REDIS_TIMEOUT' ) );
-	define( 'WP_REDIS_READ_TIMEOUT', getenv( 'WP_REDIS_READ_TIMEOUT' ) );
+	if ( false !== getenv( 'WP_REDIS_TIMEOUT' ) ) {
+		define( 'WP_REDIS_TIMEOUT', getenv( 'WP_REDIS_TIMEOUT' ) );
+	}
 
-	define( 'WP_REDIS_MAXTTL', getenv( 'WP_REDIS_MAXTTL' ) );
+	if ( false !== getenv( 'WP_REDIS_READ_TIMEOUT' ) ) {
+		define( 'WP_REDIS_READ_TIMEOUT', getenv( 'WP_REDIS_READ_TIMEOUT' ) );
+	}
 
-	if ( null !== getenv( 'WP_REDIS_SCHEME' ) ) {
+	if ( false !== getenv( 'WP_REDIS_MAXTTL' ) ) {
+		define( 'WP_REDIS_MAXTTL', getenv( 'WP_REDIS_MAXTTL' ) );
+	}
+
+	if ( false !== getenv( 'WP_REDIS_SCHEME' ) ) {
 		define( 'WP_REDIS_SCHEME', getenv( 'WP_REDIS_SCHEME' ) );
+	}
+
+	if ( false !== getenv( 'WP_REDIS_PERSISTENT' ) ) {
+		define( 'WP_REDIS_PERSISTENT', filter_var( getenv( 'WP_REDIS_PERSISTENT' ), FILTER_VALIDATE_BOOLEAN ) );
+	} else {
+		define( 'WP_REDIS_PERSISTENT', true );
 	}
 }
