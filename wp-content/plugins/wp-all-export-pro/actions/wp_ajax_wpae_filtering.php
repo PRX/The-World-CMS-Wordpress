@@ -88,14 +88,14 @@ function pmxe_wp_ajax_wpae_filtering(){
 		<span class="auto-generate-template">&nbsp;</span>
 	</span>
 	<span class="wp_all_export_btn_with_note">
-		<input type="submit" class="button button-primary button-hero wpallexport-large-button" value="<?php esc_html_e('Customize Export File', 'wp_all_export_plugin') ?>"/>
+		<input type="submit" class="button wpallexport-large-button wpallexport-continue-button" value="<?php esc_html_e('Customize Export File', 'wp_all_export_plugin') ?>"/>
 		<span class="auto-generate-template">&nbsp;</span>
 	</span>
 	<?php
 	else:
 	?>	
 	<span class="wp_all_export_btn_with_note">
-		<input type="submit" class="button button-primary button-hero wpallexport-large-button" value="<?php esc_html_e('Customize Export File', 'wp_all_export_plugin') ?>"/>
+		<input type="submit" class="button wpallexport-large-button wpallexport-continue-button" value="<?php esc_html_e('Customize Export File', 'wp_all_export_plugin') ?>"/>
 	</span>
 	<?php
 	endif;

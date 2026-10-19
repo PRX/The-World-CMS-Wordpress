@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /*
  * Legacy functions for listing Past Revisions, with bulk deletion
  */
@@ -71,12 +75,12 @@ function rvy_post_revision_title( $revision, $link = true, $date_field = 'post_d
 	$public_types = array_keys($revisionary->enabled_post_types);
 	$public_types []= 'revision';
 	
-	if ( ! in_array( $revision->post_type, $public_types ) )
+	if ( ! in_array( $revision->post_type, $public_types, true ) )
 		return false;
 
 	/* translators: revision date format, see http://php.net/date */
 	if (!$datef) {
-		$datef = _x( 'j F, Y @ g:i a', 'revision date format', 'revisionary' );
+		$datef = get_option('date_format') . ' ' . get_option('time_format');
 	}
 
 	$date = agp_date_i18n( $datef, strtotime( $revision->$date_field ) );
@@ -104,9 +108,9 @@ function rvy_post_revision_title( $revision, $link = true, $date_field = 'post_d
 		$date = sprintf( $autosavef, $date );
 	}
 
-	if ( in_array( $revision->post_status, array( 'inherit', 'pending-revision' ) ) && $post && ( 'list' == $format ) && ( 'post_modified' == $date_field ) ) {
+	if ( in_array( $revision->post_status, array( 'inherit', 'pending-revision' ), true ) && $post && ( 'list' == $format ) && ( 'post_modified' == $date_field ) ) {
 		if ( $post->post_date != $revision->post_date ) {
-			$datef = _x( 'j F, Y, g:i a', 'revision schedule date format', 'revisionary' );
+			$datef = get_option('date_format') . ' ' . get_option('time_format');
 			$revision_date = agp_date_i18n( $datef, strtotime( $revision->post_date ) );
 			
 			if (strtotime($revision->post_date) > agp_time_gmt()) {
@@ -118,7 +122,7 @@ function rvy_post_revision_title( $revision, $link = true, $date_field = 'post_d
 
 				$date = sprintf( $currentf, $date, $revision_date );
 			} else {
-				$currentf  = __('%1$s');
+				$currentf  = __('%1$s', 'revisionary');
 				$date = sprintf( $currentf, $date );
 			}
 		}
@@ -256,7 +260,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 			else
 				$class = "rvy-revision-row alternate"; 
 			
-			$datef = esc_html__( 'M j, Y @ g:i a' );
+				$datef = get_option('date_format') . ' ' . get_option('time_format');
 			
 			$rows .= "<tr class='" . esc_attr($class) . "'>";
 
@@ -272,7 +276,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 				$rows .= "<td>$date</td>";
 
 				$rows .= "<td>"
-				. '<a href="' . esc_url($preview_url) . '" title="' . esc_attr( sprintf( esc_html__( 'Preview &#8220;%s&#8221;' ), $revision->post_title ) ) . '" rel="permalink">' . esc_html__( 'Preview' ) . '</a>'
+				. '<a href="' . esc_url($preview_url) . '" title="' . esc_attr( sprintf( esc_html__( 'Preview &#8220;%s&#8221;', 'revisionary' ), $revision->post_title ) ) . '" rel="permalink">' . esc_html_x( 'Preview', 'verb', 'revisionary' ) . '</a>'
 				. "</td>";
 
 				$rows .= "<td>" . esc_html($name) . "</td>";
@@ -282,7 +286,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 				if ( $can_edit_post ) {
 					if ( 'future-revision' == $status ) {
 						$link = "admin.php?page=rvy-revisions&amp;action=unschedule&amp;revision={$revision->ID}";
-						$rows .= '<a href="' . esc_url(wp_nonce_url( $link, 'unschedule-revision_' . $revision->ID )) . '" class="rvy-unschedule">' . esc_html__('Unschedule') . '</a>&nbsp;|&nbsp;';
+						$rows .= '<a href="' . esc_url(wp_nonce_url( $link, 'unschedule-revision_' . $revision->ID )) . '" class="rvy-unschedule">' . esc_html__('Unschedule', 'revisionary') . '</a>&nbsp;|&nbsp;';
 					}
 					
 					if ('inherit' == $status) {
@@ -292,7 +296,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 
 						$rows .= '<a href="' . esc_url(wp_nonce_url( $link, 'delete-revision_' . $revision->ID )) . '" class="rvy-delete" onclick="' 
 						. "javascript:if (confirm('" . esc_attr($delete_msg) . "')) {return true;} else {return false;}"
-						. '" >' . esc_html__('Delete')
+						. '" >' . esc_html__('Delete', 'revisionary')
 						. '</a>';
 					}
 				}
@@ -314,7 +318,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 				$rows .= "<td>$date</td>";
 
 				$rows .= "<td>"
-				. '<a href="' . esc_url(site_url("?p={$revision->ID}&amp;mark_current_revision=1")) . '" target="_blank">' . esc_html__( 'Preview' ) . '</a>'
+				. '<a href="' . esc_url(site_url("?p={$revision->ID}&amp;mark_current_revision=1")) . '" target="_blank">' . esc_html_x( 'Preview', 'verb', 'revisionary' ) . '</a>'
 				. "</td>";
 
 				$rows .= "<td>" . esc_html($name) . "</td>";
@@ -325,7 +329,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 			if ( $post->ID != $revision->ID 
 			&& ( $can_edit_post || ( ('pending-revision' == $status) && rvy_is_post_author($revision) ) )	// allow submitters to delete their own still-pending revisions
 			) {
-				$rows .= "<td style='text-align:right'><input class='rvy-rev-chk' type='checkbox' name='delete_revisions[]' value='" . esc_attr($revision->ID) . "' /></td>";
+				$rows .= "<td style='text-align:right'><input class='rvy-rev-chk' type='checkbox' name='delete_revisions[]' value='" . esc_attr($revision->ID) . "' aria-label='" . esc_attr__('Select revision for deletion', 'revisionary') . "' /></td>";
 				$can_delete_any = true;
 			} else
 				$rows .= "<td></td>";
@@ -344,7 +348,7 @@ function rvy_list_post_revisions( $post_id = 0, $status = '', $args = null ) {
 			
 		} else {
 			/* translators: post revision: 1: when, 2: author name */
-			$rows .= "<li>" . sprintf( _x( '%1$s by %2$s', 'post revision' ), $date, esc_html($name) ) . "</li>";
+			$rows .= "<li>" . sprintf( esc_html_x( '%1$s by %2$s', 'post revision', 'revisionary' ), $date, esc_html($name) ) . "</li>";
 		}
 		
 		$count++;
@@ -384,8 +388,8 @@ jQuery(document).ready( function($) {
 esc_html_e( 'Modified Date', 'revisionary' ); 
 ?></th>
 	<th scope="col"></th>
-	<th scope="col"><?php echo esc_html__( 'Author' ); ?></th>
-	<th scope="col" class="action-links"><?php esc_html_e( 'Actions' ); ?></th>
+		<th scope="col"><?php echo esc_html__( 'Author', 'revisionary' ); ?></th>
+		<th scope="col" class="action-links"><?php esc_html_e( 'Actions', 'revisionary' ); ?></th>
 	<th scope="col"  style='text-align:right'><input id='rvy-rev-checkall' type='checkbox' name='rvy-rev-checkall' value='' /></th>
 </tr>
 </thead>
@@ -403,10 +407,10 @@ echo $rows; 														// phpcs:ignore WordPress.Security.EscapeOutput.Output
 <br />
 <div class="alignright actions">
 <select name="action">
-<option value="" selected="selected"><?php esc_html_e('Bulk Actions'); ?></option>
-<option value="bulk-delete"><?php esc_html_e('Delete'); ?></option>
+	<option value="" selected="selected"><?php esc_html_e('Bulk Actions', 'revisionary'); ?></option>
+	<option value="bulk-delete"><?php esc_html_e('Delete', 'revisionary'); ?></option>
 </select>
-<input type="submit" value="<?php echo esc_attr__('Apply'); ?>" name="rvy-action" id="rvy-action" class="button-secondary action" />
+	<input type="submit" value="<?php echo esc_attr__('Apply', 'revisionary'); ?>" name="rvy-action" id="rvy-action" class="button-secondary action" />
 </div>
 <?php endif; ?>
 

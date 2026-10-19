@@ -126,7 +126,7 @@ abstract class PMXE_Addon_Base {
      *
      * @return mixed
      */
-    abstract public static function fields( array $types, string $subtype = null );
+    abstract public static function fields( array $types, ?string $subtype = null );
 
     /**
      * Get groups by type
@@ -135,7 +135,7 @@ abstract class PMXE_Addon_Base {
      *
      * @return mixed
      */
-    abstract public static function groups( array $types, string $subtype = null );
+    abstract public static function groups( array $types, ?string $subtype = null );
 
     public function getGroupsByExportType() {
         return static::groups(
@@ -228,7 +228,7 @@ abstract class PMXE_Addon_Base {
                 $fields['cc_type'][]                          = $this->slug;
                 $fields['cc_value'][]                         = $field['key'];
                 $fields['cc_name'][]                          = $field['label'];
-                $fields['cc_settings'][]                      = '';
+                $fields['cc_settings'][]                      = empty( $field['settings'] ) ? '' : $field['settings'];
                 $fields['cc_combine_multiple_fields'][]       = '';
                 $fields['cc_combine_multiple_fields_value'][] = '';
             }

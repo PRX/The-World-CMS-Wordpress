@@ -209,7 +209,7 @@ if ( ! $multisite ) {
                          <td>
                              <input type="checkbox" name="allow_edit_users_to_not_super_admin" id="allow_edit_users_to_not_super_admin" value="1" 
                                   <?php checked( $allow_edit_users_to_not_super_admin,  1 ); ?> /> 
-                             <label for="allow_edit_users_to_not_super_admin"><?php esc_html_e( 'Allow non super administrators to create, edit, and delete users', 'user-role-editor' ); ?></label>
+                             <label for="allow_edit_users_to_not_super_admin"><?php esc_html_e( 'Allow non super administrators to edit users', 'user-role-editor' ); ?></label>
                          </td>
                          <td>
                          </td>

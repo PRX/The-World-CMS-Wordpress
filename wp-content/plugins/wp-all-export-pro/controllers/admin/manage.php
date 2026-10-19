@@ -179,6 +179,8 @@ class PMXE_Admin_Manage extends PMXE_Controller_Admin
     public function cancel_action()
     {
 
+        check_admin_referer('cancel-export', '_wpnonce_cancel-export');
+
         $id = $this->input->get('id');
 
         PMXE_Plugin::$session->clean_session($id);

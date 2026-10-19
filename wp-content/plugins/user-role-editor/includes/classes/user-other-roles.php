@@ -114,13 +114,14 @@ class URE_User_Other_Roles {
         } else {
             $ms_file_name = 'multiple-select.min.js';
         }
-        
+        $ure_js_suffix = ( defined('SCRIPT_DEBUG') && SCRIPT_DEBUG ) ? '' : '.min';
+
         $select_primary_role = apply_filters('ure_users_select_primary_role', true);
-        
+
         wp_enqueue_script('jquery-ui-dialog', '', array('jquery-ui-core', 'jquery-ui-button', 'jquery'), $wp_version, true );
         wp_register_script('ure-jquery-multiple-select', plugins_url('/js/'. $ms_file_name, URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-jquery-multiple-select');
-        wp_register_script('ure-user-profile-other-roles', plugins_url('/js/user-profile-other-roles.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
+        wp_register_script('ure-user-profile-other-roles', plugins_url('/js/user-profile-other-roles' . $ure_js_suffix . '.js', URE_Core::get_plugin_full_path() ), array(), URE_Core::PLUGIN_VERSION, true );
         wp_enqueue_script('ure-user-profile-other-roles');
         wp_localize_script('ure-user-profile-other-roles', 'ure_data_user_profile_other_roles', array(
             'wp_nonce' => wp_create_nonce('user-role-editor'),
@@ -177,25 +178,26 @@ class URE_User_Other_Roles {
         if (isset($roles[$primary_role])) { // exclude role assigned to the user as a primary role
             unset($roles[$primary_role]);
         }
-        $button_number =  (self::$counter>0) ? '_2': '';                        
-        
-        echo '<select multiple="multiple" id="ure_select_other_roles'. esc_attr( $button_number ) .'" name="ure_select_other_roles" style="width: 500px;" >'."\n";
-        foreach($roles as $key=>$role) {
-            echo '<option value="'. esc_attr( $key ) .'" >'. esc_html( $role['name'] ) .'</option>'."\n";
-        }   // foreach()
-        echo '</select><br>'."\n";
-        
+        $button_number =  (self::$counter>0) ? '_2': '';
+
         if ($context==='add-new-user' || $context==='add-existing-user') {
             // Get other default roles
             $other_roles = $this->lib->get_option('other_default_roles', array());
         } else {
             $other_roles = $this->get_roles_array($user);
         }
-        if (is_array($other_roles) && count($other_roles) > 0) {
-            $other_roles_str = implode(',', $other_roles);
-        } else {
-            $other_roles_str = '';
+        if (!is_array($other_roles)) {
+            $other_roles = array();
         }
+
+        echo '<select multiple="multiple" id="ure_select_other_roles'. esc_attr( $button_number ) .'" name="ure_select_other_roles" style="width: 500px;" >'."\n";
+        foreach($roles as $key=>$role) {
+            $selected = in_array( $key, $other_roles, true ) ? 'selected="selected"' : '';
+            echo '<option value="'. esc_attr( $key ) .'" '. esc_attr( $selected ) .'>'. esc_html( $role['name'] ) .'</option>'."\n";
+        }   // foreach()
+        echo '</select><br>'."\n";
+
+        $other_roles_str = count($other_roles) > 0 ? implode(',', $other_roles) : '';
         echo '<input type="hidden" name="ure_other_roles" id="ure_other_roles'. esc_attr( $button_number ) .'" value="' . esc_attr( $other_roles_str ) . '" />';
 
 

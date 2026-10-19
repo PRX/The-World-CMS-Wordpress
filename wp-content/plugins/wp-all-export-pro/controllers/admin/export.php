@@ -321,7 +321,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
                     }
 
                     if (isset($this->data['export']['options']['enable_real_time_exports']) && $this->data['export']['options']['enable_real_time_exports']) {
-                        wp_redirect(esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-export', 'id' => $this->data['export']->id, 'action' => 'process') + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))));
+                        wp_redirect(esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-export', 'id' => $this->data['export']->id, 'action' => 'process', '_wpnonce_process' => wp_create_nonce('process')) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))));
 
                     } else {
 	                    wp_redirect(esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-manage', 'pmxe_nt' => urlencode(__('Options updated', 'wp_all_export_plugin')),'_wpnonce_options' => wp_create_nonce('options')) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))));
@@ -464,7 +464,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
                     }
 
                     PMXE_Plugin::$session->save_data();
-                    wp_redirect(esc_url_raw(add_query_arg('action', 'process', $this->baseUrl)));
+                    wp_redirect(esc_url_raw(add_query_arg(array('action' => 'process', '_wpnonce_process' => wp_create_nonce('process')), $this->baseUrl)));
                     die();
                 }
             } else {
@@ -488,7 +488,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
                         $this->data['export']->set(array('friendly_name' => $post['friendly_name'], 'scheduled' => (($post['is_scheduled']) ? $post['scheduled_period'] : ''), 'client_mode_enabled' => $post['allow_client_mode']))->save();
                     }
                     if (isset($post['enable_real_time_exports']) && $post['enable_real_time_exports']) {
-                        wp_redirect(esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-export', 'id' => $this->data['export']->id, 'action' => 'process') + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))));
+                        wp_redirect(esc_url_raw(add_query_arg(array('page' => 'pmxe-admin-export', 'id' => $this->data['export']->id, 'action' => 'process', '_wpnonce_process' => wp_create_nonce('process')) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php'))));
                     } else {
                         wp_redirect(add_query_arg(array('page' => 'pmxe-admin-manage', 'pmxe_nt' => urlencode(__('Options updated', 'wp_all_export_plugin'))) + array_intersect_key($_GET, array_flip($this->baseUrlParamNames)), admin_url('admin.php')));
                     }
@@ -512,6 +512,17 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
         $this->userHasAccessToItem($export);
 
         if (!PMXE_Plugin::is_ajax()) {
+
+            // Accept the nonce from either flow that legitimately reaches this action: the export
+            // wizard (process) or the re-export confirmation delegated from Manage (update-export).
+            $nonce_ok =
+                (isset($_REQUEST['_wpnonce_process'])
+                    && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce_process'])), 'process'))
+                || (isset($_REQUEST['_wpnonce_update-export'])
+                    && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce_update-export'])), 'update-export'));
+            if (!$nonce_ok) {
+                wp_nonce_ays('process');
+            }
 
                 if ("" == PMXE_Plugin::$session->friendly_name) {
 

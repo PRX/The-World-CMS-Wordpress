@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 global $pagenow, $revisionary;
 
 add_action( 'init', '_rvy_post_edit_ui' );
@@ -6,8 +10,8 @@ add_action( 'init', '_rvy_post_edit_ui' );
 function _rvy_post_edit_ui() {
 	global $pagenow, $revisionary;
 
-	if (in_array($pagenow, ['post.php', 'post-new.php'])) {
-		if ($pagenow == 'post.php') {
+	if (in_array($pagenow, ['post.php', 'post-new.php'], true)) {
+		if ('post.php' == $pagenow) {
 			require_once( dirname(__FILE__).'/post-editor-workflow-ui_rvy.php' );
 
 			if (rvy_get_option('revision_limit_per_post')) {
@@ -42,7 +46,7 @@ function rvy_admin_init() {
 
 	// @todo: clean up "Restore Revision" URL on Diff screen
 	// Until the integration with WP revisions.php is resolved, limit the scope of this workaround to relevant actions
-	if (!empty($_GET['amp;revision']) && !empty($_GET['amp;action']) && !empty($_GET['amp;_wpnonce']) && in_array($_GET['amp;action'], ['approve', 'publish'])) {
+	if (!empty($_GET['amp;revision']) && !empty($_GET['amp;action']) && !empty($_GET['amp;_wpnonce']) && in_array($_GET['amp;action'], ['approve', 'publish'], true)) {
 		$_GET['revision'] = (int) $_GET['amp;revision'];
 		$_GET['action'] = sanitize_key($_GET['amp;action']);
 		$_GET['_wpnonce'] = sanitize_key($_GET['amp;_wpnonce']);
@@ -74,7 +78,6 @@ function rvy_admin_init() {
 			$customize_defaults = isset($_POST['rvy_options_customize_defaults']);
 			$handler->handle_submission( 'default', $sitewide, $customize_defaults );
 		}
-		
 	} elseif (isset($_REQUEST['action2']) && !empty($_REQUEST['page']) && ('revisionary-archive' == $_REQUEST['page']) && !empty($_REQUEST['post']) && rvy_get_option('revision_archive_deletion')) {
 		$doaction = (!empty($_REQUEST['action']) && !is_numeric($_REQUEST['action'])) ? sanitize_key($_REQUEST['action']) : sanitize_key($_REQUEST['action2']);
 
@@ -112,8 +115,8 @@ function rvy_admin_init() {
 						wp_die( esc_html__('Sorry, you are not allowed to delete this revision.', 'revisionary') );
 					} 
 	
-					if ( !wp_delete_post_revision($post_id, true) )
-						wp_die( esc_html__('Error in deleting.') );
+						if ( !wp_delete_post_revision($post_id, true) )
+							wp_die( esc_html__('Error in deleting.', 'revisionary') );
 	
 					$deleted++;
 				}
@@ -133,17 +136,17 @@ function rvy_admin_init() {
 		if ($sendback) {
 			$sendback = remove_query_arg( array('action', 'action2', '_wp_http_referer', '_wpnonce', 'post', 'bulk_edit', 'post_view'), $sendback );
 			$sendback = str_replace('#038;', '&', $sendback);	// @todo Proper decode
-			wp_redirect($sendback);
+			wp_safe_redirect($sendback);
 			exit;
 		}
 
 	} elseif (
 		(isset($_REQUEST['action2']) && !empty($_REQUEST['page']) && ('revisionary-q' == $_REQUEST['page']) && !empty($_REQUEST['post']))
-		|| (isset($_REQUEST['action']) && in_array($_REQUEST['action'], ['decline_revision']))
+		|| (isset($_REQUEST['action']) && in_array($_REQUEST['action'], ['decline_revision'], true))
 	) {
 		$doaction = (!empty($_REQUEST['action']) && !is_numeric($_REQUEST['action'])) ? sanitize_key($_REQUEST['action']) : sanitize_key($_REQUEST['action2']);
 
-		if (empty($_POST) && in_array($_REQUEST['action'], ['decline_revision'])) {
+		if (empty($_POST) && in_array($_REQUEST['action'], ['decline_revision'], true)) {
 			$post_id = (!empty($_REQUEST['post'])) ? intval($_REQUEST['post']) : 0;
 			check_admin_referer("decline-revision_{$post_id}");
 		} else {
@@ -200,7 +203,9 @@ function rvy_admin_init() {
 						continue;
 					}
 					
-					if (!$is_administrator && !current_user_can('approve_revision', $revision->ID) && !current_user_can('edit_post', rvy_post_id($revision->ID))) {
+					if (!$is_administrator && !current_user_can('approve_revision', $revision->ID)
+					&& (!defined('REVISIONARY_LEGACY_APPROVE_PERMISSIONS') || !current_user_can('edit_post', rvy_post_id($revision->ID)))
+					) {
 						if (count($post_ids) == 1) {
 							wp_die( esc_html__('Sorry, you are not allowed to approve this revision.', 'revisionary') );
 						} else {
@@ -275,7 +280,9 @@ function rvy_admin_init() {
 						}
 					}
 
-					if (!$is_administrator && !current_user_can('approve_revision', $revision->ID) && !current_user_can('edit_post', rvy_post_id($revision->ID))) {
+					if (!$is_administrator && !current_user_can('approve_revision', $revision->ID)
+					&& (!defined('REVISIONARY_LEGACY_APPROVE_PERMISSIONS') || !current_user_can('edit_post', rvy_post_id($revision->ID)))
+					) {
 						if (count($post_ids) == 1) {
 							wp_die( esc_html__('Sorry, you are not allowed to decline this revision.', 'revisionary') );
 						} else {
@@ -345,7 +352,7 @@ function rvy_admin_init() {
 						continue;
 					
 					if ( !is_content_administrator_rvy() && ! current_user_can( 'delete_post', rvy_post_id($revision->ID) ) ) {  // @todo: review Administrator cap check
-						if (!in_array($revision->post_mime_type, $revision_statuses) || !rvy_is_post_author($revision)) {	// allow submitters to delete their own still-pending revisions
+						if (!in_array($revision->post_mime_type, $revision_statuses, true) || !rvy_is_post_author($revision)) {	// allow submitters to delete their own still-pending revisions
 							wp_die( esc_html__('Sorry, you are not allowed to delete this revision.', 'revisionary') );
 						}
 					} 
@@ -359,8 +366,8 @@ function rvy_admin_init() {
 						}
 					}
 
-					if ( !wp_delete_post($post_id, true) )
-						wp_die( esc_html__('Error in deleting.') );
+						if ( !wp_delete_post($post_id, true) )
+							wp_die( esc_html__('Error in deleting.', 'revisionary') );
 	
 					$deleted++;
 				}
@@ -380,7 +387,7 @@ function rvy_admin_init() {
 		if ($sendback) {
 			$sendback = remove_query_arg( array('action', 'action2', '_wp_http_referer', '_wpnonce', 'deleted', 'tags_input', 'post_author', 'comment_status', 'ping_status', '_status', 'post', 'bulk_edit', 'post_view'), $sendback );
 			$sendback = str_replace('#038;', '&', $sendback);	// @todo Proper decode
-			wp_redirect($sendback);
+			wp_safe_redirect($sendback);
 			exit;
 		}
 
@@ -412,7 +419,7 @@ function rvy_admin_init() {
 				if (!empty($arr) && is_array($arr) && !empty($arr['code'])) {
 					if (!empty($_REQUEST['referer'])) {
 						$url = add_query_arg('revision_action', $arr['code'], esc_url_raw(wp_unslash($_REQUEST['referer'])));
-						wp_redirect($url);
+						wp_safe_redirect($url);
 						exit;
 					}
 				}
@@ -469,7 +476,7 @@ function rvy_admin_init() {
 	if (!empty($_REQUEST['rvy_refresh_done']) && empty($_POST)) {
 		if (current_user_can('activate_plugins')) {
 			$url = admin_url('update-core.php');
-			wp_redirect($url);
+			wp_safe_redirect($url);
 			exit;
 		}
 	}
@@ -490,7 +497,7 @@ function rvy_get_post_revisions($post_id, $status = '', $args = '' ) {
 	} else {
 		if (!in_array( 
 			$status, 
-			array_merge(rvy_revision_statuses(), array('inherit')) 
+			array_merge(rvy_revision_statuses(), array('inherit')), true 
 		) ) {
 			return [];
 		}
@@ -674,4 +681,3 @@ function rvy_get_admin_notice( $message, $args = array() ) {
 
 	return sprintf( '<div class="%1$s">%2$s</div>', $classes, $message );
 }
-	

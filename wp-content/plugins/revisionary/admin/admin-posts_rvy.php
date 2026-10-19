@@ -29,7 +29,7 @@ class RevisionaryAdminPosts {
 		
 			$post_type = sanitize_key($_REQUEST['post_type']);							//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-			if (in_array($post_type, rvy_get_manageable_types())) {
+			if (in_array($post_type, rvy_get_manageable_types(), true)) {
 				$deleted_id = (int) $_REQUEST['ids'];									//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 				if (!empty($_SERVER['HTTP_REFERER']) && (
@@ -38,12 +38,12 @@ class RevisionaryAdminPosts {
 				)) {
 					$_post = get_post($deleted_id);
 
-					if (!$_post || (('trash' == $_post->post_status) && in_array($_post->post_mime_type, rvy_revision_statuses()))) {
+					if (!$_post || (('trash' == $_post->post_status) && in_array($_post->post_mime_type, rvy_revision_statuses(), true))) {
 						if (apply_filters('revisionary_deletion_redirect_to_queue', true, $deleted_id, $post_type)) {
 							$url = wp_nonce_url(admin_url("admin.php?page=revisionary-q&pp_revisions_deleted={$deleted_id}"), 'revisions-deleted');
 							
 							if (!empty($_SERVER['REQUEST_URI']) && false === strpos(esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'])), $url)) {
-								wp_redirect($url);
+								wp_safe_redirect($url);
 								exit;
 							}
 						}
@@ -144,7 +144,7 @@ class RevisionaryAdminPosts {
 		global $revisionary;
 
 		if (!defined('REVISIONARY_NO_REVISOR_POSTS_CAPS_WORKAROUND') && empty($revisionary->skip_revisor_post_caps_workaround) && !$this->skip_has_cap_filtering && !empty($args[2]) && array_diff($reqd_caps, array_keys(array_filter($wp_blogcaps)))) {
-			if (!empty($args[0]) && in_array($args[0], ['edit_post', 'edit_page'])) {
+			if (!empty($args[0]) && in_array($args[0], ['edit_post', 'edit_page'], true)) {
 				$this->filtering_edit_link[$args[2]] = true;
 				$wp_blogcaps = array_merge($wp_blogcaps, array_fill_keys($reqd_caps, true));
 			}
@@ -231,17 +231,19 @@ class RevisionaryAdminPosts {
 		}
 
 		if ($listed_ids) {
-			$id_csv = implode("','", array_map('intval', $listed_ids));
-			$revision_status_csv = implode("','", array_map('sanitize_key', rvy_revision_statuses()));
+			$listed_ids = array_map('intval', $listed_ids);
+			$id_placeholders = implode(', ', array_fill(0, count($listed_ids), '%d'));
+			$revision_statuses = array_map('sanitize_key', rvy_revision_statuses());
+			$revision_status_placeholders = implode(', ', array_fill(0, count($revision_statuses), '%s'));
 
-			$revision_base_statuses = array_map('sanitize_key', rvy_revision_base_statuses());
-			$revision_base_status_csv = implode("','", $revision_base_statuses);
-
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$results = $wpdb->get_results(
-				"SELECT comment_count AS published_post, COUNT(comment_count) AS num_revisions FROM $wpdb->posts"
-				. " WHERE $wpdb->posts.comment_count IN ('$id_csv')"			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				. " AND $wpdb->posts.post_mime_type IN ('$revision_status_csv') AND $wpdb->posts.post_type != '' GROUP BY comment_count"		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->prepare(
+					"SELECT comment_count AS published_post, COUNT(comment_count) AS num_revisions FROM $wpdb->posts"
+					. " WHERE $wpdb->posts.comment_count IN ($id_placeholders)"			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					. " AND $wpdb->posts.post_mime_type IN ($revision_status_placeholders) AND $wpdb->posts.post_type != '' GROUP BY comment_count",		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Placeholders are generated from the value count.
+					array_merge($listed_ids, $revision_statuses)
+				)
 			);
 			
 			foreach($results as $row) {
@@ -285,7 +287,7 @@ class RevisionaryAdminPosts {
 			$this->logTrashedRevisions();
 		}
 
-		if (in_array($post->ID, $this->trashed_revisions)) {		
+		if (in_array($post->ID, $this->trashed_revisions, true)) {		
 			if ($status_obj = get_post_status_object($post->post_mime_type)) {
 				$post_states['rvy_revision'] = $status_obj->label;
 			}
@@ -299,7 +301,7 @@ class RevisionaryAdminPosts {
 	}
 
 	function fltCommentsNumber($comment_count, $post_id) {
-		if (isset($this->trashed_revisions) && in_array($post_id, $this->trashed_revisions)) {
+		if (isset($this->trashed_revisions) && in_array($post_id, $this->trashed_revisions, true)) {
 			$comment_count = 0;
 		}
 
@@ -351,7 +353,7 @@ class RevisionaryAdminPosts {
 				
 				$url = remove_query_arg(['post_status', 'action', 'cat', 'seo-filter', 'schema-filter', 'paged', 'action2'], $url);
 
-				$caption = (isset($actions['edit']) || !rvy_get_option('caption_copy_as_edit')) ? pp_revisions_status_label('draft-revision', 'submit') : esc_html__('Edit');
+				$caption = (isset($actions['edit']) || !rvy_get_option('caption_copy_as_edit')) ? pp_revisions_status_label('draft-revision', 'submit') : esc_html__('Edit', 'revisionary');
 				$caption = str_replace(' ', '&nbsp;', $caption);
 
 				$actions['create_revision'] = "<a href='" . esc_url($url) . "'>" . $caption . '</a>';
@@ -448,7 +450,7 @@ class RevisionaryAdminPosts {
 			}
 
 			foreach ($stored_statuses as $status) {
-				if (!in_array($status->slug, $revision_statuses)) {
+				if (!in_array($status->slug, $revision_statuses, true)) {
 					$revision_statuses[] = $status->slug;
 				}
 			}

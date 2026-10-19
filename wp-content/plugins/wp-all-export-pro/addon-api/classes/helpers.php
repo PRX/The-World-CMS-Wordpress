@@ -167,8 +167,10 @@ trait Updatable {
             $api_url,
             $plugin_file,
             [
+                // No 'license' key: add-ons carry no key of their own, and its
+                // absence is what suppresses the "a valid license is required"
+                // copy that belongs to WP All Export Pro.
                 'version'   => $this->version,       // current version number
-                'license'   => false,                // license key (used get_option above to retrieve from DB)
                 'item_name' => $this->getEddName(),  // name of this plugin
                 'author'    => $this->getEddAuthor() // author of this plugin
             ]

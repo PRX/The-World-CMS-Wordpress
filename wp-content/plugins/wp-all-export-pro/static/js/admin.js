@@ -3,6 +3,37 @@
  */
 (function($, EventService ){$(function () {
 
+	window.wpaeDateFieldSettings = {
+		read: function ($form) {
+			var type = $form.find('select.date_field_export_data').val();
+			var format = type == 'unix' ? 'unix' : (type == 'iso8601' ? 'c' : $form.find('.pmxe_date_format').val());
+			var timezone = $form.find('select.date_field_timezone').val() || 'utc';
+			if (timezone == 'utc') return format;
+			return window.JSON.stringify({format: format, timezone: timezone});
+		},
+		apply: function ($form, settings) {
+			var format = settings, timezone = 'utc';
+			if (typeof settings == 'string' && settings.charAt(0) == '{') {
+				try {
+					var parsed = window.JSON.parse(settings);
+					format = parsed.format || '';
+					timezone = parsed.timezone || 'utc';
+				} catch (e) {}
+			}
+			if (!format || format == '0') format = '';
+			var type = format == 'unix' ? 'unix' : (format == 'c' ? 'iso8601' : 'php');
+			$form.find('select.date_field_export_data').val(type).trigger('change');
+			$form.find('.pmxe_date_format').val(type == 'php' ? format : '');
+			$form.find('select.date_field_timezone').val(timezone);
+			$form.find('.date_field_type').show();
+		},
+		reset: function ($form) {
+			$form.find('select.date_field_export_data').val('unix').trigger('change');
+			$form.find('.pmxe_date_format').val('');
+			$form.find('select.date_field_timezone').val('utc');
+		}
+	};
+
     // Applies automatic formatting to the specified range
     wp.CodeMirror.defineExtension("autoFormatRange", function (from, to) {
         var cm = this;
@@ -221,7 +252,7 @@
 
 	var initDraggable = function() {
 		function initGeneralDraggable($element) {
-			$element.find("li:not(.available_sub_section)").draggable({
+			$element.find("li:not(.available_sub_section):not(.wpallexport_disabled)").draggable({
 				appendTo: "body",
 				containment: "document",
 				helper: dragHelper,
@@ -247,7 +278,7 @@
 
 	var resetDraggable = function() {
 
-		var $draggableSelector = vm.availableDataSelector.find("li:not(.available_sub_section)");
+		var $draggableSelector = vm.availableDataSelector.find("li:not(.available_sub_section):not(.wpallexport_disabled)");
 
 		if($draggableSelector.data('ui-draggable')){
 			$draggableSelector.draggable('destroy');
@@ -609,10 +640,6 @@
 	// autoselect input content on click
 	$(document).on('click', 'input.selectable', function () {
 		$(this).select();
-	});
-
-	$('.pmxe_choosen').each(function(){
-		$(this).find(".choosen_input").select2({tags: $(this).find('.choosen_values').html().split(',')});
 	});
 
 	// choose file form: option selection dynamic
@@ -1556,6 +1583,7 @@
 			$addAnotherForm.removeAttr('rel');
 			$addAnotherForm.removeClass('dc').addClass('cc');
 			$addAnotherForm.find('.cc_field').hide();
+			window.wpaeDateFieldSettings.reset($addAnotherForm);
 
 			$addAnotherForm.find('.wpallexport-edit-row-title').hide();
 			$addAnotherForm.find('.wpallexport-add-row-title').show();
@@ -1697,11 +1725,7 @@
 			}
 
 			if ( isAddon && ( isFieldType('date') || isFieldType('datetime') ) ) {
-				var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
-				if ($dateType == 'unix')
-					$clone.find('input[name^=cc_settings]').val('unix');
-				else
-					$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
+				$clone.find('input[name^=cc_settings]').val(window.wpaeDateFieldSettings.read($addAnotherForm));
 			}
 
 			if ( isAddon && ( isFieldType('time') ) ) {
@@ -1751,16 +1775,13 @@
 				// save post date field format
 				case 'date':
 				case 'comment_date':
+				case 'comment_date_gmt':
 				case 'comment_parent_date':
 				case 'comment_parent_date_gmt':
 				case 'user_registered':
 				case 'post_modified':
 				case '_date_paid':
-					var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
-					if ($dateType == 'unix')
-						$clone.find('input[name^=cc_settings]').val('unix');
-					else
-						$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
+					$clone.find('input[name^=cc_settings]').val(window.wpaeDateFieldSettings.read($addAnotherForm));
 					break;
 				case 'woo':
 					switch ( $clone.find('input[name^=cc_value]').val() )
@@ -1780,11 +1801,7 @@
 						case 'post_modified':
 						case '_completed_date':
 						case '_date_paid':
-							var $dateType = $addAnotherForm.find('select.date_field_export_data').val();
-							if ($dateType == 'unix')
-								$clone.find('input[name^=cc_settings]').val('unix');
-							else
-								$clone.find('input[name^=cc_settings]').val($('.pmxe_date_format').val());
+							$clone.find('input[name^=cc_settings]').val(window.wpaeDateFieldSettings.read($addAnotherForm));
 							break;
 					}
 					break;
@@ -1921,21 +1938,7 @@
                 }
 
 				if ( isAddon && ( isFieldType('date') || isFieldType('datetime') ) ) {
-					$addAnotherForm.find('select.date_field_export_data').find('option').each(function () {
-						if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
-							$(this).attr({'selected': 'selected'}).trigger('click');
-						else
-							$(this).removeAttr('selected');
-					});
-
-					if ($settings != 'php' && $settings != 'unix') {
-						if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
-						$('.pmxe_date_format_wrapper').show();
-					}
-					else {
-						$('.pmxe_date_format').val('');
-					}
-					$addAnotherForm.find('.date_field_type').show();
+					window.wpaeDateFieldSettings.apply($addAnotherForm, $settings);
 				}
 
 				if ( isAddon && ( isFieldType('time') ) ) {
@@ -2026,46 +2029,18 @@
                             case 'post_modified':
                             case '_completed_date':
 							case '_date_paid':
-
-                                $addAnotherForm.find('select.date_field_export_data').find('option').each(function () {
-                                    if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
-                                        $(this).attr({'selected': 'selected'}).trigger('click');
-                                    else
-                                        $(this).removeAttr('selected');
-                                });
-
-                                if ($settings != 'php' && $settings != 'unix') {
-                                    if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
-                                    $('.pmxe_date_format_wrapper').show();
-                                }
-                                else {
-                                    $('.pmxe_date_format').val('');
-                                }
-                                $addAnotherForm.find('.date_field_type').show();
+                                window.wpaeDateFieldSettings.apply($addAnotherForm, $settings);
                                 break;
                         }
                         break;
                     case 'date':
                     case 'comment_date':
+                    case 'comment_date_gmt':
                     case 'comment_parent_date':
                     case 'comment_parent_date_gmt':
                     case 'user_registered':
                     case 'post_modified':
-                        $addAnotherForm.find('select.date_field_export_data').find('option').each(function () {
-                            if ($(this).val() == $settings || $settings != 'unix' && $(this).val() == 'php')
-                                $(this).attr({'selected': 'selected'}).trigger('click');
-                            else
-                                $(this).removeAttr('selected');
-                        });
-
-                        if ($settings != 'php' && $settings != 'unix') {
-                            if ($settings != '0') $('.pmxe_date_format').val($settings); else $('.pmxe_date_format').val('');
-                            $('.pmxe_date_format_wrapper').show();
-                        }
-                        else {
-                            $('.pmxe_date_format').val('');
-                        }
-                        $addAnotherForm.find('.date_field_type').show();
+                        window.wpaeDateFieldSettings.apply($addAnotherForm, $settings);
                         break;
                     default:
 
@@ -2256,10 +2231,10 @@
 		});
 
 		$('.date_field_export_data').on('change', function(){
-			if ($(this).val() == "unix")
-				$('.pmxe_date_format_wrapper').hide();
-			else
+			if ($(this).val() == "php")
 				$('.pmxe_date_format_wrapper').show();
+			else
+				$('.pmxe_date_format_wrapper').hide();
 		});
 
 		$(document).on('click', '.xml-expander', function () {
@@ -2293,7 +2268,17 @@
 				switch (ftype){
 					case 'post_modified':
 					case 'date':
+					case 'comment_date':
+					case 'comment_date_gmt':
+					case 'comment_parent_date':
+					case 'comment_parent_date_gmt':
+					case 'user_registered':
 						$('.date_field_type').show();
+						break;
+					case 'woo_order':
+						if ($.inArray(selected_value, ['post_date', 'post_modified', '_completed_date', '_date_paid']) !== -1) {
+							$('.date_field_type').show();
+						}
 						break;
 					case 'sql':
 						$('.sql_field_type').show();
@@ -2552,6 +2537,14 @@
 
 				$('#wpae-options-form').trigger('submit');
 			});
+
+			$('form.confirm .wp_all_export_confirm_and_run').on('click', function(e){
+				var $saveButton = $('.wpae-save-button');
+				if ($saveButton.length) {
+					e.preventDefault();
+					$saveButton.trigger('click');
+				}
+			});
     	}
 
     }
@@ -2729,30 +2722,6 @@
 		wpae_save_functions.call(this);
 
     });
-    // auot-generate zapier API key
-    $('input[name=pmxe_generate_zapier_api_key]').on('click', function(e){
-
-    	e.preventDefault();
-
-    	var request = {
-			action: 'generate_zapier_api_key',
-			security: wp_all_export_security
-	    };
-
-		$.ajax({
-			type: 'POST',
-			url: get_valid_ajaxurl(),
-			data: request,
-			success: function(response) {
-				$('input[name=zapier_api_key]').val(response.api_key);
-			},
-			error: function( jqXHR, textStatus ) {
-
-			},
-			dataType: "json"
-		});
-    });
-
     var $tmp_xml_template = '';
     var $xml_template_first_load = true;
 

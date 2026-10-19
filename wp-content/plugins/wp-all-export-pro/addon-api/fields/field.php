@@ -266,7 +266,7 @@ class PMXE_Addon_Field {
         $elNameNs = null,
         $phpFunction = null,
         // Subfields
-        PMXE_Addon_Field $parent = null,
+        ?PMXE_Addon_Field $parent = null,
         $repeater_row_index = null,
         $resolve = true
     ) {

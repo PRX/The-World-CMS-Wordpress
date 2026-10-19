@@ -12,12 +12,12 @@
 defined( 'ABSPATH' ) || exit;
 
 class URE_Core {
-    const PLUGIN_VERSION = '4.66.1';
+    const PLUGIN_VERSION = '4.66.2';
     const PLUGIN_SLUG = 'user-role-editor';
     const PLUGIN_NAME = 'User Role Editor';
     const TEXT_DOMAIN = 'user-role-editor';
     const REQUIRED_PHP_VERSION = '7.4';
-    const REQUIRED_WORDPRESS_VERSION = '4.6';
+    const REQUIRED_WORDPRESS_VERSION = '4.7';
 
     protected static bool $initialized = false;    
     private static ?string $plugin_url = null;
@@ -168,23 +168,23 @@ class URE_Core {
     
     
     public static function valid_php_version() {
-        $message = sprintf('User Role Editor requires PHP %s or newer. Do not activate it until update your server PHP version.', 
-                            self::REQUIRED_PHP_VERSION );
-        if ( !self::version_compare( PHP_VERSION, self::REQUIRED_PHP_VERSION, $message ) ) {
+        $message = sprintf('User Role Editor requires PHP %s or newer. Do not activate it until update your server PHP version.',
+                            static::REQUIRED_PHP_VERSION );
+        if ( !self::version_compare( PHP_VERSION, static::REQUIRED_PHP_VERSION, $message ) ) {
             return false;
         }
-        
+
         return true;
     }
     // end of php_version_compare()
-    
-    
+
+
     public static function valid_wordpress_version() {
         global $wp_version;
-        
-        $message = sprintf('User Role Editor requires WordPress %s or newer. Do not activate it until update your WordPress installation.', 
-                            self::REQUIRED_WORDPRESS_VERSION );                    
-        if ( !self::version_compare( $wp_version, self::REQUIRED_WORDPRESS_VERSION, $message ) ) {
+
+        $message = sprintf('User Role Editor requires WordPress %s or newer. Do not activate it until update your WordPress installation.',
+                            static::REQUIRED_WORDPRESS_VERSION );
+        if ( !self::version_compare( $wp_version, static::REQUIRED_WORDPRESS_VERSION, $message ) ) {
             return false;
         }
         

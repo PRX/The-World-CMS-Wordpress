@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * @package     PublishPress\Revisions\RevisionaryAdmin
  * @author      PublishPress <help@publishpress.com>
@@ -24,6 +28,7 @@ class RevisionaryAdmin
 		$script_name = (isset($_SERVER['SCRIPT_NAME'])) ? esc_url_raw(wp_unslash($_SERVER['SCRIPT_NAME'])) : '';
 
 		add_action('admin_head', [$this, 'admin_head']);
+		add_filter('admin_title', [$this, 'fltAdminTitle'], 10, 2);
 		add_filter('admin_body_class', [$this, 'fltAdminBodyClass'], 20);
 		add_action('admin_enqueue_scripts', [$this, 'admin_scripts']);
 		add_action('revisionary_admin_footer', [$this, 'publishpressFooter']);
@@ -62,7 +67,7 @@ class RevisionaryAdmin
 			return; // no further filtering on WP plugin maintenance scripts
 		}
 
-		if (in_array($pagenow, array('post.php', 'post-new.php'))) {
+		if (in_array($pagenow, array('post.php', 'post-new.php'), true)) {
 			if (empty($post)) {
 				$post = get_post(rvy_detect_post_id());		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 			}
@@ -76,7 +81,7 @@ class RevisionaryAdmin
 
 				if ($post && rvy_is_supported_post_type($post->post_type)) {
 					// only apply revisionary UI for currently published or scheduled posts
-					if (!rvy_in_revision_workflow($post) && (in_array($post->post_status, rvy_filtered_statuses()) || ('future' == $post->post_status))) {
+					if (!rvy_in_revision_workflow($post) && (in_array($post->post_status, rvy_filtered_statuses(), true) || ('future' == $post->post_status))) {
 						require_once( dirname(__FILE__).'/filters-admin-ui-item_rvy.php' );
 						new RevisionaryPostEditorMetaboxes();
 
@@ -159,37 +164,20 @@ class RevisionaryAdmin
 
 		add_action('init', function() { // late execution avoids clash with autoloaders in other plugins
 			global $pagenow;
-		
-			if (
-			($pagenow == 'admin.php') && isset($_GET['page']) 												//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			&& in_array($_GET['page'], ['revisionary-q', 'revisionary-deletion', 'revisionary-settings'])	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			) {
-				global $wp_version;
 
-				if (defined('DISABLE_WP_CRON') && DISABLE_WP_CRON && rvy_get_option('scheduled_revisions') 
-				&& rvy_get_option('scheduled_publish_cron') && !rvy_get_option('wp_cron_usage_detected') && apply_filters('revisionary_wp_cron_disabled', true)
-				) {
-					rvy_notice(
-						sprintf(
-							__('Scheduled Revisions are unavailable because WP-Cron is disabled. If you are triggering WP-Cron externally, see %sRevisions > Settings > New Revisions > Scheduling%s.', 'revisionary'),
-							'<a href="' . admin_url("admin.php?page=revisionary-settings&ppr_tab=working_copy&ppr_subtab=revision-scheduling") . '">',
-							'</a>'
-						)
-					);
-				}
-			}
-
-			if ((
-			($pagenow == 'admin.php') 
+			$is_review_screen = (
+			('admin.php' == $pagenow)
 			&& isset($_GET['page']) 																		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			&& in_array($_GET['page'], ['revisionary-q', 'revisionary-settings'])							//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			|| (
-				defined('DOING_AJAX') && DOING_AJAX && !empty($_REQUEST['action']) 							//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				&& (false !== strpos(sanitize_key($_REQUEST['action']), 'revisionary'))						//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				)
-			) 
-			&& !defined('PUBLISHPRESS_REVISIONS_PRO_VERSION')
-			) {
+				&& in_array($_GET['page'], ['revisionary-q', 'revisionary-settings'], true) //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			);
+
+			$is_review_ajax = (
+				wp_doing_ajax()
+				&& !empty($_REQUEST['action']) //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				&& ('revisionary_action' === sanitize_key($_REQUEST['action'])) //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			);
+
+			if (($is_review_screen || $is_review_ajax) && !defined('PUBLISHPRESS_REVISIONS_PRO_VERSION')) {
 				if (!class_exists('\PublishPress\WordPressReviews\ReviewsController')) {
 					include_once RVY_ABSPATH . '/lib/vendor/publishpress/wordpress-reviews/ReviewsController.php';
 				}
@@ -256,32 +244,51 @@ class RevisionaryAdmin
 		global $pagenow;
 
 		if (
-			in_array($pagenow, ['post.php', 'post-new.php', 'revision.php'])
-			|| (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive']))  //phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			in_array($pagenow, ['post.php', 'post-new.php', 'revision.php'], true)
+			|| (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive'], true))  //phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		) {
 			wp_enqueue_style('revisionary', RVY_URLPATH . '/admin/revisionary.css', [], PUBLISHPRESS_REVISIONS_VERSION);
 			wp_enqueue_style('revisionary-tooltip', RVY_URLPATH . '/common/css/_tooltip.css', [], PUBLISHPRESS_REVISIONS_VERSION);
+
+			// Escape dismisses an open tooltip (WCAG 1.4.13)
+			wp_register_script('revisionary-tooltip', false, [], PUBLISHPRESS_REVISIONS_VERSION, true);
+			wp_enqueue_script('revisionary-tooltip');
+			wp_add_inline_script('revisionary-tooltip', "document.addEventListener('keydown',function(e){if('Escape'!==e.key&&'Esc'!==e.key)return;document.querySelectorAll('[data-toggle=\\'tooltip\\']:not(.click)').forEach(function(t){if(t.matches(':hover')||t.matches(':focus-within')){t.classList.add('rvy-tip-dismissed');}});});['mouseleave','focusout'].forEach(function(n){document.addEventListener(n,function(e){if(e.target&&e.target.classList&&e.target.classList.contains('rvy-tip-dismissed')){e.target.classList.remove('rvy-tip-dismissed');}},true);});");
 		}
 
-		if (in_array($pagenow, ['post.php', 'post-new.php']) 						
-		|| (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive']))) {	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if (in_array($pagenow, ['post.php', 'post-new.php'], true) 						
+		|| (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive'], true))) {	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_style('revisionary-admin-common', RVY_URLPATH . '/common/css/pressshack-admin.css', [], PUBLISHPRESS_REVISIONS_VERSION);
 		}
 		
-		if ((!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options']))) {		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ((!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options'], true))) {		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_script('revisionary-settings', RVY_URLPATH . '/admin/settings.js', [], PUBLISHPRESS_REVISIONS_VERSION);
 			wp_enqueue_style('revisionary-settings', RVY_URLPATH . '/admin/revisionary-settings.css', [], PUBLISHPRESS_REVISIONS_VERSION);
 		}
 		
-		if (defined('PUBLISHPRESS_REVISIONS_PRO_VERSION') && ('admin.php' == $pagenow) && !empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options']) ) {	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if (defined('PUBLISHPRESS_REVISIONS_PRO_VERSION') && ('admin.php' == $pagenow) && !empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options'], true) ) {	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_style('revisionary-pro-settings', plugins_url('', REVISIONARY_PRO_FILE) . '/includes-pro/settings-pro.css', [], PUBLISHPRESS_REVISIONS_VERSION);
 		}
- 	}
+	}
+
+	function fltAdminTitle($admin_title, $title) {
+		$is_scheduled_revisions = !empty($_REQUEST['page'])					// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			&& 'revisionary-q' === sanitize_key($_REQUEST['page'])			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			&& !empty($_REQUEST['post_status'])								// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			&& 'future-revision' === sanitize_key($_REQUEST['post_status']); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if (!$is_scheduled_revisions) {
+			return $admin_title;
+		}
+
+		$scheduled_title = esc_html__('Scheduled Revisions', 'revisionary');
+		return $title ? preg_replace('/^' . preg_quote($title, '/') . '/', $scheduled_title, $admin_title, 1) : $scheduled_title;
+	}
 
 	 function fltAdminBodyClass($classes) {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		if (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive'])) {
+		if (!empty($_REQUEST['page']) && in_array($_REQUEST['page'], ['revisionary-settings', 'rvy-net_options', 'rvy-default_options', 'revisionary-q', 'revisionary-deletion', 'revisionary-archive'], true)) {
 			$classes .= ' revisionary';
 			
 			switch ($_REQUEST['page']) {	// phpcs:ignore WordPress.Security.NonceVerification.Recommended
@@ -322,11 +329,11 @@ class RevisionaryAdmin
 		}
 
 		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		if (($pagenow == 'admin.php') && isset($_GET['page']) && in_array($_GET['page'], ['revisionary-q', 'revisionary-archive'])) {
+		if (('admin.php' == $pagenow) && isset($_GET['page']) && in_array($_GET['page'], ['revisionary-q', 'revisionary-archive'], true)) {
 			add_screen_option(
 				'per_page',
 				
-				['label' => _x('Revisions', 'groups per page (screen options)', 'revisionary'), 
+				['label' => esc_html_x('Revisions', 'groups per page (screen options)', 'revisionary'), 
 				'default' => 20, 
 				'option' => ('revisionary-archive' == $_GET['page']) ? 'revision_archive_per_page' : 'revisions_per_page'	//phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				]
@@ -338,7 +345,7 @@ class RevisionaryAdmin
 		global $pagenow;
 
 		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return ($pagenow == 'admin.php') && isset($_GET['page']) && in_array($_GET['page'], ['revisionary-q', 'revisionary-deletion', 'revisionary-settings']);
+		return ('admin.php' == $pagenow) && isset($_GET['page']) && in_array($_GET['page'], ['revisionary-q', 'revisionary-deletion', 'revisionary-settings'], true);
 	}
 
 	function fltDashboardGlanceItems($items) {
@@ -395,7 +402,7 @@ class RevisionaryAdmin
 		$menu_slug = 'revisionary-q';
 
 		if ($revision_archive || $can_edit_any || current_user_can('manage_options')) {
-			$_menu_caption = ( defined( 'RVY_MODERATION_MENU_CAPTION' ) ) ? RVY_MODERATION_MENU_CAPTION : esc_html__('Revisions');
+			$_menu_caption = ( defined( 'RVY_MODERATION_MENU_CAPTION' ) ) ? RVY_MODERATION_MENU_CAPTION : esc_html__('Revisions', 'revisionary');
 
 			$active_post_types_archive = array_diff_key(
 				$enabled_post_types_archive = array_filter($revisionary->enabled_post_types_archive),
@@ -431,19 +438,24 @@ class RevisionaryAdmin
 				}
 			}
 
-			$type_csv = implode("','", array_map('sanitize_key', $post_types));
+			$post_types = array_values(array_map('sanitize_key', $post_types));
 
-			$post_status_csv = implode( "','", array_map('sanitize_key', apply_filters('revisionary_menu_count_post_statuses', array_diff(get_post_stati(), ['trash', 'auto-draft', 'inherit']))));
+			$post_statuses = array_values(array_map('sanitize_key', apply_filters('revisionary_menu_count_post_statuses', array_diff(get_post_stati(), ['trash', 'auto-draft', 'inherit']))));
 
-			if ($post_types && $post_status_csv && rvy_get_option('admin_menu_pending_count_icon')) {
+			if ($post_types && $post_statuses && rvy_get_option('admin_menu_pending_count_icon')) {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
 				$revision_count = $wpdb->get_var(
-					// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-					apply_filters(
-						'revisionary_menu_count', 
-						"SELECT COUNT(r.ID) FROM $wpdb->posts r INNER JOIN $wpdb->posts p ON r.comment_count = p.ID WHERE p.post_status IN ('$post_status_csv') AND r.post_type IN ('$type_csv') AND r.post_mime_type IN ('pending-revision')"  // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$wpdb->prepare(
+						sprintf(
+							"SELECT COUNT(r.ID) FROM $wpdb->posts r INNER JOIN $wpdb->posts p ON r.comment_count = p.ID WHERE p.post_status IN (%s) AND r.post_type IN (%s) AND r.post_mime_type = %%s",
+							implode(',', array_fill(0, count($post_statuses), '%s')),
+							implode(',', array_fill(0, count($post_types), '%s'))
+						),
+						array_merge($post_statuses, $post_types, ['pending-revision'])
 					)
 				);
+
+				$revision_count = (int) apply_filters('revisionary_menu_count', $revision_count, $post_statuses, $post_types);
 			}
 
 			if (!empty($revision_count)) {
@@ -522,8 +534,8 @@ class RevisionaryAdmin
 
 	// adds a Settings link next to Deactivate, Edit in Plugins listing
 	function flt_plugin_action_links($links, $file) {
-		if (defined('REVISIONARY_FILE') && ($file == plugin_basename(REVISIONARY_FILE))
-		|| defined('REVISIONARY_PRO_FILE') && ($file == plugin_basename(REVISIONARY_PRO_FILE))
+		if ((defined('REVISIONARY_FILE') && (plugin_basename(REVISIONARY_FILE) == $file))
+		|| (defined('REVISIONARY_PRO_FILE') && (plugin_basename(REVISIONARY_PRO_FILE) == $file))
 		) {
 			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-q')) .'">' . esc_html__('New Revisions', 'revisionary') . '</a>';
 			$links[] = '<a href="'. esc_url(admin_url('admin.php?page=revisionary-archive')) .'">' . esc_html__('Past Revisions', 'revisionary') . '</a>';
@@ -608,7 +620,7 @@ class RevisionaryAdmin
 		<footer>
 
 		<div class="pp-rating">
-		<a href="https://wordpress.org/support/plugin/revisionary/reviews/#new-post" target="_blank" rel="noopener noreferrer">
+			<a href="https://wordpress.org/support/plugin/revisionary/reviews/#new-post" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr__( 'Review PublishPress Revisions on WordPress.org', 'revisionary' ); ?>">
 		<?php printf(
 			esc_html__('If you like %1$s, please leave us a %2$s rating. Thank you!', 'revisionary'),
 			'<strong>PublishPress Revisions</strong>',
@@ -631,9 +643,9 @@ class RevisionaryAdmin
 		</nav>
 
 		<div class="pp-pressshack-logo">
-		<a href="https://publishpress.com" target="_blank" rel="noopener noreferrer">
+			<a href="https://publishpress.com" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr__( 'Visit PublishPress', 'revisionary' ); ?>">
 
-		<img src="<?php echo esc_url(plugins_url('', REVISIONARY_FILE) . '/common/img/publishpress-logo.png');?>" />
+		<img src="<?php echo esc_url(plugins_url('', REVISIONARY_FILE) . '/common/img/publishpress-logo.png');?>" alt="PublishPress" />
 		</a>
 		</div>
 
@@ -643,7 +655,7 @@ class RevisionaryAdmin
 
 	function hideAdminMenuToolbar() {
         $current_screen = get_current_screen();
-        if ( $current_screen->id === 'revision' && isset( $_GET['rvy-popup'] ) && $_GET['rvy-popup'] === 'true' ) {		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
+        if ( 'revision' === $current_screen->id && isset( $_GET['rvy-popup'] ) && 'true' === $_GET['rvy-popup'] ) {		//phpcs:ignore WordPress.Security.NonceVerification.Recommended
             ?>
             <style type="text/css">
             #wpadminbar,
@@ -670,16 +682,24 @@ class RevisionaryAdmin
         }
     }
 
-	function tooltipText($display_text, $tip_text, $use_icon = false) {
+	function tooltipText($display_text, $tip_text, $use_icon = false, $focusable = true) {
+		static $tip_count = 0;
+		$tip_count++;
+		$tip_id = 'rvy-tip-' . $tip_count;
+
 		$icon = '';
 		
 		if ($use_icon) :
 			ob_start();
-		?><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 50 50" style="margin-left: 3px; vertical-align: baseline;"><path d="M 25 2 C 12.264481 2 2 12.264481 2 25 C 2 37.735519 12.264481 48 25 48 C 37.735519 48 48 37.735519 48 25 C 48 12.264481 37.735519 2 25 2 z M 25 4 C 36.664481 4 46 13.335519 46 25 C 46 36.664481 36.664481 46 25 46 C 13.335519 46 4 36.664481 4 25 C 4 13.335519 13.335519 4 25 4 z M 25 11 A 3 3 0 0 0 25 17 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 23 23 L 23 36 L 21 36 L 21 38 L 29 38 L 29 36 L 27 36 L 27 21 L 21 21 z"></path></svg><?php 
+		?><button type="button" class="rvy-tooltip-trigger" aria-describedby="<?php echo esc_attr($tip_id);?>"><span class="screen-reader-text"><?php esc_html_e('More information', 'revisionary');?></span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 50 50" style="margin-left: 3px; vertical-align: baseline;" aria-hidden="true" focusable="false"><path d="M 25 2 C 12.264481 2 2 12.264481 2 25 C 2 37.735519 12.264481 48 25 48 C 37.735519 48 48 37.735519 48 25 C 48 12.264481 37.735519 2 25 2 z M 25 4 C 36.664481 4 46 13.335519 46 25 C 46 36.664481 36.664481 46 25 46 C 13.335519 46 4 36.664481 4 25 C 4 13.335519 13.335519 4 25 4 z M 25 11 A 3 3 0 0 0 25 17 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 23 23 L 23 36 L 21 36 L 21 38 L 29 38 L 29 36 L 27 36 L 27 21 L 21 21 z"></path></svg></button><?php 
 			$icon = ob_get_clean();
 		endif;
+
+		// Let keyboard users reach a tip whose trigger text contains no focusable element
+		$tabindex = ($focusable && !$use_icon && ('' !== trim(wp_strip_all_tags($display_text))) && !preg_match('/<(a|button|input|select|textarea)\b/i', $display_text))
+		? ' tabindex="0"' : '';
 		
-		return '<span data-toggle="tooltip" data-placement="top"><span class="tooltip-text"><span>' 
+		return '<span data-toggle="tooltip" data-placement="top"' . $tabindex . '><span class="tooltip-text" id="' . esc_attr($tip_id) . '" role="tooltip"><span>' 
 		. $tip_text
 		. '</span><i></i></span>'
 		. $display_text

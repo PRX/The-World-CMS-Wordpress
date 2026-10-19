@@ -22,6 +22,10 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
 	 * @var bool
 	 */
 	public $isInline = false;
+	/** @var array|null */
+	private $optionSnapshot = NULL;
+	private $machineOwnedOptions = array('license_state', 'license_checked_at', 'license_grace_until', 'license_gate_migrated');
+	private $refusedOptionWrites = array();
 	/**
 	 * Constructor
 	 */
@@ -47,8 +51,6 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
 		wp_enqueue_style('jquery-tipsy', PMXE_ROOT_URL . '/static/js/jquery/css/smoothness/jquery.tipsy.css', array('media-views'), PMXE_VERSION);
 		wp_enqueue_style('pmxe-admin-style', PMXE_ROOT_URL . '/static/css/admin.css',array('media-views'), PMXE_VERSION);
 		wp_enqueue_style('pmxe-scheduling-style', PMXE_ROOT_URL . '/static/css/scheduling.css', array(), PMXE_VERSION);
-		wp_enqueue_style('jquery-select2', PMXE_ROOT_URL . '/static/js/jquery/css/select2/select2.css', array('media-views'), PMXE_VERSION);
-		wp_enqueue_style('jquery-select2', PMXE_ROOT_URL . '/static/js/jquery/css/select2/select2-bootstrap.css', array('media-views'), PMXE_VERSION);
 		wp_enqueue_style('jquery-chosen', PMXE_ROOT_URL . '/static/js/jquery/css/chosen/chosen.css', array('media-views'), PMXE_VERSION);
 		wp_enqueue_style('jquery-codemirror', PMXE_ROOT_URL . '/static/codemirror/codemirror.css', array('media-views'), PMXE_VERSION);
 		wp_enqueue_style('jquery-timepicker', PMXE_ROOT_URL . '/static/js/jquery/css/timepicker/jquery.timepicker.css', array('media-views'), PMXE_VERSION);
@@ -75,7 +77,6 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
         wp_enqueue_script('jquery-ui-datepicker', PMXE_ROOT_URL . '/static/js/jquery/ui.datepicker.js', array('jquery-ui-core'), PMXE_VERSION);
 		wp_enqueue_script('tipsy', PMXE_ROOT_URL . '/static/js/jquery/jquery.tipsy.js', array('jquery'), PMXE_VERSION);
 		wp_enqueue_script('jquery-pmxe-nestable', PMXE_ROOT_URL . '/static/js/jquery/jquery.mjs.pmxe_nestedSortable.js', array('jquery', 'jquery-ui-dialog', 'jquery-ui-sortable', 'jquery-ui-draggable', 'jquery-ui-droppable', 'jquery-ui-tabs', 'jquery-ui-progressbar'), PMXE_VERSION);
-		wp_enqueue_script('jquery-select2', PMXE_ROOT_URL . '/static/js/jquery/select2.min.js', array('jquery'), PMXE_VERSION);
 		wp_enqueue_script('jquery-ddslick', PMXE_ROOT_URL . '/static/js/jquery/jquery.ddslick.min.js', array('jquery'), PMXE_VERSION);
 		wp_enqueue_script('jquery-chosen', PMXE_ROOT_URL . '/static/js/jquery/chosen.jquery.js', array('jquery'), PMXE_VERSION);
 		wp_enqueue_script('jquery-timepicker', PMXE_ROOT_URL . '/static/js/jquery/jquery.timepicker.js', array('jquery'), PMXE_VERSION);
@@ -107,6 +108,66 @@ abstract class PMXE_Controller_Admin extends PMXE_Controller {
         // Addons
         wp_localize_script('jquery', 'wpae_addons', \XmlExportEngine::get_addons());
     }
+
+	/**
+	 * $_POST laid over the stored options, pinned as saveOptions()'s baseline. One read, not two.
+	 * @return array
+	 */
+	protected function postWithStoredOptions() {
+		$this->optionSnapshot = PMXE_Plugin::getInstance()->getOption();
+
+		return $this->input->post($this->optionSnapshot);
+	}
+
+	/**
+	 * Persist only the keys this request changed: re-asserting an untouched key
+	 * clobbers what the licence check wrote mid-request.
+	 * @param array $post
+	 * @return array the keys written
+	 */
+	protected function saveOptions($post) {
+		$snapshot = is_null($this->optionSnapshot)
+			? PMXE_Plugin::getInstance()->getOption()
+			: $this->optionSnapshot;
+
+		$changed = array();
+		$this->refusedOptionWrites = array();
+
+		foreach ((array) $post as $key => $value) {
+			if (in_array($key, $this->machineOwnedOptions, TRUE)) {
+				// $post carries every stored option, so only a key the request itself
+				// sent is a mistake worth reporting.
+				if (array_key_exists($key, $_POST)) {
+					$this->refusedOptionWrites[] = $key;
+				}
+				continue;
+			}
+			if ( ! array_key_exists($key, $snapshot) or $snapshot[$key] !== $value) {
+				$changed[$key] = $value;
+			}
+		}
+
+		if ($this->refusedOptionWrites && function_exists('_doing_it_wrong')) {
+			_doing_it_wrong(
+				__METHOD__,
+				esc_html(sprintf(
+					'These option keys are owned by the licence machinery and were not written: %s. A form must not carry them.',
+					implode(', ', $this->refusedOptionWrites)
+				)),
+				'1.0.0'
+			);
+		}
+
+		if ($changed) {
+			PMXE_Plugin::getInstance()->updateOption($changed);
+		}
+
+		return $changed;
+	}
+
+	protected function refusedOptionWrites() {
+		return $this->refusedOptionWrites;
+	}
 
 	/**
 	 * @see Controller::render()

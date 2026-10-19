@@ -19,13 +19,14 @@ class PMXE_Addon_Datetime_Field extends PMXE_Addon_Field {
             return '';
         }
 
-        $timestamp = $this->isTimestamp( $this->value ) ?
-            $this->value : strtotime( $this->value );
+        $is_timestamp = $this->isTimestamp( $this->value );
+        $timestamp    = $is_timestamp ? $this->value : strtotime( $this->value );
 
         return prepare_date_field_value(
             $this->settings,
             $timestamp,
-            "Y-m-d H:i:s"
+            "Y-m-d H:i:s",
+            ! $is_timestamp
         );
     }
 }

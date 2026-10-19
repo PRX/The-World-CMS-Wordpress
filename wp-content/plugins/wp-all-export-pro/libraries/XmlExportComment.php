@@ -400,7 +400,7 @@ if (!class_exists('XmlExportComment')) {
                             break;
                         case 'comment_date':
 
-                            $post_date = prepare_date_field_value($fieldSettings, strtotime($comment->comment_date), "Y-m-d H:i:s");
+                            $post_date = prepare_date_field_value($fieldSettings, strtotime($comment->comment_date), "Y-m-d H:i:s", true);
                             wp_all_export_write_article($article, $element_name, apply_filters('pmxe_comment_date', pmxe_filter($post_date, $fieldSnipped), $comment->comment_ID));
 
                             break;
@@ -412,7 +412,7 @@ if (!class_exists('XmlExportComment')) {
                         case 'comment_parent_date':
 
                             if($comment_parent) {
-                                $post_date = prepare_date_field_value($fieldSettings, strtotime($comment_parent->comment_date), "Y-m-d H:i:s");
+                                $post_date = prepare_date_field_value($fieldSettings, strtotime($comment_parent->comment_date), "Y-m-d H:i:s", true);
                                 wp_all_export_write_article($article, $element_name, apply_filters('pmxe_comment_date', pmxe_filter($post_date, $fieldSnipped), $comment->comment_ID));
                             } else {
                                 wp_all_export_write_article($article, $element_name, apply_filters('pmxe_comment_date', pmxe_filter('', $fieldSnipped), $comment->comment_ID));

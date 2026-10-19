@@ -21,6 +21,19 @@ class PMXE_Export_Record extends PMXE_Model_Record {
      */
     public function execute($logger = NULL, $cron = false, $post_id = false) {
 
+        // Returns nothing at all on refusal: this also runs inside front-end
+        // post-save, registration and checkout requests, where anything echoed or
+        // returned would corrupt the response. It refuses before the `processing`
+        // lock is taken below. $post_id !== false is Real-Time Export — one record,
+        // never a continuation, so there is no interrupted run for stopRun().
+        if (\Wpae\App\Gate\Gate::instance()->blocksRun($this, $post_id !== false)) {
+            if ($post_id === false) {
+                \Wpae\App\Gate\Gate::instance()->stopRun($this);
+            }
+
+            return;
+        }
+
         $this->fix_template_options();
 
         $wp_uploads = wp_upload_dir();
@@ -101,7 +114,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
             }
             elseif (XmlExportEngine::$is_woo_guest_customer_export)
             {
-                if(!XmlExportEngine::get_addons_service()->isUserAddonActive()) {
+                if(!XmlExportEngine::get_addons_service()->isUserProAddonActive()) {
                     throw new \Wpae\App\Service\Addons\AddonNotFoundException('The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>');
                 }
 

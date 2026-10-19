@@ -134,7 +134,7 @@ class PMXE_Helper {
 			.'$#'
 			.$modifiers;
 		
-		return (boolean)preg_match($pattern, $string);
+		return (bool)preg_match($pattern, $string);
 	}
 
 	public static function is_rapid_export_addon($cpt)

@@ -83,17 +83,17 @@ class Revisions {
             return false;
         }
 
-        $revision_status_csv = array_diff(
-            implode("','", array_map('sanitize_key', rvy_revision_statuses())),
+        $revision_statuses = array_diff(
+            array_map('sanitize_key', rvy_revision_statuses()),
             ['draft-revision']
         );
+        $status_placeholders = implode(', ', array_fill(0, count($revision_statuses), '%s'));
 
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
         $revision_id = $wpdb->get_var(
-            $wpdb->prepare(
-                "SELECT ID FROM $wpdb->posts WHERE comment_count = %d AND post_author = %d AND post_status IN ('$revision_status_csv') ORDER BY ID DESC LIMIT 1",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                $post_id,
-                $user_id
+            $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- The merged array supplies all dynamic and literal placeholders.
+                "SELECT ID FROM $wpdb->posts WHERE comment_count = %d AND post_author = %d AND post_status IN ($status_placeholders) ORDER BY ID DESC LIMIT 1",  // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+                array_merge([$post_id, $user_id], $revision_statuses)
             )
         );
 
@@ -140,6 +140,7 @@ class Revisions {
                 'features' => [
                     esc_html__('Front end Revision submission', 'revisionary'),
                     esc_html__('Front end Revision editing', 'revisionary'),
+                    esc_html__('Visual comparison of changes', 'revisionary'),
                     esc_html__('Revision preview and redirects', 'revisionary'),
                 ],
                 'enabled' => false,
@@ -155,6 +156,7 @@ class Revisions {
                 'features' => [
                     esc_html__('Front end Revision submission', 'revisionary'),
                     esc_html__('Front end Revision editing', 'revisionary'),
+                    esc_html__('Visual comparison of changes', 'revisionary'),
                     esc_html__('Revision preview and redirects', 'revisionary'),
                 ],
                 'enabled' => false,
@@ -170,6 +172,7 @@ class Revisions {
                 'features' => [
                     esc_html__('Front end Revision submission', 'revisionary'),
                     esc_html__('Front end Revision editing', 'revisionary'),
+                    esc_html__('Visual comparison of changes', 'revisionary'),
                     esc_html__('Revision preview and redirects', 'revisionary'),
                 ],
                 'enabled' => false,
@@ -183,8 +186,8 @@ class Revisions {
                 'icon_class' => 'nitropack',
                 'categories' => ['all', 'cache'],
                 'features' => [
-                    esc_html__('Clear cache on revision creation', 'revisionary'),
-                    esc_html__('Trigger update on revision approval', 'revisionary'),
+                    esc_html__('Clear cache on revision publication', 'revisionary'),
+                    esc_html__('Support immediate and scheduled publication', 'revisionary'),
                 ],
                 'enabled' => false,
                 'available' => defined('NITROPACK_VERSION'),
@@ -224,7 +227,7 @@ class Revisions {
                 'title' => esc_html__('PublishPress Planner', 'revisionary'),
                 'description' => esc_html__('PublishPress Planner Integration.', 'revisionary'),
                 'icon_class' => 'planner',
-                'categories' => ['all', 'workflow'],
+                'categories' => ['all', 'workflow', 'fields'],
                 'features' => [
                     esc_html__('Planner Notifications for revision actions', 'revisionary'),
                     esc_html__('Revision schedule shown in Calendar', 'revisionary'),
@@ -238,11 +241,12 @@ class Revisions {
                 'title' => esc_html__('WooCommerce', 'revisionary'),
                 'description' => esc_html__('Revision submission and approval for products.', 'revisionary'),
                 'icon_class' => 'woocommerce',
-                'categories' => ['all', 'ecommerce'],
+                'categories' => ['all', 'ecommerce', 'fields'],
                 'features' => [
                     esc_html__('Product revisions', 'revisionary'),
                     esc_html__('Compatible with Product Variations', 'revisionary'),
                     esc_html__('Priority on ongoing compatibility', 'revisionary'),
+                    esc_html__('Revise custom fields and display changes', 'revisionary'),
                 ],
                 'enabled' => false,
                 'available' => class_exists('WooCommerce'),
@@ -267,11 +271,12 @@ class Revisions {
                 'title' => esc_html__('Yoast SEO', 'revisionary'),
                 'description' => esc_html__('.', 'revisionary'),
                 'icon_class' => 'yoast',
-                'categories' => ['all', 'seo'],
+                'categories' => ['all', 'seo', 'fields'],
                 'features' => [
                     esc_html__('Prevent indexing of revisions', 'revisionary'),
                     esc_html__('Compatibility for Yoast SEO + Elementor', 'revisionary'),
                     esc_html__('Compare revisions to Yoast SEO fields', 'revisionary'),
+                    esc_html__('Revise custom fields and display changes', 'revisionary'),
                 ],
                 'enabled' => false,
                 'available' => defined('WPSEO_VERSION'),
@@ -438,6 +443,11 @@ class Revisions {
             ],
             */
         ];
+
+        require_once __DIR__ . '/IntegrationCards.php';
+        $integrations = IntegrationCards::filter($integrations);
+
+        $integrations = (array) apply_filters('revisionary_defined_integrations', $integrations);
 
         foreach (array_keys($integrations) as $i) {
             if (!isset($integrations[$i]['free'])) {

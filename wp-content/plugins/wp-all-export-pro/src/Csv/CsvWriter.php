@@ -26,7 +26,7 @@ class CsvWriter
         }
 
         if($this->csvStrategy == self::CSV_STRATEGY_DEFAULT) {
-            fputcsv($resource, $value, $delimiter);
+            fputcsv($resource, $value, $delimiter, '"', '\\');
         } else {
             CsvRcfWriter::fputcsv($resource, $value, $delimiter);
         }

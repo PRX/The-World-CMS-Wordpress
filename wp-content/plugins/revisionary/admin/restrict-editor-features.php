@@ -61,7 +61,7 @@ class Editor_Features {
             $ppc_dummy_css_handle = [];
         }
 
-        if (in_array($handle, $ppc_dummy_css_handle)) {
+        if (in_array($handle, $ppc_dummy_css_handle, true)) {
             // duplicate usage of this function with same handle won't work
             $handle .= '-' . time(); 
         }
@@ -81,7 +81,7 @@ class Editor_Features {
         $elements = [];
 
         foreach($arr as $_feature_name => $feature_info) {
-            if (in_array($_feature_name, $feature_names)) {
+            if (in_array($_feature_name, $feature_names, true)) {
                 if (!empty($feature_info['elements'])) {
                     $elements = array_merge($elements, explode(',', $feature_info['elements']));
                 } else {
@@ -97,19 +97,19 @@ class Editor_Features {
     {
         $elements = [
             'post_title' =>   [
-                'label'       => esc_html__('Title'), 
+                'label'       => esc_html__('Title', 'revisionary'),
                 'elements'    => '.wp-block.editor-post-title__block, .wp-block.editor-post-title',
                 'support_key' => 'title'
             ],
 
             'post_content' =>      [
-                'label'       => esc_html__('Content'), 
+                'label'       => esc_html__('Content', 'revisionary'),
                 'elements'    => '.block-editor-block-list__layout',
                 'support_key' => 'editor'
             ],
 
             'post_date' =>             [
-                'label'        => esc_html__('Date'),
+                'label'        => esc_html__('Date', 'revisionary'),
                 'elements'     => '.editor-post-schedule__dialog-toggle',
                 'support_key'  => 'post_date',
             ],
@@ -117,34 +117,34 @@ class Editor_Features {
             'post_status' => ['label' => esc_html__('Status & visibility', 'revisionary'),   'elements' => 'post-status'],
             
             '_wp_page_template' => [
-                'label'       => esc_html__('Template'),
+                'label'       => esc_html__('Template', 'revisionary'),
                 'elements'    => '.editor-post-panel__row:has(button[aria-label="Template options"])'
             ],
 
             'post_name' =>         ['label' => esc_html__('Permalink', 'revisionary'), 'elements' => '.editor-post-panel__row:has(.editor-post-url__panel-dropdown)'],
             
             'category' =>        [
-                'label'        => esc_html__('Categories'), 
+                'label'        => esc_html__('Categories', 'revisionary'),
                 'elements'     => 'taxonomy-panel-category',
                 'support_key'  => 'category',
                 'support_type' => 'taxonomy'
             ],
 
             'post_tag' =>              [
-                'label'        => esc_html__('Tags'),
+                'label'        => esc_html__('Tags', 'revisionary'),
                 'elements'     => 'taxonomy-panel-post_tag',
                 'support_key'  => 'post_tag',
                 'support_type' => 'taxonomy'
             ],
 
             'post_parent' =>             [
-                'label'        => esc_html__('Parent'),
+                'label'        => esc_html__('Parent', 'revisionary'),
                 'elements'     => '.editor-post-parent__panel-dropdown',
                 'support_key'  => 'post_parent',
             ],
 
             'post_author' =>             [
-                'label'        => esc_html__('Author'),
+                'label'        => esc_html__('Author', 'revisionary'),
                 'elements'     => '.rvy-author-selection',
                 'support_key'  => 'post_author',
             ],
@@ -156,7 +156,7 @@ class Editor_Features {
             ],
 
             'post_excerpt'         => [
-                'label'       => esc_html__('Excerpt'),
+                'label'       => esc_html__('Excerpt', 'revisionary'),
                 'elements'    => 'post-excerpt',
                 'support_key' => 'excerpt'
             ],
@@ -179,7 +179,7 @@ class Editor_Features {
         // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
         /*
         foreach (get_taxonomies(['show_ui' => true], 'object') as $taxonomy => $tx_obj) {
-            if (!in_array($taxonomy, ['category', 'post_tag', 'link_category'])) {
+            if (!in_array($taxonomy, ['category', 'post_tag', 'link_category'], true)) {
                 $elements[$tx_obj->name] = [
                     'label'        => $tx_obj->label, 
                     'elements'     => "taxonomy-panel-$taxonomy",

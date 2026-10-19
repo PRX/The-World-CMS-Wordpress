@@ -47,7 +47,7 @@ function pmxe_prepare_price( $price, $disable_prepare_price, $prepare_price_to_w
         $price = str_replace(",", ".", $price);
         $price = str_replace(",", ".", str_replace(".", "", preg_replace("%\.([0-9]){1,2}?$%", ",$0", $price)));
 
-        $price = ("" != $price) ? number_format( (double) $price, 2, '.', '' ) : "";
+        $price = ("" != $price) ? number_format( (float) $price, 2, '.', '' ) : "";
     }
     
     return apply_filters('pmxe_price', $price);

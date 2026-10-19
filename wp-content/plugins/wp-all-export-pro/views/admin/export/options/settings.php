@@ -3,7 +3,7 @@ if (!defined('ABSPATH')) {
     die();
 }
 ?>
-<div class="wpallexport-collapsed wpallexport-section wpallexport-settings-page">
+<div class="wpallexport-collapsed wpallexport-section wpallexport-settings-page" data-wpae-section="export-step4-settings">
     <div class="wpallexport-content-section">
         <div class="wpallexport-collapsed-header">
             <h3><?php esc_html_e('Advanced Options', 'wp_all_export_plugin'); ?></h3>

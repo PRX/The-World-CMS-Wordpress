@@ -3,7 +3,7 @@ if(!defined('ABSPATH')) {
     die();
 }
 ?>
-<div class="wpae-save-button button button-primary button-hero wpallexport-large-button"
+<div class="wpae-save-button button wpallexport-large-button"
      style="position: relative; width: 285px; margin-left: 5px; ">
 
     <div class="save-text"

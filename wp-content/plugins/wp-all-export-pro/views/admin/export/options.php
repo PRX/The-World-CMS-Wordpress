@@ -13,7 +13,7 @@ $l10n = array(
 	var wp_all_export_L10n = <?php echo json_encode($l10n); ?>;
 </script>
 
-<div class="wpallexport-step-4 wpallexport-export-options">
+<div class="wpallexport-step-4 wpallexport-export-options" data-wpae-section="export-step4-export-options">
 	
 	<h2 class="wpallexport-wp-notices"></h2>
 
@@ -70,7 +70,7 @@ $l10n = array(
 						<input type="hidden" name="is_submitted" value="1" />
                         <input type="hidden" name="record-count" class="wpae-record-count" value="0" />
 
-                        <input style="padding:20px 50px 20px 50px;" type="submit" class="rad10 wp_all_export_confirm_and_run" value="<?php esc_html_e('Confirm & Run Export', 'wp_all_export_plugin') ?>" />
+                        <input style="padding:20px 50px 20px 50px;" type="submit" form="wpae-options-form" class="rad10 wp_all_export_confirm_and_run" value="<?php esc_html_e('Confirm & Run Export', 'wp_all_export_plugin') ?>" />
                     </form>
 					<?php endif; ?>
 				</div>					
@@ -114,7 +114,7 @@ $l10n = array(
                     <?php
                     if(current_user_can(PMXE_Plugin::$capabilities)) {
                     ?>
-                    <div class="wpallexport-collapsed wpallexport-section wpallexport-file-options closed wpallexport-scheduling" style="margin-top: -10px; margin-bottom: 10px; <?php if($post['enable_real_time_exports']) { ?> display: none; <?php } ?>">
+                    <div class="wpallexport-collapsed wpallexport-section wpallexport-file-options closed wpallexport-scheduling" data-wpae-section="export-step4-scheduling" style="margin-top: -10px; margin-bottom: 10px; <?php if($post['enable_real_time_exports']) { ?> display: none; <?php } ?>">
                         <div id="scheduling-form-container">
 
                             <div class="wpallexport-content-section" style="padding-bottom: 15px; margin-bottom: 10px;">

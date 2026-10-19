@@ -3,7 +3,7 @@
 Plugin Name: WP All Export Pro
 Plugin URI: http://www.wpallimport.com/export/
 Description: Export any post type to a CSV or XML file. Edit the exported data, and then re-import it later using WP All Import.
-Version: 1.9.15
+Version: 2.0.1
 Author: Soflyy
 */
 
@@ -46,7 +46,14 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
      */
     define('PMXE_PREFIX', 'pmxe_');
 
-    define('PMXE_VERSION', '1.9.15');
+    define('PMXE_VERSION', '2.0.1');
+
+    /**
+     * Tells the addon-installer SDK that this core fires pmxe_scheduled_request_authenticated
+     * after validating a scheduled request's key. The SDK probes for this rather than comparing
+     * versions; where it is absent it assumes a core that predates the hook and cannot self-heal.
+     */
+    define('PMXE_SCHEDULED_REQUEST_AUTH_HOOK', true);
 
     define('PMXE_EDITION', 'paid');
 
@@ -172,6 +179,43 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
             return 'Automatic Scheduling';
         }
 
+        /** Decoded: encode('') is a non-empty blob, so a non-empty raw value proves nothing. */
+        static public function getLicenseKey()
+        {
+            return \Wpae\App\License\Licensing::instance()->licenseKey();
+        }
+
+        static public function isLicensed()
+        {
+            return \Wpae\App\License\Licensing::instance()->isLicensed();
+        }
+
+        /** One of: valid, no_key, grace, blocked_unverified, blocked_invalid, blocked_expired, blocked_limit. */
+        static public function getLicenseState()
+        {
+            $state = \Wpae\App\License\Licensing::instance()->licenseState();
+
+            return $state['state'];
+        }
+
+        /** unverified, invalid, expired or limit; '' when the state is not a grace state. */
+        static public function getLicenseStateReason()
+        {
+            $state = \Wpae\App\License\Licensing::instance()->licenseState();
+
+            return $state['reason'];
+        }
+
+        /**
+         * The caller persists: the updated options are returned, not saved.
+         * @param  bool  $manual  True for a Save on the licence form.
+         * @return array  ['options' => array, 'changed' => bool]
+         */
+        static public function refreshLicense(array $options, $manual)
+        {
+            return \Wpae\App\License\LicenseRefresh::run($options, $manual);
+        }
+
         static public function hasActiveSchedulingLicense()
         {
 
@@ -277,7 +321,7 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
             // register autoloading method
             spl_autoload_register(array($this, 'autoload'));
 			
-			require_once 'vendor/autoload.php';
+			require_once self::ROOT_DIR . '/vendor/autoload.php';
 
             require_once self::ROOT_DIR . '/addon-api/autoload.php';
 
@@ -302,10 +346,21 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
             if ('' == $this->options['cron_job_key']) $this->options['cron_job_key'] = wp_all_export_url_title(wp_all_export_rand_char(12));
             if ('' == $this->options['zapier_api_key']) $this->options['zapier_api_key'] = wp_all_export_rand_char(32);
 
+            // Here and not on admin_init: these sites never run admin_init, and export hooks fire on the front end.
+            $wpae_gate_migration = \Wpae\App\License\GateMigration::apply($this->options);
+            $this->options = $wpae_gate_migration['options'];
+
             if ($current_options !== $this->options) {
                 update_option($option_name, $this->options);
             }
+
+            if ($wpae_gate_migration['ran']) {
+                \Wpae\App\License\GateMigration::schedule($wpae_gate_migration['granted']);
+            }
             register_activation_hook(self::FILE, array($this, 'activation'));
+            register_deactivation_hook(self::FILE, ['Wpae\App\License\Licensing', 'deactivateHook']);
+
+            \Wpae\App\License\Licensing::instance()->boot();
 
             // register action handlers
             if (is_dir(self::ROOT_DIR . '/actions')) if (is_dir(self::ROOT_DIR . '/actions')) foreach (PMXE_Helper::safe_glob(self::ROOT_DIR . '/actions/*.php', PMXE_Helper::GLOB_RECURSE | PMXE_Helper::GLOB_PATH) as $filePath) {
@@ -444,6 +499,9 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 	            if ( ! $addons_not_included && $this->addons->userExportsExistAndAddonNotInstalled() && current_user_can( PMXE_Plugin::$capabilities ) ) {
 		            $this->showDismissibleNotice( __( '<strong style="font-size:16px">WP All Export Pro requires the User Export Add-On Pro</strong><p>Your User and Customer exports will not be able to run until you install the User Export Add-On Pro for WP All Export Pro. That add-on has been added to all customer accounts which had a WP All Export license before this requirement, free of charge.</p>', 'wp_all_export_plugin' )
 		                                          . '<p><a class="button button-primary" href="https://wpallimport.com/portal/downloads" target="_blank">' . __( 'Download Add-On', 'wp_all_export_plugin' ) . '</a></p>', 'wpae_user_addon_not_installed_notice' );
+	            } elseif ( $this->addons->customerExportsExistAndProUserAddonNotInstalled() && current_user_can( PMXE_Plugin::$capabilities ) ) {
+		            $this->showDismissibleNotice( __( '<strong style="font-size:16px">WP All Export Pro requires the User Export Add-On Pro for Customer exports</strong><p>Your WooCommerce Customer exports will not be able to run until you install the User Export Add-On Pro for WP All Export Pro. That add-on has been added to all customer accounts which had a WP All Export license before this requirement, free of charge.</p>', 'wp_all_export_plugin' )
+		                                          . '<p><a class="button button-primary" href="https://wpallimport.com/portal/downloads" target="_blank">' . __( 'Download Add-On', 'wp_all_export_plugin' ) . '</a></p>', 'wpae_customer_export_pro_addon_notice' );
 	            }
 
 	            if ( ! $addons_not_included && $this->addons->wooCommerceExportsExistAndAddonNotInstalled() && current_user_can( PMXE_Plugin::$capabilities ) && \class_exists( 'WooCommerce' ) ) {
@@ -499,11 +557,48 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 				            die( 'Security check' );
 			            }
 
+			            // After the capability check and before any output, so wp_redirect()
+			            // and wp_die() are both still safe here.
+			            $gate = \Wpae\App\Gate\Gate::instance();
+
+			            $wants_json = isset( $_SERVER['HTTP_ACCEPT'] )
+				            && strpos( $_SERVER['HTTP_ACCEPT'], 'json' ) !== false;
+
+			            switch ( $gate->screenRefusal( $page, $actionName, $wants_json ) ) {
+				            case 'forbidden':
+					            // Not a redirect: Settings die()s for a client-mode user.
+					            wp_die(
+						            wp_kses_post( $gate->messages()->clientModeForbidden() ),
+						            esc_html( $gate->messages()->clientModeForbiddenTitle() ),
+						            array( 'response' => 403 )
+					            );
+					            break;
+
+				            case 'json':
+					            status_header( 403 );
+					            header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
+					            echo wp_json_encode( array(
+						            'status'  => 403,
+						            'code'    => 'license_required',
+						            'message' => $gate->ajaxRefusal(),
+					            ) );
+					            exit;
+
+				            case 'redirect':
+					            wp_redirect( add_query_arg(
+						            'wpae_gate',
+						            'blocked',
+						            admin_url( 'admin.php?page=' . \Wpae\App\Gate\Gate::SETTINGS_PAGE )
+					            ) );
+					            exit;
+			            }
+
 			            $this->_admin_current_screen = (object) array(
 				            'id'         => $controllerName,
 				            'base'       => $controllerName,
 				            'action'     => $actionName,
-				            'is_ajax'    => strpos( $_SERVER["HTTP_ACCEPT"], 'json' ) !== false,
+				            // Accept is optional; an absent header is a TypeError in PHP 9.
+				            'is_ajax'    => isset( $_SERVER["HTTP_ACCEPT"] ) && strpos( $_SERVER["HTTP_ACCEPT"], 'json' ) !== false,
 				            'is_network' => is_network_admin(),
 				            'is_user'    => is_user_admin(),
 			            );
@@ -554,7 +649,8 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 				            }
 
 				            if (
-					            ( ( in_array( 'users', $cpt ) || in_array( 'shop_customer', $cpt ) ) && ! $addons->isUserAddonActive() ) ||
+					            ( in_array( 'users', $cpt ) && ! $addons->isUserAddonActive() ) ||
+					            ( ( in_array( 'shop_customer', $cpt ) || in_array( 'shop_guest_customer', $cpt ) ) && ! $addons->isUserProAddonActive() ) ||
 					            ( $export->options['export_type'] == 'advanced' && $export->options['wp_query_selector'] == 'wp_user_query' && ! $addons->isUserAddonActive() )
 				            ) {
 					            die( \__( 'The User Export Add-On Pro is required to run this export. If you already own it, you can download the add-on here: <a href="https://www.wpallimport.com/portal/downloads" target="_blank">https://www.wpallimport.com/portal/downloads</a>', 'wp_all_export_plugin' ) );
@@ -827,8 +923,16 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
                 $option['scheduling_license'] = self::encode(self::decode($option['scheduling_license']));
             }
 
-            $this->options = $option + $this->options;
-            update_option(get_class($this) . '_Options', $this->options);
+            $name = get_class($this) . '_Options';
+
+            // Re-read from the row, not the copy read at boot. Both cache entries go
+            // first, or get_option() answers from the stale copy this process populated.
+            wp_cache_delete($name, 'options');
+            wp_cache_delete('alloptions', 'options');
+            $stored = get_option($name, NULL);
+
+            $this->options = $option + (is_array($stored) ? $stored + $this->options : $this->options);
+            update_option($name, $this->options);
 
             return $this->options;
         }
@@ -1241,6 +1345,8 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
             )
         );
 
+        $GLOBALS['wp_all_export_pro_updater'] = $updater;
+
 		// Provide updater for version 1.0.0 of the Gravity Forms Export Add-On.
 		if(class_exists('GF_Export_Add_On') && in_array(GF_Export_Add_On::VERSION, ['1.0.0','1.0.1'])){
 			// Plugin path.
@@ -1250,9 +1356,9 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 			if(file_exists($wpae_gf_path)) {
 
 				// Provide supplemental updater for early GF Export Add-On version.
+				// No 'license' key: the add-on carries no key of its own.
 				$wpae_gf_updater = new PMXE_Updater( $wp_all_export_options['info_api_url'], $wpae_gf_path, array(
 					'version'   => GF_Export_Add_On::VERSION,        // current version number
-					'license'   => false,
 					'item_name' => 'Gravity Forms Export Add-On Pro',    // name of this plugin
 					'author'    => 'Soflyy'  // author of this plugin
 				) );
@@ -1263,7 +1369,29 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 
     add_action('plugins_loaded', 'wp_all_export_pro_updater', 0);
 
+    /**
+     * Forget the cached version record, wherever the updater is keeping it.
+     *
+     * A licence write changes what the service answers, so the record fetched
+     * before it is wrong from that moment. Deleting the transient by key knew
+     * only about the store the updater happened to use; asking the updater
+     * covers every store it keeps, including one that outlives a transient.
+     */
+    function wp_all_export_pro_forget_version_record()
+    {
+        if (isset($GLOBALS['wp_all_export_pro_updater']) && $GLOBALS['wp_all_export_pro_updater'] instanceof PMXE_Updater) {
+            $GLOBALS['wp_all_export_pro_updater']->clearCache();
+        } else {
+            delete_transient(PMXE_Plugin::$cache_key);
+        }
+
+        delete_site_transient('update_plugins');
+    }
+
     // Include the api front controller
     include_once('wpae_api.php');
+
+    // At file scope, after the autoloader and the actions/ files: pmxe_send_json() must exist.
+    ( new \Wpae\App\Gate\Surfaces() )->register();
 
 }

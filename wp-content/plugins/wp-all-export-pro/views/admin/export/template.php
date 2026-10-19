@@ -639,7 +639,7 @@ if($is_rapid_addon_export) {
                             <a href="<?php echo esc_url_raw(add_query_arg('action', 'index', $this->baseUrl)); ?>"
                                class="back rad3"><?php esc_html_e('Back', 'wp_all_export_plugin') ?></a>
                         <?php endif; ?>
-                        <input type="submit" class="button button-primary button-hero wpallexport-large-button"
+                        <input type="submit" class="button wpallexport-large-button<?php echo ($this->isWizard) ? ' wpallexport-continue-button' : ''; ?>"
                                value="<?php esc_html_e(($this->isWizard) ? 'Continue' : (isset($post['enable_real_time_exports']) && $post['enable_real_time_exports']  ? 'Save &amp; Run Export' : 'Update Template'), 'wp_all_export_plugin') ?>"/>
                     </div>
 

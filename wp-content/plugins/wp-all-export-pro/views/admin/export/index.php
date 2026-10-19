@@ -33,7 +33,7 @@ do_action('pmxe_addons_html');
 						
 						<div class="clear"></div>											
 						
-						<div class="wpallexport-import-types">
+						<div class="wpallexport-import-types" data-wpae-section="export-step1-type-selector">
 							<h2><?php esc_html_e('First, choose what to export.', 'wp_all_export_plugin'); ?></h2>
 							<a class="wpallexport-import-from wpallexport-url-type <?php echo 'advanced' != $post['export_type'] ? 'selected' : '' ?>" rel="specific_type" href="javascript:void(0);">
 								<span class="wpallexport-icon"></span>
@@ -51,7 +51,7 @@ do_action('pmxe_addons_html');
                         <input type="hidden" value="1" id="WooCommerce_Installed">
 						<?php endif; ?>
 
-						<div class="wpallexport-upload-type-container" rel="specific_type">			
+						<div class="wpallexport-upload-type-container" rel="specific_type" data-wpae-section="export-step1-specific-type-container">
 							
 							<div class="wpallexport-file-type-options">
 								
@@ -178,7 +178,7 @@ do_action('pmxe_addons_html');
 							</div>
 						</div>	
 
-						<div class="wpallexport-upload-type-container" rel="advanced_type">						
+						<div class="wpallexport-upload-type-container" rel="advanced_type" data-wpae-section="export-step1-advanced-type-container">
 							<div class="wpallexport-file-type-options">
 								
 								<select id="wp_query_selector">
@@ -271,7 +271,7 @@ do_action('pmxe_addons_html');
 							
 					</div>
 
-					<p class="wpallexport-submit-buttons" <?php if ('advanced' == $post['export_type']) echo 'style="display:block;"';?>>
+					<p class="wpallexport-submit-buttons" data-wpae-section="export-step1-submit-buttons" <?php if ('advanced' == $post['export_type']) echo 'style="display:block;"';?>>
 						<input type="hidden" name="custom_type" value="" />
 						<input type="hidden" name="is_submitted" value="1" />
 						<input type="hidden" name="auto_generate" value="0" />

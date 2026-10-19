@@ -89,20 +89,45 @@ class URE_Role_View extends URE_View {
 
 
     private function role_delete_prepare_html() {
-        
+
         $roles_can_delete = $this->editor->get_roles_can_delete();
-        if ( is_array( $roles_can_delete ) && count( $roles_can_delete ) > 0) {
-            ksort( $roles_can_delete );
-            $this->role_delete_html = '<select id="del_user_role" name="del_user_role" width="250" style="width: 250px">';
-            foreach ($roles_can_delete as $key => $value) {
-                $this->role_delete_html .= '<option value="' . esc_attr( $key ) . '">' . esc_html( $value ) . '</option>';
-            }
-            $this->role_delete_html .= '<option value="-1" style="color: red;">' . esc_html__('Delete All Unused Roles', 'user-role-editor') . '</option>';
-            $this->role_delete_html .= '</select>';
-        } else {
+        if ( !is_array( $roles_can_delete ) || count( $roles_can_delete ) === 0 ) {
             $this->role_delete_html = '';
+            return;
         }
-        
+
+        ksort( $roles_can_delete );
+        $all_roles = $this->lib->get_user_roles();
+        ob_start();
+?>
+    <form name="ure_delete_role_form" id="ure_delete_role_form" method="POST">
+        <table id="ure_delete_role_table">
+            <tr>
+                <th><input type="checkbox" id="ure_delete_role_select_all"></th>
+                <th><?php esc_html_e( 'Role Name', 'user-role-editor' ); ?></th>
+                <th><?php esc_html_e( 'Role ID', 'user-role-editor' ); ?></th>
+            </tr>
+<?php
+        foreach ( array_keys( $roles_can_delete ) as $role_id ) {
+            $role_name = isset( $all_roles[ $role_id ]['name'] ) ? $all_roles[ $role_id ]['name'] : $role_id;
+            $cb_id = 'del_' . $role_id;
+?>
+            <tr>
+                <td>
+                    <input type="checkbox" name="<?php echo esc_attr( $cb_id ); ?>" id="<?php echo esc_attr( $cb_id ); ?>"
+                           class="ure-role-cb-column" value="<?php echo esc_attr( $role_id ); ?>"/>
+                </td>
+                <td><label for="<?php echo esc_attr( $cb_id ); ?>"><?php echo esc_html( $role_name ); ?></label></td>
+                <td><label for="<?php echo esc_attr( $cb_id ); ?>"><?php echo esc_html( $role_id ); ?></label></td>
+            </tr>
+<?php
+        }   // foreach ($roles_can_delete...)
+?>
+        </table>
+    </form>
+<?php
+        $this->role_delete_html = ob_get_clean();
+
     }
     // end of role_delete_prepare_html()
     
@@ -138,7 +163,10 @@ class URE_Role_View extends URE_View {
                 <th>
                     <input type="checkbox" id="ure_remove_caps_select_all">
                 </th>
-                <th></th>
+                <th>
+                    <label for="ure_remove_caps_quick_filter" id="ure_remove_caps_quick_filter_label"><?php esc_html_e( 'Quick Filter:', 'user-role-editor' ); ?></label>
+                    <input type="text" id="ure_remove_caps_quick_filter" size="10" />
+                </th>
             </tr>
 <?php
         foreach($caps as $cap_id) {
@@ -216,11 +244,8 @@ class URE_Role_View extends URE_View {
   </form>
 </div>
 
-<div id="ure_delete_role_dialog" class="ure-modal-dialog">
-  <div style="padding:10px;">
-    <div class="ure-label"><?php esc_html_e('Select Role:', 'user-role-editor');?></div>
-    <div class="ure-input"><?php echo $this->role_delete_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built above with each dynamic piece already escaped. ?></div>
-  </div>
+<div id="ure_delete_role_dialog" class="ure-modal-dialog" style="padding:10px;">
+    <?php echo $this->role_delete_html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built in role_delete_prepare_html() with each dynamic piece already escaped. ?>
 </div>
 
 <?php

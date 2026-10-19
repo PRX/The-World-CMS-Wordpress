@@ -588,7 +588,7 @@
                 "php": ">=7.2.5"
             },
             "type": "wordpress-plugin",
-            "installation-source": "dist",
+            "installation-source": "source",
             "install-path": "../taxopress/simple-tags"
         }
     ],

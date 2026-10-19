@@ -170,7 +170,7 @@ class URE_Assign_Role {
       
 ?>          
         &nbsp;&nbsp;<input type="button" name="move_from_no_role<?php echo esc_attr( $button_number );?>" id="move_from_no_role<?php echo esc_attr( $button_number );?>" class="button"
-                        value="Without role (<?php echo esc_attr( $users_quant );?>)" onclick="ure_move_users_from_no_role_dialog()">
+                        value="Without role (<?php echo esc_attr( $users_quant );?>)" onclick="URE_No_Role_Users.move_dialog()">
 <?php
     if ( self::$counter===0 ) {
 ?>

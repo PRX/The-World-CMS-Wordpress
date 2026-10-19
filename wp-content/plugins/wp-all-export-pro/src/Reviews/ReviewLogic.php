@@ -138,7 +138,7 @@ class ReviewLogic
         }
 
         // Check if the User Export Add-On is installed.
-        if ( class_exists('PMUE_Plugin') and PMUE_EDITION == "paid"){
+        if ( (new \Wpae\App\Service\Addons\AddonService())->isUserProAddonActive() ){
             $proInUse .= 'Installed Pro Plugin: User Export Add-On Pro <br/><br/>';
         }
 
