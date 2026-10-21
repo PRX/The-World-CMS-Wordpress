@@ -1,4 +1,4 @@
-FROM serversideup/php:8.1-fpm-apache
+FROM serversideup/php:8.2-fpm-apache
 
 USER root
 
