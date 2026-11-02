@@ -380,18 +380,19 @@ class StringHelper
      */
     public static function UTF8toBIFF8UnicodeShort(string $textValue, array $arrcRuns = []): string
     {
-        // character count
-        $ln = self::countCharacters($textValue, 'UTF-8');
+        $chars = self::convertEncoding($textValue, 'UTF-16LE', 'UTF-8');
+        // BIFF8 counts UTF-16 code units, so a character outside the BMP counts as two
+        $ln = (int) (strlen($chars) / 2);
         // option flags
         if (empty($arrcRuns)) {
             $data = pack('CC', $ln, 0x0001);
             // characters
-            $data .= self::convertEncoding($textValue, 'UTF-16LE', 'UTF-8');
+            $data .= $chars;
         } else {
             $data = pack('vC', $ln, 0x09);
             $data .= pack('v', count($arrcRuns));
             // characters
-            $data .= self::convertEncoding($textValue, 'UTF-16LE', 'UTF-8');
+            $data .= $chars;
             foreach ($arrcRuns as $cRun) {
                 $data .= pack('v', $cRun['strlen']);
                 $data .= pack('v', $cRun['fontidx']);
@@ -412,11 +413,9 @@ class StringHelper
      */
     public static function UTF8toBIFF8UnicodeLong(string $textValue): string
     {
-        // character count
-        $ln = self::countCharacters($textValue, 'UTF-8');
-
         // characters
         $chars = self::convertEncoding($textValue, 'UTF-16LE', 'UTF-8');
+        $ln = (int) (strlen($chars) / 2);  // N.B. - strlen, not mb_strlen issue #642
 
         return pack('vC', $ln, 0x0001) . $chars;
     }

@@ -44,7 +44,7 @@
   ],
   "require": {
     "phpoffice/phpspreadsheet": "^1.30",
-    "soflyy/updater": "^2.5.0"
+    "soflyy/updater": "^2.7.0"
   },
   "require-dev": {
     "soflyy/wpai-test-harness": "dev-master",

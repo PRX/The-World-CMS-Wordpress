@@ -37,31 +37,7 @@ class CsvRfcUtils
      */
     public static function fPutCsv($handle, array $fields, $delimiter = ',', $enclosure = '"', $escape = '\\', $eol = null)
     {
-        self::checkPutCsvEscape($escape);
-
-        $eol = self::resolveEol($eol);
-        if ($eol !== self::EOL_WRITE_DEFAULT || self::hasAnyValueWithEscapeFollowedByEnclosure($fields, $enclosure)) {
-            \fwrite($handle, self::strPutCsv($fields, $delimiter, $enclosure, $eol));
-        } else {
-            \fputcsv($handle, $fields, $delimiter, $enclosure, '\\');
-        }
-    }
-
-    /**
-     * @param array  $fields
-     * @param string $enclosure
-     *
-     * @return bool
-     */
-    private static function hasAnyValueWithEscapeFollowedByEnclosure(array $fields, $enclosure)
-    {
-        foreach ($fields as $value) {
-            if (strpos($value, '\\'.$enclosure) !== false) {
-                return true;
-            }
-        }
-
-        return false;
+        \fwrite($handle, self::strPutCsv($fields, $delimiter, $enclosure, self::resolveEol($eol)));
     }
 
     /**
@@ -89,7 +65,7 @@ class CsvRfcUtils
     {
         self::checkGetCsvEscape($enclosure, $escape);
 
-        return \fgetcsv($handle, $length, $delimiter, $enclosure, $enclosure);
+        return \fgetcsv($handle, $length, $delimiter, $enclosure, '');
     }
 
     /**
@@ -106,7 +82,7 @@ class CsvRfcUtils
     {
         self::checkGetCsvEscape($enclosure, $escape);
 
-        return \str_getcsv($input, $delimiter, $enclosure, $enclosure);
+        return \str_getcsv($input, $delimiter, $enclosure, '');
     }
 
     /**
@@ -127,7 +103,7 @@ class CsvRfcUtils
     public static function strPutCsv(array $fields, $delimiter = ',', $enclosure = '"', $eol = self::EOL_WRITE_DEFAULT)
     {
         $file = new \SplTempFileObject();
-        $file->fputcsv($fields, $delimiter, $enclosure, '\\');
+        $file->fputcsv($fields, $delimiter, $enclosure, '');
         $file->rewind();
 
         $line = '';
@@ -135,10 +111,8 @@ class CsvRfcUtils
             $line .= $file->fgets();
         }
 
-        $line = self::fixEnclosureEscape($enclosure, $line);
-
         if ($eol !== self::EOL_WRITE_DEFAULT) {
-            $line = rtrim($line, "\n").$eol;
+            $line = substr($line, 0, -1).$eol;
         }
 
         return $line;

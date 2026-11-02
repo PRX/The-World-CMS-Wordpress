@@ -12,11 +12,11 @@
 defined( 'ABSPATH' ) || exit;
 
 class URE_Core {
-    const PLUGIN_VERSION = '4.66.2';
+    const PLUGIN_VERSION = '4.66.3';
     const PLUGIN_SLUG = 'user-role-editor';
     const PLUGIN_NAME = 'User Role Editor';
     const TEXT_DOMAIN = 'user-role-editor';
-    const REQUIRED_PHP_VERSION = '7.4';
+    const REQUIRED_PHP_VERSION = '8.2';
     const REQUIRED_WORDPRESS_VERSION = '4.7';
 
     protected static bool $initialized = false;    

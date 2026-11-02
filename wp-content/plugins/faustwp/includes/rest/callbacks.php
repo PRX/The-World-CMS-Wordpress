@@ -8,11 +8,13 @@
 namespace WPE\FaustWP\REST;
 
 use function WPE\FaustWP\Auth\{
+	current_application_password_user_can,
 	get_user_from_access_token,
 	get_user_from_refresh_token,
 	get_user_from_authorization_code,
 	generate_refresh_token,
-	generate_access_token
+	generate_access_token,
+	generate_logout_code
 };
 use function WPE\FaustWP\Settings\get_secret_key;
 use function WPE\FaustWP\Telemetry\{
@@ -116,6 +118,16 @@ function register_rest_routes() {
 		array(
 			'methods'             => 'POST',
 			'callback'            => __NAMESPACE__ . '\\handle_rest_authorize_callback',
+			'permission_callback' => __NAMESPACE__ . '\\rest_authorize_permission_callback',
+		)
+	);
+
+	register_rest_route(
+		'faustwp/v1',
+		'/logout',
+		array(
+			'methods'             => 'POST',
+			'callback'            => __NAMESPACE__ . '\\handle_rest_logout_callback',
 			'permission_callback' => __NAMESPACE__ . '\\rest_authorize_permission_callback',
 		)
 	);
@@ -318,14 +330,16 @@ function handle_rest_process_telemetry_callback( \WP_REST_Request $request ) {
 /**
  * Callback to check permissions for requests to `faustwp/v1/blockset`.
  *
- * Authorized if the 'secret_key' settings value and http header 'x-faustwp-secret' match.
+ * Authorized if the 'secret_key' settings value and http header 'x-faustwp-secret' match,
+ * or if the request uses an Application Password whose user can 'faustwp_upload_blocks'.
  *
  * @param \WP_REST_Request $request The current \WP_REST_Request object.
  *
  * @return bool True if current user can, false if else.
  */
 function rest_blockset_permission_callback( \WP_REST_Request $request ) {
-	return rest_authorize_permission_callback( $request );
+	return is_valid_secret_header( $request )
+		|| current_application_password_user_can( 'faustwp_upload_blocks' );
 }
 
 /**
@@ -355,6 +369,34 @@ function rest_process_telemetry_permission_callback( \WP_REST_Request $request )
 }
 
 
+
+/**
+ * Callback for POST faustwp/v1/logout.
+ *
+ * Returns a URL that logs the user's browser out of WordPress. The frontend
+ * sends the browser there after clearing its own refresh token.
+ *
+ * @param \WP_REST_Request $request Full data about the request.
+ *
+ * @return array|\WP_Error Array with a logoutUrl key, or an error.
+ */
+function handle_rest_logout_callback( \WP_REST_Request $request ) {
+	$refresh_token = trim( (string) $request->get_param( 'refreshToken' ) );
+	$redirect_uri  = trim( (string) $request->get_param( 'redirectUri' ) );
+	$user          = $refresh_token ? get_user_from_refresh_token( $refresh_token ) : false;
+
+	if ( ! $user ) {
+		return new \WP_Error( 'invalid_request', 'Invalid refresh token.', array( 'status' => 400 ) );
+	}
+
+	$args = array( 'faust_logout' => rawurlencode( generate_logout_code( $user, MINUTE_IN_SECONDS * 5 ) ) );
+
+	if ( $redirect_uri ) {
+		$args['redirect_uri'] = rawurlencode( $redirect_uri );
+	}
+
+	return array( 'logoutUrl' => add_query_arg( $args, home_url( '/' ) ) );
+}
 
 /**
  * Callback for WordPress register_rest_route() 'callback' parameter.
@@ -405,7 +447,8 @@ function handle_rest_authorize_callback( \WP_REST_Request $request ) {
 /**
  * Callback to check permissions for requests to `faustwp/v1/authorize`.
  *
- * Authorized if the 'secret_key' settings value and http header 'x-faustwp-secret' match.
+ * Authorized if the 'secret_key' settings value and http header 'x-faustwp-secret' match,
+ * or if the request uses an Application Password whose user can 'faustwp_exchange_tokens'.
  *
  * @link https://developer.wordpress.org/reference/functions/register_rest_route/
  * @link https://developer.wordpress.org/rest-api/extending-the-rest-api/routes-and-endpoints/#permissions-callback
@@ -415,6 +458,18 @@ function handle_rest_authorize_callback( \WP_REST_Request $request ) {
  * @return bool True if current user can, false if else.
  */
 function rest_authorize_permission_callback( \WP_REST_Request $request ) {
+	return is_valid_secret_header( $request )
+		|| current_application_password_user_can( 'faustwp_exchange_tokens' );
+}
+
+/**
+ * Whether the request's 'x-faustwp-secret' header matches the 'secret_key' setting.
+ *
+ * @param \WP_REST_Request $request The current \WP_REST_Request object.
+ *
+ * @return bool True if the header matches, false if else.
+ */
+function is_valid_secret_header( \WP_REST_Request $request ) {
 	$secret_key = get_secret_key();
 	$header_key = $request->get_header( 'x-faustwp-secret' );
 

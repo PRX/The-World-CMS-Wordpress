@@ -2357,6 +2357,22 @@
 		    	});
 	    	}
 
+	    	// Fields sharing a name are written to one column, so the later one's value would replace the earlier one's.
+	    	var usedNames = Object.create(null);
+	    	$('#columns_to_export ol').find('li:not(.placeholder)').each(function(){
+	    		var $name = $(this).find('input[name^=cc_name]');
+	    		if ( ! $name.length || $name.val() === '' ) return;
+	    		var base = $name.val(), unique = base, n = 1;
+	    		while ( unique in usedNames ) {
+	    			unique = base + ' ' + (++n);
+	    		}
+	    		usedNames[unique] = true;
+	    		if ( unique !== base ) {
+	    			$name.val(unique);
+	    			$(this).find('.wpallexport-xml-element').text(unique);
+	    		}
+	    	});
+
 	    	trigger_warnings();
 
 	    });

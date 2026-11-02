@@ -4,6 +4,7 @@ namespace Wpae\App\UnsecuredController;
 
 
 use Wpae\App\Service\Addons\AddonNotFoundException;
+use Wpae\App\Service\ExportTemplateException;
 use Wpae\App\Service\Addons\AddonService;
 use Wpae\Controller\BaseController;
 use Wpae\Http\Request;
@@ -130,7 +131,7 @@ class SchedulingController extends BaseController
 
             try {
                 $export->set(array('canceled' => 0))->execute($logger, true);
-            } catch (AddonNotFoundException $e) {
+            } catch (AddonNotFoundException | ExportTemplateException $e) {
                 $this->denyScheduledRun($e->getMessage());
             }
             if (!(int)$export->triggered and !(int)$export->processing) {

@@ -1,6 +1,12 @@
 CHANGES LOG (full version).
 ===========================
 
+= [4.66.3] 26.10.2026 =
+* Update: Marked as compatible with WordPress version 7.2
+* Update: Required PHP version increased up to 8.2
+* Fix: Multisite: only the first 100 sites of a network were processed when a role change was applied to all sites of the network and when plugin data was cleaned up on uninstall, as get_sites() (used by URE_Base_Lib::get_blog_ids() since version 4.66) returns 100 sites max by default.
+* New: 'ure_get_blog_ids_args' filter allows to exclude archived, spam and deleted sites from the list of network sites processed by the plugin (e.g. when a role change is applied to all sites of the network). Return an array with any of 'archived', 'spam', 'deleted' keys set to 0 (exclude such sites) or 1 (process such sites only), e.g. array( 'archived' => 0, 'spam' => 0, 'deleted' => 0 ). Other get_sites() arguments are ignored. Plugin data cleanup on uninstall always processes all sites.
+
 = [4.66.2] 25.09.2026 =
 * Security Fix: administrator-role protection (URE_Protect_Admin::exclude_admin_role()) only excluded the "administrator" role from the assignable-roles list on the classic user edit screens, not on the plugin's own admin-ajax.php actions; a user holding the "promote_users" capability (without the plugin's own key capability) could therefore grant themselves or another user the "administrator" role via the "Add Role"/"Grant Roles" AJAX action, bypassing the same protection the classic Users screen correctly enforced. Discovered and responsibly reported by Humberto (SVO, https://svo.com.br).
 * Fix: the "Grant Roles" dialog's AJAX request (get_grant_roles) incorrectly required the plugin's own key capability instead of "promote_users", refusing users who only had "promote_users" - the capability the Grant Roles feature is designed for - with an "Insufficient permissions" error.

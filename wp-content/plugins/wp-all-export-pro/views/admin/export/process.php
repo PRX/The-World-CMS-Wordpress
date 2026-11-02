@@ -110,6 +110,17 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
                 <a style="position: absolute; top: 35%; right: 10px; display: block; padding-top: 1px;" class="button wpallexport-large-button" href="<?php echo esc_url(\Wpae\App\Gate\Gate::instance()->messages()->settingsUrl()); ?>"><?php esc_html_e('Settings', 'wp_all_export_plugin'); ?></a>
             </div>
         </span>
+        <span id="wpallexport-template-error" style="display: none;">
+            <div class="wpallexport-content-section" style="display:block; position: relative;">
+                <div class="wpallexport-notify-wrapper">
+                    <div class="found_records terminated" style="background-position: 0 50% !important;">
+                        <h3><?php esc_html_e('The export stopped because of an error in the custom XML template', 'wp_all_export_plugin'); ?></h3>
+                        <h4 style="width: 78%; line-height: 25px;" class="wpae-template-error-message"></h4>
+                    </div>
+                </div>
+                <a style="position: absolute; top: 35%; right: 10px; display: block; padding-top: 1px;" class="button wpallexport-large-button" href="<?php echo esc_url(add_query_arg(array('page' => 'pmxe-admin-manage', 'id' => $update_previous->id, 'action' => 'template', '_wpnonce_template' => wp_create_nonce('template')), admin_url('admin.php'))); ?>"><?php esc_html_e('Edit Template', 'wp_all_export_plugin'); ?></a>
+            </div>
+        </span>
         <?php if($update_previous->options['enable_real_time_exports']) { ?>
             <?php include ('success_page_realtime.php'); ?>
         <?php } else { ?>
@@ -264,6 +275,16 @@ if ($update_previous->options['export_to'] == XmlExportEngine::EXPORT_TYPE_XML &
                             $('#status').text('<?php echo esc_js(__('stopped', 'wp_all_export_plugin')); ?>');
                             // Or leaving for Settings warns about interrupting a
                             // stopped run.
+                            window.onbeforeunload = false;
+
+                            return;
+                        }
+
+                        if (refusal && refusal.code === 'wpae_template_error') {
+                            $('#process_notice').hide();
+                            $('#wpallexport-template-error').find('.wpae-template-error-message').html(refusal.message);
+                            $('#wpallexport-template-error').show();
+                            $('#status').text('<?php echo esc_js(__('Error', 'wp_all_export_plugin')); ?>');
                             window.onbeforeunload = false;
 
                             return;

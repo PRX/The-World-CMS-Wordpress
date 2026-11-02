@@ -34,6 +34,37 @@ class PMXE_Export_Record extends PMXE_Model_Record {
             return;
         }
 
+        $wpml_switched = false;
+
+        try {
+            $result = $this->run($logger, $cron, $post_id, $wpml_switched);
+        } catch (WpaeMethodNotFoundException | WpaeInvalidStringException | WpaeTooMuchRecursionException $e) {
+            $this->set(array(
+                'processing' => 0,
+                'triggered' => 0,
+                'canceled' => 0
+            ))->update();
+
+            $template = isset($this->options['custom_xml_template']) ? $this->options['custom_xml_template'] : '';
+            /* translators: 1: export ID, 2: the template error */
+            $message = sprintf(__('Export #%1$s stopped: %2$s', 'wp_all_export_plugin'), $this->id, wp_strip_all_tags(wp_all_export_snippet_error_message($e, $template)));
+
+            // Real-Time Export runs inside the request that saved the record; it must not fail that request.
+            if ($post_id !== false) {
+                error_log('WP All Export: ' . $message);
+                return;
+            }
+
+            throw new \Wpae\App\Service\ExportTemplateException($message, 0, $e);
+        } finally {
+            \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
+        }
+
+        return $result;
+    }
+
+    private function run($logger, $cron, $post_id, &$wpml_switched) {
+
         $this->fix_template_options();
 
         $wp_uploads = wp_upload_dir();
@@ -67,7 +98,7 @@ class PMXE_Export_Record extends PMXE_Model_Record {
                 define('WP_ADMIN', true);
             }
 
-            do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
+            $wpml_switched = \Wpae\WordPress\WpmlLanguage::switchTo( XmlExportEngine::$exportOptions['wpml_lang'] );
         }
 
         if (empty(XmlExportEngine::$exportOptions['export_variations'])){
@@ -177,7 +208,11 @@ class PMXE_Export_Record extends PMXE_Model_Record {
 
                 add_filter('posts_where', 'wp_all_export_posts_where', 10, 1);
                 add_filter('posts_join', 'wp_all_export_posts_join', 10, 1);
-                $exportQuery = eval('return new WP_Query(array(' . $this->options['wp_query'] . ', \'offset\' => ' . $this->exported . ', \'posts_per_page\' => ' . $this->options['records_per_iteration'] . '));');
+                if ($post_id) {
+                    $exportQuery = eval('return new WP_Query(array(' . $this->options['wp_query'] . ', \'p\' => ' . (int) $post_id . ', \'posts_per_page\' => 1));');
+                } else {
+                    $exportQuery = eval('return new WP_Query(array(' . $this->options['wp_query'] . ', \'offset\' => ' . $this->exported . ', \'posts_per_page\' => ' . $this->options['records_per_iteration'] . '));');
+                }
                 remove_filter('posts_join', 'wp_all_export_posts_join');
                 remove_filter('posts_where', 'wp_all_export_posts_where');
             }

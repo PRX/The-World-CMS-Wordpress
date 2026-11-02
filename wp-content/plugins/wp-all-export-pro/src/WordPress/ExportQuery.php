@@ -22,6 +22,16 @@ class ExportQuery {
 	}
 
 	public function generate($options, $id, $export_obj = false, $cron = false, $post_id = false, $exported = 0) {
+		$wpml_switched = false;
+
+		try {
+			return $this->build($options, $id, $export_obj, $post_id, $exported, $wpml_switched);
+		} finally {
+			WpmlLanguage::restore($wpml_switched);
+		}
+	}
+
+	private function build($options, $id, $export_obj, $post_id, $exported, &$wpml_switched) {
 
 		$this->options = $options;
 		$this->exported = $exported;
@@ -54,7 +64,7 @@ class ExportQuery {
 				define( 'WP_ADMIN', true );
 			}
 
-			do_action( 'wpml_switch_language', \XmlExportEngine::$exportOptions['wpml_lang'] );
+			$wpml_switched = WpmlLanguage::switchTo( \XmlExportEngine::$exportOptions['wpml_lang'] );
 		}
 
 		if ( empty( \XmlExportEngine::$exportOptions['export_variations'] ) ) {

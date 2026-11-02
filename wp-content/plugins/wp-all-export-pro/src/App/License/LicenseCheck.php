@@ -25,7 +25,7 @@ final class LicenseCheck
      * @param  string  $itemName  Matched exactly against package.name.
      * @return LicenseStatus|null  null when the answer was non-definitive
      */
-    public function run($apiUrl, $key, $itemName, $siteUrl)
+    public function run($apiUrl, $key, $itemName, $siteUrl, $pluginVersion = '')
     {
         // The server trims too, so an untrimmed key is cached against the wrong licence.
         $key = LicenseState::normaliseKey($key);
@@ -42,6 +42,7 @@ final class LicenseCheck
             'license' => $key,
             'item_name' => (string) $itemName,
             'url' => (string) $siteUrl,
+            'version' => (string) $pluginVersion,
         ]);
 
         $response = call_user_func($this->transport, $url);

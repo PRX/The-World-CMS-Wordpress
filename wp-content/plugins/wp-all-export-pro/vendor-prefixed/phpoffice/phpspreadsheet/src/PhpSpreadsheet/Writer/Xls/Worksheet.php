@@ -416,7 +416,7 @@ class Worksheet extends BIFFwriter
                     }
                     $arrcRun[] = ['strlen' => $str_pos, 'fontidx' => $str_fontidx];
                     // Position FROM
-                    $str_pos += StringHelper::countCharacters($element->getText(), 'UTF-8');
+                    $str_pos += (int) (strlen(StringHelper::convertEncoding($element->getText(), 'UTF-16LE', 'UTF-8')) / 2);
                 }
                 $this->writeRichTextString($row, $column, $cVal->getPlainText(), $xfIndex, $arrcRun);
             } else {

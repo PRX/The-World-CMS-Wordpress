@@ -49,12 +49,16 @@
     </div>
 </div>
 <?php endif;?>
-<?php if(\Wpae\Integrations\CodeBox::isUsingCodeBox($functions_content) && !\Wpae\Integrations\CodeBox::isCodeBoxInstalled()): ?>
+<?php if(\Wpae\Integrations\CodeBox::isUsingCodeBox($functions_content)): ?>
     <div id="wpae_revert_to_functions_file" style="margin-top: 10px;">
         <input type="button"
                class="button-secondary wp_all_export_revert_functions"
                value="<?php _e("Revert to Functions File", 'wp_all_export_plugin'); ?>" />
+        <?php if(!\Wpae\Integrations\CodeBox::isCodeBoxInstalled()): ?>
         <p class="custom-error-notice" style="margin-top: 5px;"><?php _e("WPCodeBox is not active. Click 'Revert to Functions File' to attempt to restore the previous functions file. Alternatively, activate WPCodeBox for continued use.", 'wp_all_export_plugin'); ?></p>
+        <?php else: ?>
+        <p style="margin-top: 5px;"><?php _e("Click 'Revert to Functions File' to stop using WPCodeBox and restore your local functions file.", 'wp_all_export_plugin'); ?></p>
+        <?php endif; ?>
     </div>
 <?php endif; ?>
 
