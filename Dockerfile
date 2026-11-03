@@ -1,4 +1,4 @@
-FROM serversideup/php:8.4-fpm-apache
+FROM serversideup/php:8.5-fpm-apache
 
 USER root
 
@@ -68,7 +68,7 @@ RUN set -ex; \
   zip \
   ; \
   # https://pecl.php.net/package/imagick
-  pecl install imagick-3.8.0; \
+  pecl install imagick-3.8.1; \
   docker-php-ext-enable imagick; \
   rm -r /tmp/pear; \
   \
@@ -102,7 +102,6 @@ RUN set -ex; \
 # set recommended PHP.ini settings
 # see https://secure.php.net/manual/en/opcache.installation.php
 RUN set -eux; \
-  docker-php-ext-enable opcache; \
   { \
   echo 'opcache.memory_consumption=128'; \
   echo 'opcache.interned_strings_buffer=8'; \
