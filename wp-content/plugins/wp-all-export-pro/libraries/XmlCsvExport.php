@@ -896,7 +896,7 @@ final Class XmlCsvExport
 
         $in = fopen($file, 'r');
 
-        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+        $clear_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions));
 
         fclose($in);
 
@@ -968,11 +968,11 @@ final Class XmlCsvExport
 
             apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
 
-            $exclude_old_headers = fgetcsv($in, 0, ',', '"', '\\');
+            $exclude_old_headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions));
 
             if (is_resource($in)) {
                 while (!feof($in)) {
-                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions));
                     if (empty($data)) continue;
 
                     // Handle CSV parsing issues by ensuring proper column count
@@ -1194,6 +1194,23 @@ final Class XmlCsvExport
 	    foreach (\XmlExportEngine::get_addons() as $addon) {
 		    $auto_generate = apply_filters("pmxe_get_{$addon}_addon_auto_generate_fields", $auto_generate, 10, 1);
 	    }
+
+		// Fields sharing a name are written to one column, so the later one's value would replace the earlier one's.
+		if (!empty($auto_generate['cc_name']) && is_array($auto_generate['cc_name'])) {
+			$seen = array();
+			foreach ($auto_generate['cc_name'] as $i => $name) {
+				if (!is_string($name) || '' === $name) {
+					continue;
+				}
+				$unique = $name;
+				$n = 1;
+				while (isset($seen[$unique])) {
+					$unique = $name . ' ' . (++$n);
+				}
+				$seen[$unique] = true;
+				$auto_generate['cc_name'][$i] = $unique;
+			}
+		}
 
 		return $auto_generate;
     }

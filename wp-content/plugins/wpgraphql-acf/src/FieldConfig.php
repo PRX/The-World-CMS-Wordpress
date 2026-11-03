@@ -3,9 +3,17 @@
 namespace WPGraphQL\Acf;
 
 use GraphQL\Type\Definition\ResolveInfo;
+use WPGraphQL\Acf\FieldType\Wysiwyg;
 use WPGraphQL\AppContext;
 
 class FieldConfig {
+
+	/**
+	 * The key a row's stored (unformatted) values are passed down under, alongside its formatted values.
+	 *
+	 * @var string
+	 */
+	protected static $raw_row_key = '__wpgraphql_acf_raw_row';
 
 	/**
 	 * @var array<mixed>
@@ -284,7 +292,7 @@ class FieldConfig {
 					$field_config['resolve'] = function ( $node, array $args, AppContext $context, ResolveInfo $info ) {
 						$value = $this->resolve_field( $node, $args, $context, $info );
 
-						if ( empty( $value ) && ! is_array( $value ) ) {
+						if ( ! is_array( $value ) && self::is_empty_value( $value ) ) {
 							return null;
 						}
 
@@ -326,6 +334,199 @@ class FieldConfig {
 		];
 
 		return in_array( $field_type, $types_to_format, true );
+	}
+
+	/**
+	 * Determine if a field nested in a row (of a repeater, flexible content or group field)
+	 * should resolve from the row's stored (unformatted) value instead of its formatted value.
+	 *
+	 * Most of these fields resolve connections by ID. Depending on the field's return format, ACF
+	 * formats their value as a URL (and always does for page_link), which can't be resolved back to
+	 * a node. A link field resolves the AcfLink type from the stored title, url and target, which
+	 * ACF reduces to just the URL with the "url" return format. Date, date time and time picker
+	 * fields parse the stored value, because a formatted one can drop its seconds or be ambiguous
+	 * (strtotime() reads "05/06/2026" as May 6). Top-level fields of these types are already read
+	 * unformatted.
+	 *
+	 * @param string $field_type The ACF Field Type of field being resolved
+	 */
+	protected function should_resolve_raw_row_value( string $field_type ): bool {
+		$types_to_resolve_raw = [
+			'page_link',
+			'post_object',
+			'relationship',
+			'image',
+			'file',
+			'gallery',
+			'taxonomy',
+			'user',
+			'link',
+			'date_picker',
+			'date_time_picker',
+			'time_picker',
+		];
+
+		return in_array( $field_type, $types_to_resolve_raw, true );
+	}
+
+	/**
+	 * Get the stored (unformatted) values of the row being resolved, if they were passed down.
+	 *
+	 * @param mixed $root The row passed down the resolve tree
+	 *
+	 * @return array<mixed>|null
+	 */
+	protected function get_raw_row( $root ): ?array {
+		if ( ! is_array( $root ) || ! isset( $root[ self::$raw_row_key ] ) || ! is_array( $root[ self::$raw_row_key ] ) ) {
+			return null;
+		}
+
+		return $root[ self::$raw_row_key ];
+	}
+
+	/**
+	 * Pass the stored (unformatted) values of a repeater, flexible content or group field down
+	 * alongside its formatted rows, so nested fields can resolve from the stored value.
+	 *
+	 * @see self::should_resolve_raw_row_value()
+	 *
+	 * @param mixed        $value        The formatted value of the field
+	 * @param mixed        $raw_value    The stored (unformatted) value of the field
+	 * @param array<mixed> $field_config The ACF Field Config for the field being resolved
+	 *
+	 * @return mixed
+	 */
+	protected function attach_raw_rows( $value, $raw_value, array $field_config ) {
+		if ( ! is_array( $value ) || ! is_array( $raw_value ) || empty( $field_config['type'] ) ) {
+			return $value;
+		}
+
+		switch ( $field_config['type'] ) {
+			case 'group':
+				$value[ self::$raw_row_key ] = $raw_value;
+				break;
+			case 'repeater':
+			case 'flexible_content':
+				foreach ( $value as $index => $row ) {
+					if ( ! is_array( $row ) || ! isset( $raw_value[ $index ] ) || ! is_array( $raw_value[ $index ] ) ) {
+						continue;
+					}
+
+					// Only pair rows that describe the same flexible content layout
+					if ( ( $row['acf_fc_layout'] ?? null ) !== ( $raw_value[ $index ]['acf_fc_layout'] ?? null ) ) {
+						continue;
+					}
+
+					$value[ $index ][ self::$raw_row_key ] = $raw_value[ $index ];
+				}
+				break;
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Apply ACF's WYSIWYG formatting (the acf_the_content filter and the "]]>" escape, which
+	 * get_field() runs when it formats the value) to the stored value of a WYSIWYG field.
+	 *
+	 * Values passed down by field key, like the sub fields of a group field, and values read from a
+	 * block's data are stored values.
+	 *
+	 * @param mixed            $value        The stored value of the field
+	 * @param array<mixed>     $field_config The ACF Field Config for the field being resolved
+	 * @param mixed            $root         The root node/object the field belongs to
+	 * @param mixed|string|int $node_id      The ID of the node the field belongs to
+	 *
+	 * @return mixed
+	 */
+	protected function format_stored_wysiwyg_value( $value, array $field_config, $root, $node_id ) {
+		if ( 'wysiwyg' !== ( $field_config['type'] ?? null ) || ! is_string( $value ) ) {
+			return $value;
+		}
+
+		if ( \has_blocks( $value ) && self::should_render_wysiwyg_blocks( $value, $field_config, $root, $node_id ) ) {
+			$value = Wysiwyg::format_with_blocks_rendered(
+				static function () use ( $value ) {
+					return \apply_filters( 'acf_the_content', $value );
+				}
+			);
+		} else {
+			$value = \apply_filters( 'acf_the_content', $value );
+		}
+
+		// ACF's WYSIWYG field escapes this after acf_the_content too, the same as the_content does.
+		return str_replace( ']]>', ']]&gt;', $value );
+	}
+
+	/**
+	 * Calls $get_value, which reads a field with get_field() or get_sub_field(), so that block
+	 * markup in the WYSIWYG values ACF formats renders the way the_content renders it. That
+	 * includes the WYSIWYG sub fields of repeater, flexible content and clone fields, which ACF
+	 * formats along with their parent.
+	 *
+	 * The values are formatted without ACF's cache of formatted values, so get_field() doesn't
+	 * return a value formatted for GraphQL later in the request, and the other way around.
+	 *
+	 * @param callable         $get_value Reads the field's formatted value.
+	 * @param mixed            $root      The root node/object the field belongs to
+	 * @param mixed|string|int $node_id   The ID of the node the field belongs to
+	 *
+	 * @return mixed What $get_value returns.
+	 */
+	protected function with_wysiwyg_blocks_rendered( callable $get_value, $root, $node_id ) {
+		$pre_format = static function ( $check, $value, $post_id, $field, $escape_html = false ) use ( $root, $node_id ) {
+			if ( null !== $check || ! is_array( $field ) || 'wysiwyg' !== ( $field['type'] ?? null ) || ! is_string( $value ) || ! \has_blocks( $value ) ) {
+				return $check;
+			}
+
+			if ( ! self::should_render_wysiwyg_blocks( $value, $field, $root, $node_id ) ) {
+				return $check;
+			}
+
+			// The same filter acf_format_value() applies, without reading or writing its cache.
+			return Wysiwyg::format_with_blocks_rendered(
+				static function () use ( $value, $post_id, $field, $escape_html ) {
+					return \apply_filters( 'acf/format_value', $value, $post_id, $field, $escape_html );
+				}
+			);
+		};
+
+		\add_filter( 'acf/pre_format_value', $pre_format, 10, 5 );
+
+		try {
+			return $get_value();
+		} finally {
+			\remove_filter( 'acf/pre_format_value', $pre_format, 10 );
+		}
+	}
+
+	/**
+	 * Whether to render the block markup in a WYSIWYG field's value.
+	 *
+	 * @param string           $value            The field's value
+	 * @param array<mixed>     $acf_field_config The ACF Field Config for the field being resolved
+	 * @param mixed            $root             The root node/object the field belongs to
+	 * @param mixed|string|int $node_id          The ID of the node the field belongs to
+	 */
+	protected static function should_render_wysiwyg_blocks( string $value, array $acf_field_config, $root, $node_id ): bool {
+		/**
+		 * Filters whether block markup in a WYSIWYG field's value is rendered.
+		 *
+		 * ACF's own formatting (the acf_the_content filter) doesn't render blocks. By default, block
+		 * markup in a WYSIWYG value is rendered the way the_content renders it: the blocks are
+		 * rendered before ACF's wpautop, which then skips the value. Without this, block markup in
+		 * a WYSIWYG value is returned with ACF's formatting only: static blocks keep their block
+		 * comments, and dynamic blocks return only their block comment.
+		 *
+		 * @param bool             $render_blocks    Whether to render the blocks. Default true.
+		 * @param string           $value            The field's value, with its block markup.
+		 * @param array<mixed>     $acf_field_config The ACF Field Config for the field being resolved.
+		 * @param mixed            $root             The root node/object the field belongs to.
+		 * @param mixed|string|int $node_id          The ID of the node the field belongs to.
+		 *
+		 * @since 3.1.0
+		 */
+		return (bool) \apply_filters( 'wpgraphql/acf/wysiwyg/render_blocks', true, $value, $acf_field_config, $root, $node_id );
 	}
 
 	/**
@@ -398,25 +599,38 @@ class FieldConfig {
 		// if the field_config is empty or not an array, set it as an empty array as a fallback
 		$field_config = ! empty( $field_config ) ? $field_config : [];
 
+		// Rows of repeater and flexible content fields are passed down formatted, but may carry
+		// their stored values too. Fields that resolve by ID, and date fields, use the stored value,
+		// like top-level fields do. See should_resolve_raw_row_value().
+		$raw_row       = $this->get_raw_row( $root );
+		$raw_row_value = null;
+		if ( null !== $raw_row && isset( $field_config['key'] ) && isset( $raw_row[ $field_config['key'] ] ) ) {
+			$raw_row_value = $raw_row[ $field_config['key'] ];
+		}
+
+		if ( ! empty( $raw_row_value ) && ! empty( $field_config['type'] ) && $this->should_resolve_raw_row_value( $field_config['type'] ) ) {
+			return $this->prepare_acf_field_value( $raw_row_value, $node, $node_id, $field_config );
+		}
+
 		// If the root being passed down already has a value
 		// for the field key, let's use it to resolve
-		if ( isset( $field_config['key'] ) && ! empty( $root[ $field_config['key'] ] ) ) {
-			return $this->prepare_acf_field_value( $root[ $field_config['key'] ], $node, $node_id, $field_config );
+		if ( isset( $field_config['key'] ) && isset( $root[ $field_config['key'] ] ) && ! self::is_empty_value( $root[ $field_config['key'] ] ) ) {
+			return $this->prepare_acf_field_value( $this->attach_raw_rows( $this->format_stored_wysiwyg_value( $root[ $field_config['key'] ], $field_config, $node, $node_id ), $raw_row_value, $field_config ), $node, $node_id, $field_config );
 		}
 
 		// Check if the cloned field key is being used to pass values down
-		if ( isset( $field_config['__key'] ) && ! empty( $root[ $field_config['__key'] ] ) ) {
-			return $this->prepare_acf_field_value( $root[ $field_config['__key'] ], $node, $node_id, $field_config );
+		if ( isset( $field_config['__key'] ) && isset( $root[ $field_config['__key'] ] ) && ! self::is_empty_value( $root[ $field_config['__key'] ] ) ) {
+			return $this->prepare_acf_field_value( $this->attach_raw_rows( $this->format_stored_wysiwyg_value( $root[ $field_config['__key'] ], $field_config, $node, $node_id ), $raw_row_value, $field_config ), $node, $node_id, $field_config );
 		}
 
 		// Else check if the values are being passed down via the name
-		if ( isset( $field_config['name'] ) && ! empty( $root[ '_' . $field_config['name'] ] ) ) {
-			return $this->prepare_acf_field_value( $root[ '_' . $field_config['name'] ], $node, $node_id, $field_config );
+		if ( isset( $field_config['name'] ) && isset( $root[ '_' . $field_config['name'] ] ) && ! self::is_empty_value( $root[ '_' . $field_config['name'] ] ) ) {
+			return $this->prepare_acf_field_value( $this->attach_raw_rows( $root[ '_' . $field_config['name'] ], $raw_row_value, $field_config ), $node, $node_id, $field_config );
 		}
 
 		// Else check if the values are being passed down via the name
-		if ( isset( $field_config['name'] ) && ! empty( $root[ $field_config['name'] ] ) ) {
-			return $this->prepare_acf_field_value( $root[ $field_config['name'] ], $node, $node_id, $field_config );
+		if ( isset( $field_config['name'] ) && isset( $root[ $field_config['name'] ] ) && ! self::is_empty_value( $root[ $field_config['name'] ] ) ) {
+			return $this->prepare_acf_field_value( $this->attach_raw_rows( $root[ $field_config['name'] ], $raw_row_value, $field_config ), $node, $node_id, $field_config );
 		}
 
 		/**
@@ -459,34 +673,52 @@ class FieldConfig {
 
 			acf_setup_meta( $block['data'] ?? [], $block_id, true );
 
-			$return_value = $this->get_field( $field_config['name'], $parent_field_name, $block_id, $should_format_value );
+			$return_value = $this->with_wysiwyg_blocks_rendered(
+				function () use ( $field_config, $parent_field_name, $block_id, $should_format_value ) {
+					return $this->get_field( $field_config['name'], $parent_field_name, $block_id, $should_format_value );
+				},
+				$root,
+				$node_id
+			);
+			if ( in_array( $field_config['type'] ?? null, [ 'repeater', 'flexible_content' ], true ) ) {
+				$return_value = $this->attach_raw_rows( $return_value, $this->get_field( $field_config['name'], $parent_field_name, $block_id, false ), $field_config );
+			}
 			acf_reset_meta( $block_id );
 
-			if ( empty( $return_value ) && isset( $node['attrs']['data'][ $field_config['name'] ] ) ) {
-				$return_value = $node['attrs']['data'][ $field_config['name'] ];
+			if ( self::is_empty_value( $return_value ) && isset( $node['attrs']['data'][ $field_config['name'] ] ) ) {
+				$return_value = $this->format_stored_wysiwyg_value( $node['attrs']['data'][ $field_config['name'] ], $field_config, $root, $node_id );
 			}
 
-			if ( empty( $return_value ) && ( ! empty( $parent_field_name ) && ! empty( $node['attrs']['data'][ $parent_field_name . '_' . $field_config['name'] ] ) ) ) {
-				$return_value = $node['attrs']['data'][ $parent_field_name . '_' . $field_config['name'] ];
+			if ( self::is_empty_value( $return_value ) && ( ! empty( $parent_field_name ) && isset( $node['attrs']['data'][ $parent_field_name . '_' . $field_config['name'] ] ) && ! self::is_empty_value( $node['attrs']['data'][ $parent_field_name . '_' . $field_config['name'] ] ) ) ) {
+				$return_value = $this->format_stored_wysiwyg_value( $node['attrs']['data'][ $parent_field_name . '_' . $field_config['name'] ], $field_config, $root, $node_id );
 			}
 		}
 
 
 
 		// If there's no node_id at this point, we can return null
-		if ( empty( $return_value ) && empty( $node_id ) ) {
+		if ( self::is_empty_value( $return_value ) && empty( $node_id ) ) {
 			return null;
 		}
 
 		// if a value hasn't been set yet, use the get_field() function to get the value
-		if ( empty( $return_value ) ) {
-			$return_value = $this->get_field( $field_key, $parent_field_name, $node_id, $should_format_value );
+		if ( self::is_empty_value( $return_value ) ) {
+			$return_value = $this->with_wysiwyg_blocks_rendered(
+				function () use ( $field_key, $parent_field_name, $node_id, $should_format_value ) {
+					return $this->get_field( $field_key, $parent_field_name, $node_id, $should_format_value );
+				},
+				$root,
+				$node_id
+			);
+			if ( in_array( $field_config['type'] ?? null, [ 'repeater', 'flexible_content' ], true ) ) {
+				$return_value = $this->attach_raw_rows( $return_value, $this->get_field( $field_key, $parent_field_name, $node_id, false ), $field_config );
+			}
 		}
 
 		// Prepare the value for response
 		$prepared_value = $this->prepare_acf_field_value( $return_value, $root, $node_id, $field_config );
-		// Empty values are set to null
-		if ( empty( $prepared_value ) ) {
+		// Empty values are set to null (0 and "0" are values, not empty)
+		if ( self::is_empty_value( $prepared_value ) ) {
 			$prepared_value = null;
 		}
 
@@ -499,6 +731,18 @@ class FieldConfig {
 		 * @param mixed $node_id The ID of the node being resolved
 		 */
 		return \apply_filters( 'wpgraphql/acf/field_value', $prepared_value, $field_config, $root, $node_id );
+	}
+
+	/**
+	 * Whether a field value counts as "no value".
+	 *
+	 * Like empty(), except that the number 0 and the string "0" are values: a field that stores 0
+	 * should resolve as 0, not null.
+	 *
+	 * @param mixed $value The field value.
+	 */
+	protected static function is_empty_value( $value ): bool {
+		return null === $value || false === $value || '' === $value || [] === $value;
 	}
 
 	/**
@@ -517,19 +761,25 @@ class FieldConfig {
 			return $value;
 		}
 
-		// if the value is an array and the field return format is set to array,
-		// map over the array to get the return values
+		// If the field's return format is "array" (ACF's "Both (Array)"), ACF formats each chosen
+		// option as [ 'value' => ..., 'label' => ... ]. Resolve the values.
 		if ( isset( $acf_field_config['return_format'] ) && 'array' === $acf_field_config['return_format'] && is_array( $value ) ) {
-			$value = array_map(
-				static function ( $opt ) {
-					if ( ! is_array( $opt ) ) {
-						return $opt;
-					}
+			if ( array_key_exists( 'value', $value ) && array_key_exists( 'label', $value ) ) {
+				// A single choice (a select that allows one value, a radio, a button group) is one
+				// such array, rather than a list of them.
+				$value = $value['value'];
+			} else {
+				$value = array_map(
+					static function ( $opt ) {
+						if ( ! is_array( $opt ) ) {
+							return $opt;
+						}
 
-					return $opt['value'] ?? null;
-				},
-				$value
-			);
+						return $opt['value'] ?? null;
+					},
+					$value
+				);
+			}
 		}
 
 		if ( isset( $acf_field_config['new_lines'] ) ) {
@@ -541,28 +791,22 @@ class FieldConfig {
 			}
 		}
 
-		// @todo: This was ported over, but I'm not 💯 sure what this is solving and
-		// why it's only applied on options pages and not other pages 🤔
-		if ( 'wysiwyg' === $acf_field_config['type'] ) {
-			$value = \apply_filters( 'the_content', $value );
+		// Block markup in a WYSIWYG value is rendered while the value is formatted (see
+		// with_wysiwyg_blocks_rendered() and format_stored_wysiwyg_value()). If a value still has
+		// block markup, it was formatted some other way, like by a version of ACF without the
+		// acf/pre_format_value filter, or rendering was turned off. Render it after ACF's formatting.
+		if ( 'wysiwyg' === ( $acf_field_config['type'] ?? null ) && is_string( $value ) && \has_blocks( $value ) && self::should_render_wysiwyg_blocks( $value, $acf_field_config, $root, $node_id ) ) {
+			$value = \do_blocks( $value );
 		}
 
-		if ( ! empty( $acf_field_config['type'] ) && in_array(
-			$acf_field_config['type'],
-			[
-				'date_picker',
-				'time_picker',
-				'date_time_picker',
-			],
-			true
-		) ) {
+		if ( ! empty( $acf_field_config['type'] ) && 'time_picker' === $acf_field_config['type'] ) {
 			if ( ! empty( $value ) && ! empty( $acf_field_config['return_format'] ) ) {
 				$value = gmdate( $acf_field_config['return_format'], strtotime( $value ) );
 			}
 		}
 
 		if ( ! empty( $acf_field_config['type'] ) && in_array( $acf_field_config['type'], [ 'number', 'range' ], true ) ) {
-			$value = (float) $value ?: null;
+			$value = is_numeric( $value ) ? (float) $value : null;
 		}
 
 		return $value;

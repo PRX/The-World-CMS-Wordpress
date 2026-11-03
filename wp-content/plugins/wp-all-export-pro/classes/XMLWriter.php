@@ -118,6 +118,10 @@ class PMXE_XMLWriter extends XMLWriter
             $value = "0";
         }
 
+        if ($value === null) {
+            $value = '';
+        }
+
         $cdataStrategyFactory = new CdataStrategyFactory();
 
         if (!isset(XmlExportEngine::$exportOptions['custom_xml_cdata_logic'])) {
@@ -366,14 +370,18 @@ class PMXE_XMLWriter extends XMLWriter
                     $numberOfDoubleQuotes = substr_count($filtered, "\"");
 
                     if ($numberOfSingleQuotes % 2 || $numberOfDoubleQuotes % 2) {
-                        throw new WpaeInvalidStringException($functionName);
+                        throw new WpaeInvalidStringException(trim(strtok($filtered, '(')));
                     }
 
                     if (!function_exists($functionName)) {
                         throw new WpaeMethodNotFoundException($functionName);
                     }
 
-                    $values = eval("return " . $filtered . ";");
+                    try {
+                        $values = eval("return " . $filtered . ";");
+                    } catch (ParseError $e) {
+                        throw new WpaeInvalidStringException($functionName, 0, $e);
+                    }
 
                     $v = '';
                     if (is_array($values)) {

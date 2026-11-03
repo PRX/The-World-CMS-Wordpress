@@ -81,9 +81,7 @@ function pmxe_wp_ajax_wpallexport()
 
     $is_orders_export = (in_array('shop_order', XmlExportEngine::$exportOptions['cpt']) and class_exists('WooCommerce'));
 
-    if (class_exists('SitePress') && !empty(XmlExportEngine::$exportOptions['wpml_lang'])) {
-        do_action('wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang']);
-    }
+    $wpml_switched = \Wpae\WordPress\WpmlLanguage::switchTo(XmlExportEngine::$exportOptions['wpml_lang']);
 
     $errors = new WP_Error();
     $engine = new XmlExportEngine($exportOptions, $errors);
@@ -397,8 +395,11 @@ function pmxe_wp_ajax_wpallexport()
 	if (@file_exists($functions))
 		\Wpae\Integrations\CodeBox::requireFunctionsFile();
 
-    // Export posts
-    XmlCsvExport::export();
+    try {
+        XmlCsvExport::export();
+    } catch (WpaeMethodNotFoundException | WpaeInvalidStringException | WpaeTooMuchRecursionException $e) {
+        pmxe_wpallexport_stop_on_template_error($export, $e, $wpml_switched);
+    }
 
     $export->set(array(
         'exported' => $export->exported + $postCount,
@@ -427,6 +428,7 @@ function pmxe_wp_ajax_wpallexport()
             $responseArray['code'] = '';
         }
         
+        \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
         wp_send_json($responseArray);
     } else {
 
@@ -436,7 +438,11 @@ function pmxe_wp_ajax_wpallexport()
                 switch (XmlExportEngine::$exportOptions['xml_template_type']) {
                     case 'custom':
                         require_once PMXE_ROOT_DIR . '/classes/XMLWriter.php';
-                        file_put_contents(PMXE_Plugin::$session->file, PMXE_XMLWriter::preprocess_xml(XmlExportEngine::$exportOptions['custom_xml_template_footer']), FILE_APPEND);
+                        try {
+                            file_put_contents(PMXE_Plugin::$session->file, PMXE_XMLWriter::preprocess_xml(XmlExportEngine::$exportOptions['custom_xml_template_footer']), FILE_APPEND);
+                        } catch (WpaeMethodNotFoundException | WpaeInvalidStringException | WpaeTooMuchRecursionException $e) {
+                            pmxe_wpallexport_stop_on_template_error($export, $e, $wpml_switched);
+                        }
                         break;
                     default:
                         break;
@@ -538,6 +544,7 @@ function pmxe_wp_ajax_wpallexport()
         }
 
 
+        \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
         wp_send_json(array(
             'export_id' => $export->id,
             'queue_export' => empty($queue_exports) ? false : $queue_exports[0],
@@ -557,4 +564,25 @@ function pmxe_wp_ajax_wpallexport()
 function isAdvancedSingleItemExport($postCount, $foundPosts)
 {
     return ($postCount == 1 && $foundPosts == 1);
+}
+
+function pmxe_wpallexport_stop_on_template_error($export, Exception $e, $wpml_switched)
+{
+    $export->set(array(
+        'executing' => 0,
+        'processing' => 0,
+        'canceled' => 0
+    ))->save();
+
+    $template = isset($export->options['custom_xml_template']) ? $export->options['custom_xml_template'] : '';
+    $message = wp_kses_post(wp_all_export_snippet_error_message($e, $template));
+
+    \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
+    pmxe_send_json(array(
+        'status' => 422,
+        'code' => 'wpae_template_error',
+        'message' => $message,
+        'html' => $message,
+    ), 422);
+    exit;
 }

@@ -16,6 +16,57 @@ function pmxe_prepend($string, $orig_filename)
     rename($temp_filename, $orig_filename);
 }
 
+function pmxe_csv_delimiter($export)
+{
+    $delimiter = isset(XmlExportEngine::$exportOptions['delimiter']) && XmlExportEngine::$exportOptions['delimiter'] !== '' ? XmlExportEngine::$exportOptions['delimiter'] : $export->options['delimiter'];
+    if ($delimiter === '\\t') {
+        $delimiter = "\t";
+    }
+    return $delimiter === '' || $delimiter === null ? ',' : $delimiter;
+}
+
+// Returns the raw bytes of the next CSV record, so copies keep the writer's exact output.
+function pmxe_next_csv_record($handle, $delimiter, $escape)
+{
+    $start = ftell($handle);
+    if (false === fgetcsv($handle, 0, $delimiter, '"', $escape)) {
+        return false;
+    }
+    $end = ftell($handle);
+    fseek($handle, $start);
+    return fread($handle, $end - $start);
+}
+
+// Copies the rows byte for byte: re-parsing them breaks on duplicate column names and on the writer's escape dialect.
+function pmxe_remove_csv_header_record($filepath, $delimiter, $escape, $include_bom)
+{
+    $tmp_file = str_replace(basename($filepath), 'iteration_' . basename($filepath), $filepath);
+    if (!@copy($filepath, $tmp_file)) {
+        return;
+    }
+    $in = fopen($tmp_file, 'rb');
+    $out = fopen($filepath, 'wb');
+    $bom = chr(0xEF) . chr(0xBB) . chr(0xBF);
+
+    if (fread($in, 3) !== $bom) {
+        rewind($in);
+    }
+    fgetcsv($in, 0, $delimiter, '"', $escape);
+    $body_start = ftell($in);
+    fseek($in, 0, SEEK_END);
+    $has_rows = ftell($in) > $body_start;
+    fseek($in, $body_start);
+
+    if ($has_rows && $include_bom) {
+        fwrite($out, $bom);
+    }
+    stream_copy_to_stream($in, $out);
+
+    fclose($in);
+    fclose($out);
+    @unlink($tmp_file);
+}
+
 function pmxe_pmxe_after_export($export_id, $export, $file = false)
 {
     if (!empty(PMXE_Plugin::$session) and PMXE_Plugin::$session->has_session()) {
@@ -56,42 +107,15 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
         }
 
         $removeHeaders = false;
+        $headersRemoved = false;
 
         $removeHeaders = apply_filters('wp_all_export_remove_csv_headers', $removeHeaders, $export->id);
 
         // Remove headers row from CSV file
         if ((empty($is_export_csv_headers) && @file_exists($filepath) && $export->options['export_to'] == 'csv' && $export->options['export_to_sheet'] == 'csv') || $removeHeaders) {
 
-            $tmp_file = str_replace(basename($filepath), 'iteration_' . basename($filepath), $filepath);
-            copy($filepath, $tmp_file);
-            $in = fopen($tmp_file, 'r');
-            $out = fopen($filepath, 'w');
-
-            $headers = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
-
-            if (is_resource($in)) {
-                $lineNumber = 0;
-                while (!feof($in)) {
-                    $data = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
-                    if (empty($data)) continue;
-                    $data_assoc = array_combine($headers, array_values($data));
-                    $line = array();
-                    foreach ($headers as $header) {
-                        $line[$header] = (isset($data_assoc[$header])) ? $data_assoc[$header] : '';
-                    }
-                    if (!$lineNumber && XmlExportEngine::$exportOptions['include_bom']) {
-                        fwrite($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
-                        XmlCsvExport::getCsvWriter()->writeCsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
-                    } else {
-                        XmlCsvExport::getCsvWriter()->writeCsv($out, $line, XmlExportEngine::$exportOptions['delimiter']);
-                    }
-                    apply_filters('wp_all_export_after_csv_line', $out, XmlExportEngine::$exportID);
-                    $lineNumber++;
-                }
-                fclose($in);
-            }
-            fclose($out);
-            @unlink($tmp_file);
+            pmxe_remove_csv_header_record($filepath, pmxe_csv_delimiter($export), \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions), !empty(XmlExportEngine::$exportOptions['include_bom']));
+            $headersRemoved = true;
         }
 
         $preCsvHeaders = false;
@@ -181,14 +205,16 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 
                         break;
                     case 'csv':
-                        $in = fopen($filepath, 'r');
+                        $in = fopen($filepath, 'rb');
 
                         $rowCount = 0;
                         $fileCount = 1;
-                        $headers = fgetcsv($in, 0, ',', '"', '\\');
+                        $delimiter = pmxe_csv_delimiter($export);
+                        $escape = \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions);
+                        $headers = $headersRemoved ? false : pmxe_next_csv_record($in, $delimiter, $escape);
                         while (!feof($in)) {
-                            $data = fgetcsv($in, 0, ',', '"', '\\');
-                            if (empty($data)) continue;
+                            $data = pmxe_next_csv_record($in, $delimiter, $escape);
+                            if (false === $data) continue;
                             if (($rowCount % $splitSize) == 0) {
                                 if ($rowCount > 0) {
                                     fclose($out);
@@ -199,12 +225,10 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 
                                 $out = fopen($outputFile, 'w');
                             }
-                            if ($data) {
-                                if (($rowCount % $splitSize) == 0) {
-                                    XmlCsvExport::getCsvWriter()->writeCsv($out, $headers, XmlExportEngine::$exportOptions['delimiter']);
-                                }
-                                XmlCsvExport::getCsvWriter()->writeCsv($out, $data, XmlExportEngine::$exportOptions['delimiter']);
+                            if (($rowCount % $splitSize) == 0 && $headers !== false) {
+                                fwrite($out, $headers);
                             }
+                            fwrite($out, $data);
                             $rowCount++;
                         }
                         fclose($in);
@@ -214,8 +238,9 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
                         if (!empty($exportOptions['split_files_list']) && !empty($export->options['export_to_sheet']) and $export->options['export_to_sheet'] != 'csv') {
 	                        foreach ($exportOptions['split_files_list'] as $key => $file) {
 		                        $reader = IOFactory::createReader('Csv');
+		                        $reader->setEscapeCharacter(\Wpae\Csv\CsvWriter::escapeFor($export->options));
 		                        // If the files use a delimiter other than a comma (e.g., a tab), then configure the reader
-		                        $reader->setDelimiter($export->options['delimiter']);
+		                        $reader->setDelimiter(pmxe_csv_delimiter($export));
 		                        // Load the file into a Spreadsheet object
 		                        $spreadsheet = $reader->load($file);
 		                        $enableRtl = apply_filters('wp_all_export_enable_rtl', false, $export->id);
@@ -258,10 +283,10 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
             if ($export->options['export_to'] == 'csv') {
                 $f = fopen($filepath, 'r');
 
-                $headers = fgetcsv($f, null, $export->options['delimiter'], '"', '\\');
+                $headers = fgetcsv($f, null, pmxe_csv_delimiter($export), '"', \Wpae\Csv\CsvWriter::escapeFor($export->options));
 
                 while(!feof($f)) {
-                    $data = fgetcsv($f, null, $export->options['delimiter'], '"', '\\');
+                    $data = fgetcsv($f, null, pmxe_csv_delimiter($export), '"', \Wpae\Csv\CsvWriter::escapeFor($export->options));
                     $currentLine = [];
                     if(is_array($data)) {
                         foreach ($data as $key => $value) {
@@ -303,8 +328,9 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
         // convert CSV to XLS
         if (@file_exists($filepath) and $export->options['export_to'] == 'csv' && !empty($export->options['export_to_sheet']) and $export->options['export_to_sheet'] != 'csv') {
 	        $reader = IOFactory::createReader('Csv');
+	        $reader->setEscapeCharacter(\Wpae\Csv\CsvWriter::escapeFor($export->options));
 			// If the file uses a delimiter other than a comma (e.g., a tab), then configure the reader
-	        $reader->setDelimiter($export->options['delimiter']);
+	        $reader->setDelimiter(pmxe_csv_delimiter($export));
 			// Load the file into a Spreadsheet object
 	        $spreadsheet = $reader->load($filepath);
 
@@ -373,12 +399,12 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 		    }
 
 		    // Read the header row.
-		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions));
 		    $columnCount = count($header);
 		    $nonEmptyColumns = array_fill(0, $columnCount, false);
 
 		    // Determine non-empty columns by scanning through each data row.
-		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\')) !== FALSE) {
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions))) !== FALSE) {
 			    foreach ($row as $index => $value) {
 				    if (!empty($value)) {
 					    $nonEmptyColumns[$index] = true;
@@ -391,18 +417,18 @@ function pmxe_pmxe_after_export($export_id, $export, $file = false)
 		    $in = fopen($filepath, 'r');
 
 		    // Write the header row with filtered columns.
-		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+		    $header = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions));
 		    $filteredHeader = array_filter($header, function($key) use ($nonEmptyColumns) {
 			    return $nonEmptyColumns[$key];
 		    }, ARRAY_FILTER_USE_KEY);
-		    fputcsv($out, array_values($filteredHeader), XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+		    XmlCsvExport::getCsvWriter()->writeRow($out, array_values($filteredHeader), XmlExportEngine::$exportOptions['delimiter']);
 
 		    // Write the filtered data rows.
-		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', '\\')) !== FALSE) {
+		    while (($row = fgetcsv($in, 0, XmlExportEngine::$exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor(XmlExportEngine::$exportOptions))) !== FALSE) {
 			    $filteredRow = array_filter($row, function($key) use ($nonEmptyColumns) {
 				    return $nonEmptyColumns[$key];
 			    }, ARRAY_FILTER_USE_KEY);
-			    fputcsv($out, array_values($filteredRow), XmlExportEngine::$exportOptions['delimiter'], '"', '\\');
+			    XmlCsvExport::getCsvWriter()->writeRow($out, array_values($filteredRow), XmlExportEngine::$exportOptions['delimiter']);
 		    }
 
 		    // Close the files.

@@ -27,7 +27,7 @@ function pmxe_admin_head(){
 				GoogleMerchants.constant('NONCE', '<?php echo esc_js($wp_all_export_ajax_nonce); ?>');
 			}
 			var ajaxurl = '<?php echo esc_url(admin_url( "admin-ajax.php" )); ?>';
-			var export_action = '<?php echo esc_js($export_action); ?>';
+			var export_action = '<?php echo esc_js( is_scalar( $export_action ) ? (string) $export_action : '' ); ?>';
 			var wp_all_export_security = '<?php echo esc_js($wp_all_export_ajax_nonce); ?>';
 		</script>
 	<?php

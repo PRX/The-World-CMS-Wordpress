@@ -4,7 +4,7 @@ Tags: GraphQL, Headless, REST API, Decoupled, React
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.24.2
+Stable tag: 2.26.0
 License: GPL-3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Author: WPGraphQL, WordPress.org
@@ -59,13 +59,15 @@ Yes! WPGraphQL works with any client that can make HTTP requests to the GraphQL 
 You can join the WPGraphQL [Discord community](https://discord.gg/AGVBqqyaUY) for support, discussions, and announcements.
 
 = How does WPGraphQL handle privacy and telemetry? =
-WPGraphQL uses the [Appsero SDK](https://appsero.com/privacy-policy) to collect telemetry data **only after user consent**. This helps improve the plugin while respecting user privacy. When telemetry is enabled, the same payloads are also mirrored to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com.
+WPGraphQL uses the [Appsero SDK](https://appsero.com/privacy-policy) to collect telemetry data **only after user consent**. This helps improve the plugin while respecting user privacy. When telemetry is enabled, the same payloads are also mirrored to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com. You can opt out at any time under **GraphQL → Settings**.
 
 == Privacy Policy ==
 
 WPGraphQL uses [Appsero](https://appsero.com) SDK to collect some telemetry data upon user's confirmation. This helps us to troubleshoot problems faster and make product improvements.
 
 Appsero SDK **does not gather any data by default.** The SDK starts gathering basic telemetry data **only when a user allows it via the admin notice**.
+
+You can stop sharing at any time by unchecking **Share Usage Data** under **GraphQL → Settings**. Opting out stops all further check-ins, including the copies sent to https://telemetry.wpgraphql.com. When you opt out, one final request records the opt-out with Appsero (and its copy at https://telemetry.wpgraphql.com). It includes a hashed identifier for your site, but no site details.
 
 When you opt in, each telemetry request is sent to Appsero and a duplicate is sent in a non-blocking request to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com (the same categories of data as described for Appsero below).
 
@@ -349,6 +351,38 @@ The `uri` field was non-null on some Types in the Schema but has been changed to
 Composer dependencies are no longer versioned in Github. Recommended install source is WordPress.org or using Composer to get the code from Packagist.org or WPackagist.org.
 
 == Changelog ==
+
+= 2.26.0 =
+
+**New Features**
+
+* add Site Health recommendations for WPGraphQL security settings ([#4536](https://github.com/wp-graphql/wp-graphql/issues/4536))
+* add static to_global_id() helper to models ([#4586](https://github.com/wp-graphql/wp-graphql/issues/4586))
+* **deps:** bump the npm-prod-minor-patch group with 6 updates ([#4592](https://github.com/wp-graphql/wp-graphql/issues/4592))
+* let sites opt out of usage tracking from settings ([#4508](https://github.com/wp-graphql/wp-graphql/issues/4508))
+
+**Bug Fixes**
+
+* **deps-dev:** bump symfony/yaml from 5.4.53 to 5.4.54 in /plugins/wp-graphql ([#4599](https://github.com/wp-graphql/wp-graphql/issues/4599))
+* **deps-dev:** bump the npm-dev-minor-patch group across 1 directory with 4 updates ([#4601](https://github.com/wp-graphql/wp-graphql/issues/4601))
+* **deps-dev:** bump the npm-dev-minor-patch group with 8 updates ([#4591](https://github.com/wp-graphql/wp-graphql/issues/4591))
+* show a readable error when installing or activating an extension fails ([#4568](https://github.com/wp-graphql/wp-graphql/issues/4568))
+
+= 2.25.0 =
+
+**New Features**
+
+* **deps:** bump the npm-prod-minor-patch group across 1 directory with 13 updates ([#4490](https://github.com/wp-graphql/wp-graphql/issues/4490))
+
+**Bug Fixes**
+
+* **deps-dev:** bump the npm-dev-minor-patch group with 3 updates ([#4496](https://github.com/wp-graphql/wp-graphql/issues/4496))
+* **deps-dev:** bump the npm-dev-minor-patch group, with the @wordpress/env patch regenerated ([#4478](https://github.com/wp-graphql/wp-graphql/issues/4478))
+* **deps-dev:** bump the wp-graphql-composer-dev-minor-patch group across 1 directory with 2 updates ([#4392](https://github.com/wp-graphql/wp-graphql/issues/4392))
+* **deps:** bump the wp-graphql-composer-patch group across 1 directory with 2 updates ([#4502](https://github.com/wp-graphql/wp-graphql/issues/4502))
+* **deps:** bump webonyx/graphql-php from 15.37.2 to 15.37.3 in /plugins/wp-graphql in the wp-graphql-composer-patch group ([#4432](https://github.com/wp-graphql/wp-graphql/issues/4432))
+* **deps:** bump webonyx/graphql-php from 15.37.3 to 15.38.0 in /plugins/wp-graphql ([#4492](https://github.com/wp-graphql/wp-graphql/issues/4492))
+* **graphql:** run WordPress' moderation filter on edited comments ([#4476](https://github.com/wp-graphql/wp-graphql/issues/4476))
 
 = 2.24.2 =
 

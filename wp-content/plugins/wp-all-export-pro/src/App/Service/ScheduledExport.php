@@ -73,7 +73,7 @@ class ScheduledExport
         } elseif ((int)$export->triggered and !(int)$export->processing) {
             try {
                 $response = $export->set(array('canceled' => 0))->execute($logger, true);
-            } catch (AddonNotFoundException $e) {
+            } catch (AddonNotFoundException | ExportTemplateException $e) {
                 die($e->getMessage());
             }
             if (!(int)$export->triggered and !(int)$export->processing) {

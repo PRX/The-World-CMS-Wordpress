@@ -346,7 +346,8 @@ final class Licensing
             (string) $this->options->get('info_api_url_new', 'https://update.wpallimport.com'),
             is_string($key) && $key !== '' ? $key : $this->licenseKey(),
             PMXE_Plugin::getEddName(),
-            home_url()
+            home_url(),
+            defined('PMXE_VERSION') ? PMXE_VERSION : ''
         );
 
         if ($status !== null) {

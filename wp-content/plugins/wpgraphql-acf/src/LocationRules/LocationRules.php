@@ -72,7 +72,7 @@ class LocationRules {
 	 * @param string $graphql_type_name The name of the GraphQL Type
 	 */
 	public function unset_graphql_type( string $field_group_name, string $graphql_type_name ): void {
-		$this->unset_types[ Utils::format_field_name( $field_group_name, true ) ][] = ucfirst( Utils::format_field_name( $graphql_type_name, true ) );
+		$this->unset_types[ strtolower( Utils::format_field_name( $field_group_name, true ) ) ][] = ucfirst( Utils::format_field_name( $graphql_type_name, true ) );
 	}
 
 	/**
@@ -95,14 +95,14 @@ class LocationRules {
 		 */
 		foreach ( $this->unset_types as $field_group => $types ) {
 
-			// If there are no mapped field groups for the rule being unset, return the mapped groups as is
+			// If there are no mapped types for the field group being unset, there is nothing to remove
 			if ( ! isset( $this->mapped_field_groups[ $field_group ] ) ) {
-				return $this->mapped_field_groups;
+				continue;
 			}
 
-			// If the types to unset are empty or not an array, return the mapped field groups as is
+			// If the types to unset are empty or not an array, there is nothing to remove
 			if ( empty( $types ) || ! is_array( $types ) ) {
-				return $this->mapped_field_groups;
+				continue;
 			}
 
 			// Loop over the types to unset, find the key of the type in the array, then unset it
@@ -719,17 +719,29 @@ class LocationRules {
 		}
 
 		if ( '==' === $operator ) {
-			$acf_block = acf_get_block_type( $value );
+			// "All" matches every ACF block type, so map the field group to each one shown in GraphQL
+			$acf_blocks = 'all' === $value ? acf_get_block_types() : [ acf_get_block_type( $value ) ];
 
-			if ( empty( $acf_block ) || ! \WPGraphQL\Acf\Utils::should_field_group_show_in_graphql( $acf_block ) ) {
+			if ( empty( $acf_blocks ) || ! is_array( $acf_blocks ) ) {
 				return;
 			}
 
-			$type_name = \WPGraphQL\Acf\Utils::get_field_group_name( $acf_block );
-			$this->set_graphql_type( $field_group_name, $type_name );
+			foreach ( $acf_blocks as $acf_block ) {
+				if ( empty( $acf_block ) || ! is_array( $acf_block ) || ! \WPGraphQL\Acf\Utils::should_field_group_show_in_graphql( $acf_block ) ) {
+					continue;
+				}
+
+				$type_name = \WPGraphQL\Acf\Utils::get_field_group_name( $acf_block );
+				$this->set_graphql_type( $field_group_name, $type_name );
+			}
 		}
 
 		if ( '!=' === $operator ) {
+			// "Not equal to all" matches no block, so there is nothing to map
+			if ( 'all' === $value ) {
+				return;
+			}
+
 			$acf_blocks = acf_get_block_types();
 
 			if ( empty( $acf_blocks ) || ! is_array( $acf_blocks ) ) {

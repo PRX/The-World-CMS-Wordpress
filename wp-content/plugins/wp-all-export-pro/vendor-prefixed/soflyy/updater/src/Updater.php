@@ -87,6 +87,8 @@ abstract class Updater
      */
     const RESOLVED_WINDOW = 1;
 
+    const CACHED_VERSION_KEY = 'soflyy_updater_cached_at_version';
+
     /**
      * The record this render resolved, false when the lookup produced none,
      * and null before either has happened.
@@ -306,17 +308,21 @@ abstract class Updater
         }
 
         $cached = $this->cache->get($this->cacheKey);
+        // The service learns the installed version only from this ping.
+        $versionChanged = null !== $cached && ! $this->cachedAtThisVersion($cached);
 
-        if (Unresolved::is($cached)) {
-            return $this->remember(false);
-        }
+        if (! $versionChanged) {
+            if (Unresolved::is($cached)) {
+                return $this->remember(false);
+            }
 
-        if (null !== $cached) {
-            return $this->remember($cached);
-        }
+            if (null !== $cached) {
+                return $this->remember($this->withoutVersionStamp($cached));
+            }
 
-        if ($this->askedTooRecently()) {
-            return $this->remember(false);
+            if ($this->askedTooRecently()) {
+                return $this->remember(false);
+            }
         }
 
         $this->stampCall();
@@ -324,16 +330,53 @@ abstract class Updater
         $fetched = $this->client->fetch([], $this->additionalRequestParameters() + $this->diagnosticParameters());
 
         if (is_object($fetched)) {
-            $this->cache->put($this->cacheKey, $fetched);
+            $this->cache->put($this->cacheKey, $this->withVersionStamp($fetched));
             $this->recordCacheState($this->cacheVolatility());
 
             return $this->remember($fetched);
         }
 
-        $this->cache->put($this->cacheKey, Unresolved::record(), $this->unresolvedCacheTtl());
+        $this->cache->put($this->cacheKey, $this->withVersionStamp(Unresolved::record()), $this->unresolvedCacheTtl());
         $this->recordCacheState($this->cacheVolatility());
 
         return $this->remember(false);
+    }
+
+    /**
+     * An unstamped record, written by an earlier build, is trusted as before.
+     *
+     * @param  object  $cached
+     * @return bool
+     */
+    private function cachedAtThisVersion($cached)
+    {
+        return ! is_object($cached)
+            || ! isset($cached->{self::CACHED_VERSION_KEY})
+            || (string) $cached->{self::CACHED_VERSION_KEY} === $this->version;
+    }
+
+    /**
+     * @param  object  $record
+     * @return object
+     */
+    private function withVersionStamp($record)
+    {
+        $stamped = clone $record;
+        $stamped->{self::CACHED_VERSION_KEY} = $this->version;
+
+        return $stamped;
+    }
+
+    /**
+     * @param  object  $record
+     * @return object
+     */
+    private function withoutVersionStamp($record)
+    {
+        $clean = clone $record;
+        unset($clean->{self::CACHED_VERSION_KEY});
+
+        return $clean;
     }
 
     /**
@@ -503,15 +546,83 @@ abstract class Updater
         }
 
         if ($this->isOfferable($versionInfo)) {
-            $transient->response[$this->name] = $versionInfo;
+            $this->listIn($transient, 'response', $versionInfo);
         } elseif ($this->phpRefusalNeedsWordPressToReportIt($versionInfo)) {
-            $transient->response[$this->name] = $this->withPhpFloor($versionInfo);
+            $this->listIn($transient, 'response', $this->withPhpFloor($versionInfo));
+        } elseif (! version_compare($this->version, $versionInfo->new_version, '<')) {
+            $this->listIn($transient, 'no_update', $this->noUpdateEntry($versionInfo));
         }
 
         $transient->last_checked = time();
         $transient->checked[$this->name] = $this->version;
 
         return $transient;
+    }
+
+    /**
+     * A reader must never find the product offered and up to date at once.
+     *
+     * @param  object  $transient
+     * @param  string  $list  'response' or 'no_update'.
+     * @param  object  $entry
+     * @return void
+     */
+    private function listIn($transient, $list, $entry)
+    {
+        $other = 'response' === $list ? 'no_update' : 'response';
+
+        if (isset($transient->{$other}) && is_array($transient->{$other})) {
+            unset($transient->{$other}[$this->name]);
+        }
+
+        if (! isset($transient->{$list})) {
+            $transient->{$list} = [];
+        }
+
+        $transient->{$list}[$this->name] = $entry;
+    }
+
+    /**
+     * The `no_update` entry core writes for a plugin it knows to be current.
+     * Security scanners such as Wordfence read the slug and update state from
+     * these lists.
+     *
+     * The id is the plugin file, as core's own placeholder for a plugin it has
+     * no entry for. new_version is the installed version, not the service's,
+     * which can be older on a pre-release build. The floors and tested-up-to
+     * are copied only when the record describes the installed build: core
+     * merges the entry into the plugin's row data and hands it to the
+     * auto_update_plugin filter and Site Health as the installed build's.
+     *
+     * @param  object  $versionInfo
+     * @return object
+     */
+    private function noUpdateEntry($versionInfo)
+    {
+        $entry = (object) [
+            'id' => $this->name,
+            'slug' => $this->slug,
+            'plugin' => $this->name,
+            'new_version' => $this->version,
+            'url' => isset($versionInfo->url) && is_string($versionInfo->url) ? $versionInfo->url : '',
+            'package' => '',
+        ];
+
+        foreach (['icons', 'banners', 'banners_rtl'] as $field) {
+            if (! empty($versionInfo->{$field})) {
+                $entry->{$field} = $versionInfo->{$field};
+            }
+        }
+
+        if (version_compare($this->version, $versionInfo->new_version, '==')) {
+            foreach (['requires', 'tested', 'requires_php'] as $field) {
+                if (isset($versionInfo->{$field}) && '' !== $versionInfo->{$field}) {
+                    $entry->{$field} = $versionInfo->{$field};
+                }
+            }
+        }
+
+        return $entry;
     }
 
     /**
@@ -577,9 +688,11 @@ abstract class Updater
                 // Whatever core does with the network transient must find the
                 // floor under the name it reads and a package property to
                 // read, empty -- never a URL for a build that was withheld.
-                $updateCache->response[$this->name] = $this->satisfiesPhpRequirement($versionInfo)
+                $this->listIn($updateCache, 'response', $this->satisfiesPhpRequirement($versionInfo)
                     ? $versionInfo
-                    : $this->withPhpFloor($versionInfo);
+                    : $this->withPhpFloor($versionInfo));
+            } else {
+                $this->listIn($updateCache, 'no_update', $this->noUpdateEntry($versionInfo));
             }
 
             $updateCache->last_checked = time();
@@ -658,7 +771,17 @@ abstract class Updater
 
         $versionInfo = $this->versionInfo();
 
-        return is_object($versionInfo) ? $versionInfo : $data;
+        if (! is_object($versionInfo)) {
+            return $data;
+        }
+
+        // Core's details modal and scanners such as Wordfence read the latest release from version, as wordpress.org states it.
+        $information = clone $versionInfo;
+        if (! isset($information->version) && isset($information->new_version)) {
+            $information->version = $information->new_version;
+        }
+
+        return $information;
     }
 
     /**

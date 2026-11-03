@@ -55,9 +55,10 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 		XmlExportEngine::$exportOptions['wpml_lang'] = empty($post['wpml_lang']) ? $sessionLang : $post['wpml_lang'];
 	}
 
+	$wpml_switched = false;
 	if (class_exists('SitePress') && !empty(XmlExportEngine::$exportOptions['wpml_lang'])){
 		PMXE_Plugin::$session->set('wpml_lang', XmlExportEngine::$exportOptions['wpml_lang']);
-		do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
+		$wpml_switched = \Wpae\WordPress\WpmlLanguage::switchTo( XmlExportEngine::$exportOptions['wpml_lang'] );
 	}
 
     XmlExportEngine::$is_user_export = ( 'users' == $post['cpt'] ) ? true : false;
@@ -82,6 +83,7 @@ function pmxe_wp_ajax_wpae_filtering_count(){
         $filters->init($filter_args);
         $filters->parse();
     } catch (\Wpae\App\Service\Addons\AddonNotFoundException $e) {
+	    \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 	    die($e->getMessage());
     }
 
@@ -395,6 +397,7 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 					<h4><?php printf(esc_html__("Exporting taxonomies requires WordPress 4.6 or greater", "wp_all_export_plugin"), wp_all_export_get_cpt_name($cpt, 2, $post)); ?></h4>
 				</div>
 				<?php
+				\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 				exit(json_encode(array('html' => ob_get_clean(), 'found_records' => 0, 'hasVariations' => $hasVariations))); die;
 			}
 
@@ -517,8 +520,9 @@ function pmxe_wp_ajax_wpae_filtering_count(){
 
     if (class_exists('SitePress') && !empty(XmlExportEngine::$exportOptions['wpml_lang']) && defined('ICL_LANGUAGE_CODE')){
         PMXE_Plugin::$session->set('wpml_lang', XmlExportEngine::$exportOptions['wpml_lang']);
-        do_action( 'wpml_switch_language', ICL_LANGUAGE_CODE );
     }
+
+    \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 
     if(XmlExportTaxonomy::$is_active) {
         if(isset($exportQuery)) {

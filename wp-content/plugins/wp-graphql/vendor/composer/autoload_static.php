@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitb17eb1e8ca606ee335df408586a216cb
+class ComposerStaticInit6a14378ab276a946136982f450fb5ab9
 {
     public static $prefixLengthsPsr4 = array (
         'W' =>
@@ -289,11 +289,13 @@ class ComposerStaticInitb17eb1e8ca606ee335df408586a216cb
         'WPGraphQL\\Admin\\SettingsReview\\StepRegistry' => __DIR__ . '/../..' . '/src/Admin/SettingsReview/StepRegistry.php',
         'WPGraphQL\\Admin\\Settings\\Settings' => __DIR__ . '/../..' . '/src/Admin/Settings/Settings.php',
         'WPGraphQL\\Admin\\Settings\\SettingsRegistry' => __DIR__ . '/../..' . '/src/Admin/Settings/SettingsRegistry.php',
+        'WPGraphQL\\Admin\\SiteHealth\\SiteHealth' => __DIR__ . '/../..' . '/src/Admin/SiteHealth/SiteHealth.php',
         'WPGraphQL\\Admin\\Updates\\PluginsScreenLoader' => __DIR__ . '/../..' . '/src/Admin/Updates/PluginsScreenLoader.php',
         'WPGraphQL\\Admin\\Updates\\SemVer' => __DIR__ . '/../..' . '/src/Admin/Updates/SemVer.php',
         'WPGraphQL\\Admin\\Updates\\UpdateChecker' => __DIR__ . '/../..' . '/src/Admin/Updates/UpdateChecker.php',
         'WPGraphQL\\Admin\\Updates\\Updates' => __DIR__ . '/../..' . '/src/Admin/Updates/Updates.php',
         'WPGraphQL\\Admin\\Updates\\UpdatesScreenLoader' => __DIR__ . '/../..' . '/src/Admin/Updates/UpdatesScreenLoader.php',
+        'WPGraphQL\\Admin\\UsageTracking' => __DIR__ . '/../..' . '/src/Admin/UsageTracking.php',
         'WPGraphQL\\AppContext' => __DIR__ . '/../..' . '/src/AppContext.php',
         'WPGraphQL\\CLI\\Commands' => __DIR__ . '/../..' . '/src/CLI/Commands.php',
         'WPGraphQL\\Connection\\Comments' => __DIR__ . '/../..' . '/deprecated/Comments.php',
@@ -522,9 +524,9 @@ class ComposerStaticInitb17eb1e8ca606ee335df408586a216cb
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitb17eb1e8ca606ee335df408586a216cb::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitb17eb1e8ca606ee335df408586a216cb::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitb17eb1e8ca606ee335df408586a216cb::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -81,7 +81,7 @@ class URE_Uninstall {
             $this->delete_caps();
         } else {
             $old_blog = $wpdb->blogid;
-            $blog_ids = $this->lib->get_blog_ids();
+            $blog_ids = $this->lib->get_blog_ids( false );  // clean up all sites, including archived, spam and deleted
             foreach ( $blog_ids as $blog_id ) {
                 switch_to_blog( $blog_id );
                 $this->delete_options();

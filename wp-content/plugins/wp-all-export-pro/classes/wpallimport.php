@@ -355,6 +355,9 @@ final class PMXE_Wpallimport
 			if ( 'csv' == $exportOptions['export_to'] ) 
 			{						
 				$tpl_options['delimiter'] = $exportOptions['delimiter'];
+				if ( empty($exportOptions['export_to_sheet']) || 'csv' == $exportOptions['export_to_sheet'] ) {
+					$tpl_options['csv_escape'] = \Wpae\Csv\CsvWriter::markerFor($exportOptions);
+				}
 				$tpl_options['root_element'] = 'node';
 			}
 			else
@@ -453,7 +456,13 @@ final class PMXE_Wpallimport
 
 					$target = $is_secure_import ? $wp_uploads['basedir'] . DIRECTORY_SEPARATOR . PMXE_Plugin::UPLOADS_DIRECTORY . DIRECTORY_SEPARATOR . $security_folder : $wp_uploads['path'];						
 
-					$csv = new PMXI_CsvParser( array( 'filename' => $xmlPath, 'targetDir' => $target, 'delimiter' =>  $options['delimiter']) );
+					$parser_options = array( 'filename' => $xmlPath, 'targetDir' => $target, 'delimiter' =>  $options['delimiter'] );
+					if ( empty($exportOptions['export_to_sheet']) || 'csv' == $exportOptions['export_to_sheet'] ) {
+						$options['csv_escape'] = \Wpae\Csv\CsvWriter::markerFor($exportOptions);
+						$parser_options['escape'] = \Wpae\Csv\CsvWriter::escapeFor($exportOptions);
+					}
+
+					$csv = new PMXI_CsvParser( $parser_options );
 
 					if ( ! in_array($xmlPath, $exportOptions['attachment_list']) )
 					{

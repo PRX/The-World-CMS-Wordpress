@@ -79,7 +79,7 @@ if(!defined('ABSPATH')) {
                     style="padding:4px; display: block;"><?php esc_html_e("Timezone", "wp_all_export_plugin"); ?></label>
                 <select class="date_field_timezone" style="width: 100%; height: 30px;">
                     <option value="utc"><?php esc_html_e("UTC", "wp_all_export_plugin"); ?></option>
-                    <option value="site"><?php printf(esc_html__("Site timezone (%s)", "wp_all_export_plugin"), esc_html(wp_timezone_string())); ?></option>
+                    <option value="site"><?php printf(esc_html__("Site timezone (%s)", "wp_all_export_plugin"), esc_html(wpae_timezone_string())); ?></option>
                 </select>
             </div>
         </div>

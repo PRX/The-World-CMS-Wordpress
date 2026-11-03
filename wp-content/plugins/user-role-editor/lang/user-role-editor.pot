@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: User Role Editor 4.66.2\n"
+"Project-Id-Version: User Role Editor 4.66.3\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/user-role-editor\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-09-14T03:31:55+00:00\n"
+"POT-Creation-Date: 2026-10-23T08:19:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: user-role-editor\n"
@@ -18,6 +18,7 @@ msgstr ""
 #: user-role-editor.php
 #: includes/classes/capabilities-groups-manager.php:86
 #: includes/classes/editor.php:1534
+#: includes/classes/lib.php:378
 #: includes/classes/user-role-editor.php:556
 #: includes/classes/user-role-editor.php:557
 #: includes/classes/user-role-editor.php:569
@@ -43,7 +44,7 @@ msgstr ""
 msgid "Vladimir Garagulya"
 msgstr ""
 
-#: includes/classes/ajax-processor.php:249
+#: includes/classes/ajax-processor.php:250
 #: includes/classes/grant-roles.php:77
 #: includes/classes/grant-roles.php:158
 #: includes/classes/grant-roles.php:310
@@ -670,32 +671,32 @@ msgstr ""
 msgid "Select users from which you wish revoke role!"
 msgstr ""
 
-#: includes/classes/lib.php:393
+#: includes/classes/lib.php:380
 msgid "Version:"
 msgstr ""
 
-#: includes/classes/lib.php:394
+#: includes/classes/lib.php:381
 msgid "Author's website"
 msgstr ""
 
-#: includes/classes/lib.php:395
+#: includes/classes/lib.php:382
 msgid "Plugin webpage"
 msgstr ""
 
-#: includes/classes/lib.php:396
+#: includes/classes/lib.php:383
 msgid "Plugin download"
 msgstr ""
 
-#: includes/classes/lib.php:397
+#: includes/classes/lib.php:384
 #: includes/classes/user-role-editor.php:502
 msgid "Changelog"
 msgstr ""
 
-#: includes/classes/lib.php:398
+#: includes/classes/lib.php:385
 msgid "FAQ"
 msgstr ""
 
-#: includes/classes/lib.php:589
+#: includes/classes/lib.php:574
 msgid "URE: Wrong or expired request"
 msgstr ""
 
@@ -927,6 +928,10 @@ msgstr ""
 
 #: includes/classes/settings.php:125
 msgid "Default Roles are updated"
+msgstr ""
+
+#: includes/classes/tools.php:20
+msgid "Reset User Roles"
 msgstr ""
 
 #: includes/classes/tools.php:21

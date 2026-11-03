@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit0591a3362238a7db3861528f45b33bcb
+class ComposerStaticInite43dab7c88aca29f1b03a31dba7944a8
 {
     public static $files = array (
         '7e91f78845d64962fd49044188232364' => __DIR__ . '/../..' . '/access-functions.php',
@@ -38,7 +38,6 @@ class ComposerStaticInit0591a3362238a7db3861528f45b33bcb
         'Appsero\\Client' => __DIR__ . '/..' . '/appsero/client/src/Client.php',
         'Appsero\\Insights' => __DIR__ . '/..' . '/appsero/client/src/Insights.php',
         'Appsero\\License' => __DIR__ . '/..' . '/appsero/client/src/License.php',
-        'Appsero\\Updater' => __DIR__ . '/..' . '/appsero/client/src/Updater.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'WPGraphQL\\Acf\\AcfGraphQLFieldResolver' => __DIR__ . '/../..' . '/src/AcfGraphQLFieldResolver.php',
         'WPGraphQL\\Acf\\AcfGraphQLFieldType' => __DIR__ . '/../..' . '/src/AcfGraphQLFieldType.php',
@@ -109,9 +108,9 @@ class ComposerStaticInit0591a3362238a7db3861528f45b33bcb
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit0591a3362238a7db3861528f45b33bcb::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit0591a3362238a7db3861528f45b33bcb::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit0591a3362238a7db3861528f45b33bcb::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInite43dab7c88aca29f1b03a31dba7944a8::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInite43dab7c88aca29f1b03a31dba7944a8::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInite43dab7c88aca29f1b03a31dba7944a8::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -17,7 +17,7 @@ class URE_Tools {
 
     <div style="margin: 10px 0 10px 0; border: 1px solid red; padding: 0 10px 10px 10px; text-align:left;">        
         <form name="ure_reset_roles_form" id="ure_reset_roles_form" method="post" action="<?php echo esc_url( $link . '?page=settings-' . URE_Core::get_plugin_file() ); ?>" >
-            <h3>Reset User Roles</h3>
+            <h3><?php esc_html_e( 'Reset User Roles', 'user-role-editor' ); ?></h3>
             <span style="color: red;"><?php esc_html_e('WARNING!', 'user-role-editor');?></span>&nbsp;
 <?php        
             esc_html_e('Resetting will setup default user roles and capabilities from WordPress core.', 'user-role-editor'); echo '<br>';
