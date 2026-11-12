@@ -310,6 +310,21 @@ if($is_rapid_addon_export) {
 												<label style="width: 80px; margin-left: 20px;"><?php esc_html_e('Separator:','wp_all_export_plugin');?></label>
 												<input type="text" name="delimiter" value="<?php echo esc_attr($post['delimiter']) ?>" style="width: 40px; height: 30px; top: 0px; text-align: center;"/>
 											</div>
+											<?php $csv_escape = \Wpae\Csv\CsvWriter::formatFor($post); ?>
+											<div class="wp-all-export-additional-csv-options wp-all-export-csv-format">
+												<h4><?php esc_html_e('CSV Format', 'wp_all_export_plugin'); ?></h4>
+												<div class="input">
+													<input type="radio" id="csv_escape_rfc" name="csv_escape" value="rfc" <?php if ($csv_escape === 'rfc'):?>checked="checked"<?php endif; ?>/>
+													<label for="csv_escape_rfc"><?php esc_html_e('Standard (RFC 4180)', 'wp_all_export_plugin'); ?></label>
+												</div>
+												<div class="input">
+													<input type="radio" id="csv_escape_backslash" name="csv_escape" value="backslash" <?php if ($csv_escape === 'backslash'):?>checked="checked"<?php endif; ?>/>
+													<label for="csv_escape_backslash"><?php esc_html_e('Backslash-escaped (compatible with older WP All Import)', 'wp_all_export_plugin'); ?></label>
+													<span>
+														<a href="#help" class="wpallexport-help" style="position: relative; top: 0px;" title="<?php esc_attr_e('Standard CSV opens correctly in Excel, Google Sheets and current WP All Import. Backslash-escaped matches files from earlier versions of WP All Export.', 'wp_all_export_plugin'); ?>">?</a>
+													</span>
+												</div>
+											</div>
 											<div class="wp-all-export-additional-csv-options">
 												<h4><?php esc_html_e('CSV Header Row', 'wp_all_export_plugin'); ?></h4>
 												<div class="input">
@@ -452,7 +467,7 @@ if($is_rapid_addon_export) {
 													<option value="simple" <?php if ($post['xml_template_type'] == 'simple') echo 'selected="selected"';?>><?php esc_html_e('Simple XML Feed', 'wp_all_export_plugin'); ?></option>
 													<option value="custom" <?php if ($post['export_to'] === 'xml' && $post['xml_template_type'] == 'custom') echo 'selected="selected"';?>><?php esc_html_e('Custom XML Feed', 'wp_all_export_plugin'); ?></option>
 													<?php
-													if(in_array('product', $post['cpt'])) {
+													if(in_array('product', $post['cpt']) && class_exists('WooCommerce')) {
 														?>
 														<option value="<?php echo esc_attr(XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS); ?>" <?php if ($post['xml_template_type'] == XmlExportEngine::EXPORT_TYPE_GOOLE_MERCHANTS) echo 'selected="selected"';?>><?php esc_html_e('Google Merchant Center Product Feed', 'wp_all_export_plugin'); ?></option>
 													<?php

@@ -3026,6 +3026,9 @@ class Xls extends BaseReader
                             break;
                         }
                     }
+                    if ($pos >= $limitpos) {
+                        throw new Exception('Corrupt shared string table: string ' . $i . ' runs past the end of the record');
+                    }
 
                     // repeated option flags
                     // OpenOffice.org documentation 5.21

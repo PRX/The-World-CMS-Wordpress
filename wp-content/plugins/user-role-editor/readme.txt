@@ -2,9 +2,9 @@
 Contributors: shinephp
 Tags: user, role, editor, security, access
 Requires at least: 4.7
-Tested up to: 7.1.2
-Stable tag: 4.66.2
-Requires PHP: 7.4
+Tested up to: 7.2
+Stable tag: 4.66.3
+Requires PHP: 8.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -21,7 +21,7 @@ Capabilities could be assigned on per user basis. Multiple roles could be assign
 You can add new capabilities and remove unnecessary capabilities which could be left from uninstalled plugins.
 Multi-site support is provided.
 
-To read more about 'User Role Editor' visit [this page](https://www.shinephp.com/user-role-editor-wordpress-plugin/)
+To read more about 'User Role Editor' visit [this page](https://role-editor.com/documentation/general-features-free-version/)
 
 
 Do you need more functionality with quality support in a real time? Do you wish to remove advertisements from User Role Editor pages? 
@@ -60,8 +60,6 @@ Yes, it works with WordPress multi-site. By default plugin works for every blog 
 To update selected role globally for the Network you should turn on the "Apply to All Sites" checkbox. You should have superadmin privileges to use User Role Editor under WordPress multi-site.
 Pro version allows to manage roles of the whole network from the Netwok Admin.
 
-To read full FAQ section visit [this page](http://www.shinephp.com/user-role-editor-wordpress-plugin/#faq) at [shinephp.com](shinephp.com).
-
 == Screenshots ==
 1. screenshot-1.png User Role Editor main form
 2. screenshot-2.png Add/Remove roles or capabilities
@@ -70,15 +68,20 @@ To read full FAQ section visit [this page](http://www.shinephp.com/user-role-edi
 5. screenshot-5.png Bulk change role for users without roles
 6. screenshot-6.png Assign multiple roles to the selected users
 
-To read more about 'User Role Editor' visit [this page](http://www.shinephp.com/user-role-editor-wordpress-plugin/) at [shinephp.com](shinephp.com).
+To read more about 'User Role Editor' visit [this page](https://role-editor.com/documentation/) at [https://role-editor.com](role-editor.com).
 
 = Translations =
 
-If you wish to check available translations or help with plugin translation to your language visit this link
-https://translate.wordpress.org/projects/wp-plugins/user-role-editor/
+If you wish to check available translations or help with plugin translation to your language visit [this link](https://translate.wordpress.org/projects/wp-plugins/user-role-editor/)
 
 
 == Changelog =
+
+= [4.66.3] 26.10.2026 =
+* Update: Marked as compatible with WordPress version 7.2
+* Update: Required PHP version increased up to 8.2
+* Fix: Multisite: only the first 100 sites of a network were processed when a role change was applied to all sites of the network and when plugin data was cleaned up on uninstall, as get_sites() (used by URE_Base_Lib::get_blog_ids() since version 4.66) returns 100 sites max by default.
+* New: 'ure_get_blog_ids_args' filter allows to exclude archived, spam and deleted sites from the list of network sites processed by the plugin (e.g. when a role change is applied to all sites of the network). Return an array with any of 'archived', 'spam', 'deleted' keys set to 0 (exclude such sites) or 1 (process such sites only), e.g. array( 'archived' => 0, 'spam' => 0, 'deleted' => 0 ). Other get_sites() arguments are ignored. Plugin data cleanup on uninstall always processes all sites.
 
 = [4.66.2] 25.09.2026 =
 * Security Fix: administrator-role protection (URE_Protect_Admin::exclude_admin_role()) only excluded the "administrator" role from the assignable-roles list on the classic user edit screens, not on the plugin's own admin-ajax.php actions; a user holding the "promote_users" capability (without the plugin's own key capability) could therefore grant themselves or another user the "administrator" role via the "Add Role"/"Grant Roles" AJAX action, bypassing the same protection the classic Users screen correctly enforced. Discovered and responsibly reported by Humberto (SVO, https://svo.com.br).
@@ -96,56 +99,13 @@ https://translate.wordpress.org/projects/wp-plugins/user-role-editor/
 * Update: js/user-profile-other-roles.js's loose global functions (the user profile "Other Roles" multi-select control) were consolidated into a single URE_User_Profile_Other_Roles object.
 * Update: js/settings.js's loose global functions (the Settings page's "Reset User Roles" confirmation dialog) were consolidated into a single URE_Settings object.
 
-= [4.66.1] 25.08.2026 =
-* Fix: URE_Assign_Role::$lib property was changed to protected.
-* Fix: URE_Uninstall::delete_options() private function changed to protected.
-* Fix: URE_Uninstall::init_options_list() referenced 'ure_task_queue', which never matched URE_Task_Queue::OPTION_NAME ('ure_tasks_queue'), so that option was never deleted on uninstall.
-* Fix: URE_Core::define_files() - class URE_Uninstall was not added correctly, null was written instead of class name.
-* Fix: activating Pro while free was already active caused a fatal "Cannot redeclare ure_log_error()" error; the function declaration is now guarded with function_exists().
-* Fix: activating this plugin while the paired Pro plugin was already active silently left both active instead of deactivating the paired one, because the register_activation_hook() call never ran in that request; it's now registered as a standalone function directly in the main plugin file, ahead of the class_exists('URE_Loader') guard that was skipping it.
-
-= [4.66] 19.08.2026 =
-* Update: Marked as compatible with WordPress 7.1
-* Required PHP version increased up to 7.4
-* Required WordPress version increased up to 4.6
-* Update: Plugin loading code is enhanced.
-* Update: Plugin does not use self-defined PHP global constants. Needed data moved inside classes.
-* Update: URE_Admin_Notice class output was escaped with esc_attr(), wp_kses_post() functions.
-* Security Fix: SQL queries in URE_Editor::direct_network_roles_update() and leave_roles_for_blog() are passed to $wpdb->prepare() with real %s placeholders.
-* Security Fix: URE_Editor::get_caps_columns_quant() now requires a valid nonce before writing a display-preference transient from $_POST, closing a minor CSRF gap.
-* Fix: URE_Protect_Admin used a bitwise "&" instead of a logical "&&" when checking a capabilities array, which could throw a PHP 8 TypeError; fixed to use "&&", and the related IN() SQL clause is now hardened with array_map('absint', ...).
-* Update: nonce actions used on the Settings/Tools pages are now scoped per form (ure_settings_update, ure_addons_settings_update, ure_default_roles_update, ure_settings_ms_update, ure_settings_tools_exec) instead of one shared string.
-* Update: additional output escaping was added across URE_View, URE_Role_View and URE_Role_Additional_Options (role/capability slugs, wp_json_encode() instead of json_encode(), esc_url() on form actions), plus a defense-in-depth capability check in URE_Role_Additional_Options::save().
-* Update: rel="noopener noreferrer" was added to external links opened with target="_new".
-* Update: hardcoded text strings in the role editor toolbar are now translatable.
-* Fix: URE_Assign_Role used the %i SQL placeholder, which needs WordPress 6.2+, below the plugin's declared minimum; replaced with direct interpolation of internal table names.
-* Fix: URE_Editor::reset_user_roles() had an unescaped wp_die() message; further output escaping (esc_url(), esc_html(), absint()) was added across URE_Base_Lib, URE_Editor, URE_User_Other_Roles and URE_User_View.
-* Fix: several request-var/database-result comparisons that could be bypassed by PHP type juggling are now strict, including URE_Grant_Roles::is_try_remove_admin_from_himself()'s "can't remove your own admin role" check.
-* Fix: URE_Base_Lib::set() now correctly rejects unknown properties instead of silently creating them; URE_View declares its $advert property explicitly.
-* Update: $_SERVER['REQUEST_URI'] is now validated and unslashed before sanitizing in URE_Lib::is_right_admin_path() and URE_User_Other_Roles::is_user_profile_extention_allowed().
-* Update: posted role IDs are now sanitized (sanitize_key(), wp_unslash()) in URE_Editor, and its 'object'/role-selection request parameters are constrained to known values.
-* Update: URE_Base_Lib::get_blog_ids() now uses get_sites() instead of a raw database query.
-* Update: URE_Capability::revoke_caps() now uses get_users() instead of a raw database query.
-* Update: URE_Protect_Admin::has_administrator_role() now uses user_can() instead of a raw database query.
-
-
-= [4.65] 21.05.2026 =
-* Update: Marked as compatible with WordPress 7.0
-* Update: Pages markup are modified to correspond WordPress 7.0 CSS changes.
-* Update: "defined('ABSPATH')" guard was added to all PHP files to exclude PHP files direct execution.
-* Update: sanitize_text_field(), sanitize_key(), sanitize_url() functions are used to secure user input before processing.
-* Update: _nonce field checking was added before data update in addition to test made already on the higher level.
-
-
 File changelog.txt contains the full list of changes.
 
 == Additional Documentation ==
 
-You can find more information about "User Role Editor" plugin at [this page](http://www.shinephp.com/user-role-editor-wordpress-plugin/)
-
-I am ready to answer on your questions about plugin usage. Use [plugin page comments](http://www.shinephp.com/user-role-editor-wordpress-plugin/) for that.
+You can find more information about "User Role Editor" plugin at [this page](https://role-editor.com/documentation/)
 
 == Upgrade Notice ==
 
-= [4.66.1] 23.08.2026 =
-Bugfix release: fixes an uninstall option-name mismatch that left a stray option behind, plus two property-visibility fixes.
+= [4.66.3] 26.10.2026 =
+Bugfix release: Multisite: only the first 100 sites of a network were processed when a role change was applied to all sites of the network and when plugin data was cleaned up on uninstall.

@@ -3,7 +3,7 @@
         'name' => 'wp-graphql/wp-graphql',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '88431a5f226827df0e35ceae7ac111d21772ffad',
+        'reference' => 'a24d6826f51afed4a66cdc69be501371249f736f',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'appsero/client' => array(
-            'pretty_version' => 'v2.0.6',
-            'version' => '2.0.6.0',
-            'reference' => '2e553be6a47b387a7b05496f6a6e8d8595dd0d08',
+            'pretty_version' => 'v2.0.7',
+            'version' => '2.0.7.0',
+            'reference' => 'dc54c071df32604af1236a180abb83e2d181c3ba',
             'type' => 'library',
             'install_path' => __DIR__ . '/../appsero/client',
             'aliases' => array(),
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'webonyx/graphql-php' => array(
-            'pretty_version' => 'v15.37.2',
-            'version' => '15.37.2.0',
-            'reference' => 'f2a5d802213eb231d17a21badbda22b01435f177',
+            'pretty_version' => 'v15.38.1',
+            'version' => '15.38.1.0',
+            'reference' => '32edc67af119b709d020f93447729afd503fe56a',
             'type' => 'library',
             'install_path' => __DIR__ . '/../webonyx/graphql-php',
             'aliases' => array(),
@@ -40,7 +40,7 @@
         'wp-graphql/wp-graphql' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '88431a5f226827df0e35ceae7ac111d21772ffad',
+            'reference' => 'a24d6826f51afed4a66cdc69be501371249f736f',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

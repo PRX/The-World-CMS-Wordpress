@@ -26,6 +26,18 @@ final class XmlExportCpt
 			$entryId = is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt']) ? $entry->order_id ?? $entry->id ?? $entry->ID : $entry->id ?? $entry->ID;
 		}
 
+		// Under HPOS the order add-on reads wc_orders columns (id, status, billing_email), which a WP_Post from a WP_Query export lacks.
+		if ($entry instanceof \WP_Post && 'shop_order' === $entry->post_type && !isset($entry->id) && PMXE_Plugin::hposEnabled()) {
+			global $wpdb;
+			$orderRow = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_orders WHERE id = %d", $entry->ID));
+			if ($orderRow) {
+				$orderRow->ID = $orderRow->id;
+				$entry = $orderRow;
+			} else {
+				$entry->id = $entry->ID;
+			}
+		}
+
 		// associate exported post with import
 		if ( ! $is_item_data and wp_all_export_is_compatible() && isset($exportOptions['is_generate_import']) && isset($exportOptions['import_id']) &&
             (!isset($exportOptions['enable_real_time_exports'])
@@ -58,7 +70,7 @@ final class XmlExportCpt
 
 		if(isset($exportOptions['ids']) && is_array($exportOptions['ids'])) {
 			foreach ($exportOptions['ids'] as $ID => $value) {
-                if(is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt'])) {
+                if(!$is_item_data && is_array($exportOptions['cpt'] ?? '') && in_array('shop_order', $exportOptions['cpt'])) {
                     $pType = 'shop_order';
                 } else {
                     $pType = $entry->post_type ?? $entry->type;
@@ -378,6 +390,15 @@ final class XmlExportCpt
 
 									if(method_exists('WC_Order', $metaName)) {
 										$cur_meta_values = $order->$metaName();
+										// Match how WooCommerce stores these props as post meta, which is what a posts-storage export writes.
+										if (is_bool($cur_meta_values)) {
+											$cur_meta_values = wc_bool_to_string($cur_meta_values);
+											if ('_new_order_email_sent' === $fieldValue) {
+												$cur_meta_values = 'yes' === $cur_meta_values ? 'true' : 'false';
+											}
+										} elseif ($cur_meta_values instanceof \WC_DateTime) {
+											$cur_meta_values = (string) $cur_meta_values->getTimestamp();
+										}
 									}else {
 										$cur_meta_values = $order->get_meta( $fieldValue );
 									}
@@ -575,6 +596,7 @@ final class XmlExportCpt
                                         $entry_id = $entry->ID;
                                     }
 
+                                    $wpml_switched = false;
                                     // switch to post language if WPML installed
                                     if (class_exists('SitePress')) {
                                         $post_type = get_post_type($entry_id);
@@ -587,8 +609,7 @@ final class XmlExportCpt
                                             )
                                         );
                                         $language_code = empty($post_language_details->language_code) ? '' : $post_language_details->language_code;
-                                        $current_language = apply_filters('wpml_current_language', null);
-                                        do_action('wpml_switch_language', $language_code);
+                                        $wpml_switched = \Wpae\WordPress\WpmlLanguage::switchTo($language_code);
                                     }
 
                                     $txes_list = get_the_terms($entry_id, $fieldValue);
@@ -640,10 +661,7 @@ final class XmlExportCpt
 
                                     }
 
-                                    // swith to current language if WPML installed
-                                    if (class_exists('SitePress')) {
-                                        do_action('wpml_switch_language', $current_language);
-                                    }
+                                    \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
                                 }
                             }
 							break;

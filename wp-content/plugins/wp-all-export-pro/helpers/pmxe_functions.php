@@ -213,13 +213,48 @@ if ( ! function_exists( 'wpae_parse_date_field_settings' ) ) {
 	}
 }
 
+// wp_timezone_string() and wp_timezone() only exist from WordPress 5.3.
+if ( ! function_exists( 'wpae_timezone_string' ) ) {
+	function wpae_timezone_string() {
+		if ( function_exists( 'wp_timezone_string' ) ) {
+			return wp_timezone_string();
+		}
+
+		$timezone_string = get_option( 'timezone_string' );
+
+		if ( $timezone_string ) {
+			return $timezone_string;
+		}
+
+		$offset  = (float) get_option( 'gmt_offset' );
+		$hours   = (int) $offset;
+		$minutes = ( $offset - $hours );
+
+		$sign     = ( $offset < 0 ) ? '-' : '+';
+		$abs_hour = abs( $hours );
+		$abs_mins = abs( $minutes * 60 );
+
+		return sprintf( '%s%02d:%02d', $sign, $abs_hour, $abs_mins );
+	}
+}
+
+if ( ! function_exists( 'wpae_timezone' ) ) {
+	function wpae_timezone() {
+		if ( function_exists( 'wp_timezone' ) ) {
+			return wp_timezone();
+		}
+
+		return new DateTimeZone( wpae_timezone_string() );
+	}
+}
+
 if ( ! function_exists( 'wpae_format_date_value' ) ) {
 	function wpae_format_date_value( $timestamp, $format, $timezone = 'utc', $timestamp_is_site_local = false ) {
 		if ( 'site' !== $timezone ) {
 			return 'unix' === $format ? $timestamp : date( $format, $timestamp );
 		}
 
-		$site_timezone = wp_timezone();
+		$site_timezone = wpae_timezone();
 
 		if ( $timestamp_is_site_local ) {
 			$date = date_create_immutable( gmdate( 'Y-m-d H:i:s', (int) $timestamp ), $site_timezone );
@@ -262,7 +297,7 @@ if ( ! function_exists( 'wpae_date' ) ) {
 		if ( is_numeric( $value ) ) {
 			$date = date_create_immutable( '@' . (int) $value );
 		} else {
-			$parse_timezone = 'site' === $value_timezone ? wp_timezone() : new DateTimeZone( 'UTC' );
+			$parse_timezone = 'site' === $value_timezone ? wpae_timezone() : new DateTimeZone( 'UTC' );
 			$date           = date_create_immutable( (string) $value, $parse_timezone );
 		}
 

@@ -340,18 +340,15 @@ function term_link( $term_link ) {
 
 add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\enqueue_preview_scripts' );
 /**
- * Adds JavaScript file to the Gutenberg editor page that prepends /preview to the preview link.
- *
- * XXX: Please remove this once this issue is resolved: https://github.com/WordPress/gutenberg/issues/13998
+ * Adds a script to the block editor that points the save notice's link at the Faust.js frontend preview.
  */
 function enqueue_preview_scripts() {
-	wp_enqueue_script( 'faustwp-gutenberg-filters', plugins_url( '/previewlinks.js', __FILE__ ), array(), plugin_version(), true );
+	wp_enqueue_script( 'faustwp-gutenberg-filters', plugins_url( '/previewlinks.js', __FILE__ ), array( 'wp-data' ), plugin_version(), true );
 	wp_localize_script(
 		'faustwp-gutenberg-filters',
 		'_faustwp_preview_data',
 		array(
 			'_preview_link' => get_preview_post_link(),
-			'_wp_version'   => get_bloginfo( 'version' ),
 		)
 	);
 }
@@ -418,5 +415,18 @@ add_filter( 'wpseo_xml_sitemap_post_url', __NAMESPACE__ . '\\yoast_sitemap_post_
  * @param string $url URL to use in the XML sitemap.
  */
 function yoast_sitemap_post_url( $url ) {
+	return equivalent_wp_url( $url );
+}
+
+add_filter( 'rank_math/sitemap/xml_post_url', __NAMESPACE__ . '\\rank_math_sitemap_post_url' );
+/**
+ * Filter the URL Rank Math uses in the XML sitemap.
+ *
+ * Note that only absolute local URLs are allowed as the check after this removes external URLs.
+ * Without this, URL rewrites make every post look external, and Rank Math serves an empty sitemap as a 404.
+ *
+ * @param string $url URL to use in the XML sitemap.
+ */
+function rank_math_sitemap_post_url( $url ) {
 	return equivalent_wp_url( $url );
 }

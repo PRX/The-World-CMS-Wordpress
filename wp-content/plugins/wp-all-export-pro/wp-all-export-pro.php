@@ -3,7 +3,7 @@
 Plugin Name: WP All Export Pro
 Plugin URI: http://www.wpallimport.com/export/
 Description: Export any post type to a CSV or XML file. Edit the exported data, and then re-import it later using WP All Import.
-Version: 2.0.1
+Version: 2.0.2
 Author: Soflyy
 */
 
@@ -46,7 +46,7 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
      */
     define('PMXE_PREFIX', 'pmxe_');
 
-    define('PMXE_VERSION', '2.0.1');
+    define('PMXE_VERSION', '2.0.2');
 
     /**
      * Tells the addon-installer SDK that this core fires pmxe_scheduled_request_authenticated
@@ -426,6 +426,12 @@ if (class_exists('PMXE_Plugin') and PMXE_EDITION == "free") {
             }
         }
 
+        private static function request_slug($value)
+        {
+            // PMXE_Input returns arrays as arrays, so ?page[]=x would otherwise reach strtolower() as an array.
+            return is_scalar($value) ? strtolower((string) $value) : '';
+        }
+
         /**
          * pre-dispatching logic for admin page controllers
          */
@@ -533,11 +539,11 @@ Some of the features you used in WP All Export Pro now require paid add-ons. If 
 	            }
 
 	            $input = new PMXE_Input();
-	            $page  = strtolower( $input->getpost( 'page', '' ) );
+	            $page  = self::request_slug( $input->getpost( 'page', '' ) );
 
 	            if ( preg_match( '%^' . preg_quote( str_replace( '_', '-', self::PREFIX ), '%' ) . '([\w-]+)$%', $page ) ) {
 
-		            $action = strtolower( $input->getpost( 'action', 'index' ) ) . '_action';
+		            $action = self::request_slug( $input->getpost( 'action', 'index' ) ) . '_action';
 
 		            // capitalize prefix and first letters of class name parts
 		            $controllerName = preg_replace_callback( '%(^' . preg_quote( self::PREFIX, '%' ) . '|_).%', array(

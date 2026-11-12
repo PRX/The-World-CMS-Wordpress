@@ -4,11 +4,11 @@ Contributors: Toro_Unit, inc2734, ixkaito, keita_kobayashi, strategio
 Donate link: https://www.paypal.me/torounit  
 Tags: permalink, url, link, address, custom post type  
 Requires at least: 6.7  
-Tested up to: 7.0  
+Tested up to: 7.1  
 Requires PHP: 8.0  
 License: GPLv2 or Later  
 License URI: http://www.gnu.org/licenses/gpl-2.0.txt  
-Stable tag:        3.5.5
+Stable tag:        3.5.6
 
 Edit the permalink of custom post type.
 
@@ -42,12 +42,12 @@ Example:
 
 <pre>register_post_type( 'foo',
 	array(
-		'public' => true,
-		'has_archive' => true,
-		'rewrite' => array(
-			"with_front" => true
+		'public' =&gt; true,
+		'has_archive' =&gt; true,
+		'rewrite' =&gt; array(
+			"with_front" =&gt; true
 		),
-		'cptp_permalink_structure' => '%post_id%'
+		'cptp_permalink_structure' =&gt; '%post_id%'
 	)
 );</pre>
 
@@ -78,6 +78,12 @@ That's it. You can access the permalinks setting by going to _Settings -> Permal
 - screenshot-1.png
 
 == Changelog ==
+
+= 3.5.6 =
+
+- Tested WP 7.1
+- Fix a fatal error when a custom post type registers `taxonomies` as a string.
+- Fix rewrite rules for custom post type category archives when the category base is empty.
 
 = 3.5.5 =
 

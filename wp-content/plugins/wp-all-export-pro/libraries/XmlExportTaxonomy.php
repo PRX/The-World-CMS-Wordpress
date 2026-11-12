@@ -208,14 +208,14 @@ if (!class_exists('XmlExportTaxonomy')) {
             }
 
             foreach ($exportOptions['ids'] as $ID => $value) {
-                $fieldName = apply_filters('wp_all_export_field_name', wp_all_export_parse_field_name($exportOptions['cc_name'][$ID]), XmlExportEngine::$exportID);
-                $fieldValue = $exportOptions['cc_value'][$ID];
-                $fieldLabel = $exportOptions['cc_label'][$ID];
-                $fieldSql = $exportOptions['cc_sql'][$ID];
-                $fieldPhp = $exportOptions['cc_php'][$ID];
-                $fieldCode = $exportOptions['cc_code'][$ID];
-                $fieldType = $exportOptions['cc_type'][$ID];
-                $fieldOptions = $exportOptions['cc_options'][$ID];
+                $fieldName = apply_filters('wp_all_export_field_name', wp_all_export_parse_field_name($exportOptions['cc_name'][$ID] ?? ''), XmlExportEngine::$exportID);
+                $fieldValue = $exportOptions['cc_value'][$ID] ?? '';
+                $fieldLabel = $exportOptions['cc_label'][$ID] ?? '';
+                $fieldSql = $exportOptions['cc_sql'][$ID] ?? '';
+                $fieldPhp = $exportOptions['cc_php'][$ID] ?? '';
+                $fieldCode = $exportOptions['cc_code'][$ID] ?? '';
+                $fieldType = $exportOptions['cc_type'][$ID] ?? '';
+                $fieldOptions = $exportOptions['cc_options'][$ID] ?? '';
 
                 if (empty($fieldName) or empty($fieldType) or !is_numeric($ID)) continue;
 
@@ -235,9 +235,9 @@ if (!class_exists('XmlExportTaxonomy')) {
 
                 $fieldSnipped = (!empty($fieldPhp) and !empty($fieldCode)) ? $fieldCode : false;
 
-                if ($exportOptions['cc_combine_multiple_fields'][$ID]) {
+                if (!empty($exportOptions['cc_combine_multiple_fields'][$ID])) {
 
-                    $combineMultipleFieldsValue = $exportOptions['cc_combine_multiple_fields_value'][$ID];
+                    $combineMultipleFieldsValue = $exportOptions['cc_combine_multiple_fields_value'][$ID] ?? '';
 
                     $combineMultipleFieldsValue = stripslashes($combineMultipleFieldsValue);
                     $snippetParser = new \Wpae\App\Service\SnippetParser();

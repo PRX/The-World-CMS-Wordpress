@@ -6,8 +6,8 @@ defined( 'ABSPATH' ) || exit;
  * 
  * Project: User Role Editor WordPress plugin
  * Author: Vladimir Garagulya
- * Author email: vladimir@shinephp.com
- * Author URI: http://shinephp.com
+ * Author email: admin@role-editor.com
+ * Author URI: https://role-editor.com
  * 
  **/
 

@@ -61,6 +61,39 @@ function handle_generate_endpoint() {
 	exit;
 }
 
+add_action( 'parse_request', __NAMESPACE__ . '\\handle_logout_request' );
+/**
+ * Callback for WordPress 'parse_request' action.
+ *
+ * Log the browser out of WordPress when it visits a logout URL from the
+ * faustwp/v1/logout endpoint, then redirect to the requested url. Without
+ * this, a user who logged in through WordPress would be logged straight back
+ * in after logging out of the frontend.
+ *
+ * The code only logs out the user it was created for, so a logout URL can't
+ * log out anyone else.
+ *
+ * @return void
+ */
+function handle_logout_request() {
+	if ( empty( $_GET['faust_logout'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return;
+	}
+
+	$user = get_user_from_logout_code( wp_unslash( $_GET['faust_logout'] ) ); // phpcs:ignore WordPress.Security
+
+	if ( $user && get_current_user_id() === $user->ID ) {
+		wp_logout();
+	}
+
+	$fallback     = faustwp_get_setting( 'frontend_uri' ) ? faustwp_get_setting( 'frontend_uri' ) : home_url( '/' );
+	$redirect_uri = empty( $_GET['redirect_uri'] ) ? $fallback : wp_unslash( $_GET['redirect_uri'] ); // phpcs:ignore WordPress.Security
+
+	wp_safe_redirect( wp_validate_redirect( $redirect_uri, $fallback ) );
+
+	exit;
+}
+
 add_filter( 'allowed_redirect_hosts', __NAMESPACE__ . '\\allowed_redirect_hosts', 10, 2 );
 /**
  * Callback for WordPress 'allowed_redirect_hosts' filter.
@@ -83,4 +116,44 @@ function allowed_redirect_hosts( $hosts, $host ) {
 	}
 
 	return $hosts;
+}
+
+add_filter( 'map_meta_cap', __NAMESPACE__ . '\\map_upload_blocks_capability', 10, 2 );
+/**
+ * Callback for WordPress 'map_meta_cap' filter.
+ *
+ * Uploading a blockset replaces the blocks registered for the whole site, so it
+ * needs the same access as managing the site's options, or the network's on
+ * Multisite. It can't be granted through a role.
+ *
+ * @param string[] $caps Primitive capabilities the user needs.
+ * @param string   $cap  Capability being checked.
+ *
+ * @return string[] Primitive capabilities the user needs.
+ */
+function map_upload_blocks_capability( $caps, $cap ) {
+	if ( 'faustwp_upload_blocks' === $cap ) {
+		return array( is_multisite() ? 'manage_network_options' : 'manage_options' );
+	}
+
+	return $caps;
+}
+
+add_filter( 'user_has_cap', __NAMESPACE__ . '\\grant_exchange_tokens_capability' );
+/**
+ * Callback for WordPress 'user_has_cap' filter.
+ *
+ * Lets administrators exchange authorization codes for tokens with an Application
+ * Password. Other users need a role that includes 'faustwp_exchange_tokens'.
+ *
+ * @param bool[] $allcaps The user's capabilities.
+ *
+ * @return bool[] The user's capabilities.
+ */
+function grant_exchange_tokens_capability( $allcaps ) {
+	if ( ! empty( $allcaps['manage_options'] ) ) {
+		$allcaps['faustwp_exchange_tokens'] = true;
+	}
+
+	return $allcaps;
 }

@@ -375,14 +375,14 @@ class URE_Lib extends URE_Base_Lib {
         }
 
 ?>		  
-            <h2>User Role Editor</h2>         
+            <h2><?php esc_html_e( 'User Role Editor', 'user-role-editor' ); ?></h2>         
             
             <strong><?php esc_html_e('Version:', 'user-role-editor');?></strong> <?php echo esc_html( URE_Core::PLUGIN_VERSION ); ?><br/><br/>
-            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/vladimir.png' ); ?>);" target="_blank" href="http://www.shinephp.com/"><?php esc_html_e("Author's website", 'user-role-editor'); ?></a><br/>
-            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/user-role-editor-icon.png' ); ?>);" target="_blank" href="https://www.role-editor.com"><?php esc_html_e('Plugin webpage', 'user-role-editor'); ?></a><br/>
-            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/user-role-editor-icon.png' ); ?>);" target="_blank" href="https://www.role-editor.com/download-plugin"><?php esc_html_e('Plugin download', 'user-role-editor'); ?></a><br/>
-            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/changelog-icon.png' ); ?>);" target="_blank" href="https://www.role-editor.com/changelog"><?php esc_html_e('Changelog', 'user-role-editor'); ?></a><br/>
-            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/faq-icon.png' ); ?>);" target="_blank" href="http://www.shinephp.com/user-role-editor-wordpress-plugin/#faq"><?php esc_html_e('FAQ', 'user-role-editor'); ?></a><br/>
+            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/user-role-editor-icon.png' ); ?>);" target="_blank" href="https://role-editor.com/"><?php esc_html_e("Author's website", 'user-role-editor'); ?></a><br/>
+            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/user-role-editor-icon.png' ); ?>);" target="_blank" href="https://role-editor.com"><?php esc_html_e('Plugin webpage', 'user-role-editor'); ?></a><br/>
+            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/user-role-editor-icon.png' ); ?>);" target="_blank" href="https://role-editor.com/download-plugin"><?php esc_html_e('Plugin download', 'user-role-editor'); ?></a><br/>
+            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/changelog-icon.png' ); ?>);" target="_blank" href="https://role-editor.com/changelog"><?php esc_html_e('Changelog', 'user-role-editor'); ?></a><br/>
+            <a class="ure_rsb_link" style="background-image:url(<?php echo esc_url( URE_Core::get_plugin_url() . 'images/faq-icon.png' ); ?>);" target="_blank" href="https://role-editor.com/documentation"><?php esc_html_e('FAQ', 'user-role-editor'); ?></a><br/>
 <?php         
     }
     // end of about()

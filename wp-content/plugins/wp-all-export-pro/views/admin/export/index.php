@@ -85,7 +85,8 @@ do_action('pmxe_addons_html');
 											break;
 										}
 									}
-									$order = array('shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer', 'product');
+									$order = array('shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer');
+									if (class_exists('WooCommerce')) $order[] = 'product';
 									foreach ($order as $cpt){
 										if (!empty($custom_types[$cpt])) $sorted_cpt[$cpt] = $custom_types[$cpt];
 									}
@@ -126,7 +127,7 @@ do_action('pmxe_addons_html');
                                                 }
 												$cpt_label = $ct->labels->name;
 
-                                                if (in_array($key, array('post', 'page', 'product', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer', 'users', 'comments', 'taxonomies', 'custom_wpae-gf-addon'))) {
+                                                if (in_array($key, array('post', 'page', 'import_users', 'shop_order', 'shop_coupon', 'shop_customer', 'shop_guest_customer', 'users', 'comments', 'taxonomies', 'custom_wpae-gf-addon')) || ($key == 'product' && class_exists('WooCommerce'))) {
                                                     $image_src = 'dashicon-' . $key;
                                                 } else if ($key == 'shop_review') {
                                                     $image_src = 'dashicon-review';

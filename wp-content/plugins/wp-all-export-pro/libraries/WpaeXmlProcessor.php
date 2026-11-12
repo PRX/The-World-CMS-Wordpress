@@ -563,7 +563,11 @@ class WpaeXmlProcessor
         // Clean empty strings
         $sanitizedSnippet = str_replace( array( '(,', '( ,', ',)', ', )' ), array( '(""', '(""', ',"")', ',"")' ), $sanitizedSnippet );
 
-        $snippetValue = eval('return ' . $sanitizedSnippet . ';');
+        try {
+            $snippetValue = eval('return ' . $sanitizedSnippet . ';');
+        } catch (ParseError $e) {
+            throw new WpaeInvalidStringException($functionName, 0, $e);
+        }
         $snippetValue = $this->encodeSpecialCharacters($snippetValue);
 
         if(strpos($snippet, 'explode') !== false && $isInFunction) {

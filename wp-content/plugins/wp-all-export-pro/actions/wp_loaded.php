@@ -301,7 +301,7 @@ function pmxe_wp_loaded() {
 
             $export = $wpdb->get_row($query);
 
-            if ( ! empty($export) and ! is_wp_error($exports) )
+            if ( ! empty($export) and ! is_wp_error($export) )
             {
                 $child_export = new PMXE_Export_Record();
                 $child_export->getById( $export->id );
@@ -417,7 +417,7 @@ function pmxe_wp_loaded() {
                     wp_send_json([
                         'status' => 404,
                         'message' => 'Export not found.'
-                    ]);
+                    ], 404);
 
                     wp_die();
                 }
@@ -567,7 +567,7 @@ function pmxe_wp_loaded() {
                             {
                                 try {
                                     $export->set(array('canceled' => 0))->execute($logger, true);
-                                } catch (\Wpae\App\Service\Addons\AddonNotFoundException $e) {
+                                } catch (\Wpae\App\Service\Addons\AddonNotFoundException | \Wpae\App\Service\ExportTemplateException $e) {
                                     die($e->getMessage());
                                 }
                                 if ( ! (int) $export->triggered and ! (int) $export->processing )

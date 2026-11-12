@@ -52,10 +52,32 @@ class PMXE_Handler extends PMXE_Session
 		$this->_session_expiration  = time() + intval( apply_filters( 'wpallexport_session_expiration', 60 * 60 * 48 ) ); // 48 Hours
 	}
 
+	/**
+	 * Whether a value can stand in for an export id.
+	 *
+	 * PMXE_Input::applyFilters() recurses into arrays and returns them as
+	 * arrays, so anything that reaches an id is whatever the request sent —
+	 * WooCommerce's order list submits id[] when HPOS is on, and every caller
+	 * below builds an option name by concatenation.
+	 *
+	 * @param mixed $import_id
+	 *
+	 * @return bool
+	 */
+	private static function is_usable_import_id( $import_id )
+	{
+		return 'new' === $import_id
+			|| ( is_scalar( $import_id ) && ctype_digit( (string) $import_id ) );
+	}
+
 	public function generate_import_id()
 	{
 		$input = new PMXE_Input();
 		$import_id = $input->get('id', 'new');
+
+		if ( ! self::is_usable_import_id( $import_id ) ) {
+			$import_id = 'new';
+		}
 
 		return $import_id;
 	}
@@ -141,6 +163,16 @@ class PMXE_Handler extends PMXE_Session
 	public function clean_session( $import_id = 'new' )
 	{
 		global $wpdb;
+
+		// Bail rather than fall back to 'new' the way generate_import_id()
+		// does. That default is a read there and a DELETE here: an id this
+		// method cannot use names no session, and treating it as 'new' would
+		// destroy the wizard session of whoever made the request. Callers pass
+		// the id straight from the request — controllers/admin/manage.php
+		// reaches here on ?action=update with no nonce.
+		if ( ! self::is_usable_import_id( $import_id ) ) {
+			return;
+		}
 
 		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->options WHERE option_name = %s", '_wpallexport_session_' . $import_id . '_') );
 		$wpdb->query( $wpdb->prepare("DELETE FROM $wpdb->options WHERE option_name = %s", '_wpallexport_session_expires_' . $import_id . '_') );

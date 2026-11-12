@@ -140,6 +140,7 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
             PMXE_Plugin::$session->set('taxonomy_to_export', $post['taxonomy_to_export']);
             PMXE_Plugin::$session->set('sub_post_type_to_export', $post['sub_post_type_to_export']);
             PMXE_Plugin::$session->set('created_at_version', $post['created_at_version']);
+            PMXE_Plugin::$session->set('csv_escape', \Wpae\Csv\CsvWriter::ESCAPE_RFC);
 
             if (!empty($post['auto_generate'])) {
                 PMXE_Plugin::$session->set('auto_generate', 1);
@@ -192,11 +193,11 @@ class PMXE_Admin_Export extends PMXE_Controller_Admin
 
         if ($this->isWizard) {
             // New export
-            $DefaultOptions = (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + $default;
+            $DefaultOptions = (PMXE_Plugin::$session->has_session() ? PMXE_Plugin::$session->get_clear_session_data() : array()) + $default + array('csv_escape' => \Wpae\Csv\CsvWriter::ESCAPE_RFC);
             $post = $this->input->post($DefaultOptions);
         } else {
             // Edit export
-            $DefaultOptions = $this->data['export']->options + $default;
+            $DefaultOptions = $this->data['export']->options + $default + array('csv_escape' => \Wpae\Csv\CsvWriter::ESCAPE_BACKSLASH);
 
             if (empty($this->data['export']->options['export_variations'])) {
                 $DefaultOptions['export_variations'] = XmlExportEngine::VARIABLE_PRODUCTS_EXPORT_PARENT_AND_VARIATION;

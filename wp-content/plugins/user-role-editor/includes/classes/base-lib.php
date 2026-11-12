@@ -4,8 +4,8 @@ defined( 'ABSPATH' ) || exit;
 /*
  * General stuff for usage at WordPress plugins
  * Author: Vladimir Garagulya
- * Author email: vladimir@shinephp.com
- * Author URI: http://shinephp.com
+ * Author email: admin@role-editor.com
+ * Author URI: https://role-editor.com
  * 
  */
 
@@ -310,20 +310,37 @@ class URE_Base_Lib {
     
     /**
      * Returns the array of multi-site WP sites/blogs IDs for the current network
+     * Archived, spam and deleted sites are included by default. Use 'ure_get_blog_ids_args' filter to exclude them, e.g.
+     * add_filter( 'ure_get_blog_ids_args', function( $args ) { return array( 'archived' => 0, 'spam' => 0, 'deleted' => 0 ); } );
+     *
+     * @param bool $apply_filter - false: ignore 'ure_get_blog_ids_args' filter and return all sites (used for the plugin data cleanup on uninstall)
      * @return array
      */
-    public function get_blog_ids() {
+    public function get_blog_ids( $apply_filter = true ) {
 
         if ( !$this->multisite ) {
             return null;
         }
-        
-        $network = get_current_site();
 
-        $blog_ids = get_sites( array(
+        $network = get_current_site();
+        $args = array(
             'network_id' => $network->id,
             'fields'     => 'ids',
-        ) );
+            'number'     => 0,  // get_sites() returns 100 sites max by default, 0 - no limit
+        );
+        if ( $apply_filter ) {
+            $custom_args = apply_filters( 'ure_get_blog_ids_args', array() );
+            if ( is_array( $custom_args ) ) {
+                // allow only site status flags, other arguments are required as defined above
+                foreach ( array( 'archived', 'spam', 'deleted' ) as $key ) {
+                    if ( isset( $custom_args[$key] ) ) {
+                        $args[$key] = empty( $custom_args[$key] ) ? 0 : 1;
+                    }
+                }
+            }
+        }
+
+        $blog_ids = get_sites( $args );
 
         return $blog_ids;
     }

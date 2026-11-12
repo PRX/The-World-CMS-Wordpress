@@ -52,9 +52,7 @@ function pmxe_wp_ajax_wpae_preview(){
 	XmlExportEngine::$is_taxonomy_export = $exportOptions['is_taxonomy_export'];
 	XmlExportEngine::$exportID 			 = $export_id;
 
-	if ( class_exists('SitePress') && ! empty(XmlExportEngine::$exportOptions['wpml_lang'])){
-		do_action( 'wpml_switch_language', XmlExportEngine::$exportOptions['wpml_lang'] );
-	}
+	$wpml_switched = \Wpae\WordPress\WpmlLanguage::switchTo( XmlExportEngine::$exportOptions['wpml_lang'] );
 
 	if (XmlExportEngine::$exportOptions['export_to'] == XmlExportEngine::EXPORT_TYPE_XML && in_array(XmlExportEngine::$exportOptions['xml_template_type'], array('custom', 'XmlGoogleMerchants')) ){
 
@@ -111,6 +109,7 @@ function pmxe_wp_ajax_wpae_preview(){
 		foreach ($msgs as $msg): ?>
 			<div class="error"><p><?php echo $msg ?></p></div>
 		<?php endforeach;
+		\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 		exit( json_encode(array('html' => ob_get_clean())) );
 	}
 
@@ -309,6 +308,7 @@ function pmxe_wp_ajax_wpae_preview(){
 			}
 			$error_msg .= '</ul>';
 			echo $error_msg;
+			\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 			exit( json_encode(array('html' => ob_get_clean())) );
 		}
 
@@ -328,43 +328,8 @@ function pmxe_wp_ajax_wpae_preview(){
 				libxml_use_internal_errors(true);
 				try{
 					$xml = XmlCsvExport::export_xml(true);
-				} catch (WpaeMethodNotFoundException $e) {
-					// Find the line where the function is
-					$errorMessage = '';
-					$functionName = $e->getMessage();
-					$txtParts = explode("\n",$originalXmlTemplate);
-					for ($i=0, $length = count($txtParts);$i<$length;$i++)
-					{
-						$tmp = strstr($txtParts[$i], $functionName);
-						if ($tmp) {
-							$errorMessage .= 'Error parsing XML feed: Call to undefined function <em>"'.$functionName.'"</em> on Line '.($i+1);
-						}
-					}
-
-					$error_msg = '<span class="error">'.wp_kses_post(__($errorMessage, 'wp_all_import_plugin')).'</span>';
-					echo $error_msg;
-					exit( json_encode(array('html' => ob_get_clean())) );
-				} catch (WpaeInvalidStringException $e) {
-					// Find the line where the function is
-					$errorMessage = '';
-					$functionName = $e->getMessage();
-					$txtParts = explode("\n",$originalXmlTemplate);
-					for ($i=0, $length = count($txtParts);$i<$length;$i++)
-					{
-						$tmp = strstr($txtParts[$i], $functionName);
-						if ($tmp) {
-							$errorMessage .= 'Error parsing XML feed: Unterminated string on line '.($i+1);
-						}
-					}
-
-					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
-					echo $error_msg;
-					exit( json_encode(array('html' => ob_get_clean())) );
-				} catch (WpaeTooMuchRecursionException $e) {
-					$errorMessage = __('There was a problem parsing the custom XML template');
-					$error_msg = '<span class="error">'.__($errorMessage, 'wp_all_import_plugin').'</span>';
-					echo $error_msg;
-					exit( json_encode(array('html' => ob_get_clean())) );
+				} catch (WpaeMethodNotFoundException | WpaeInvalidStringException | WpaeTooMuchRecursionException $e) {
+					pmxe_wpae_preview_exit_with_snippet_error($e, $originalXmlTemplate, $wpml_switched);
 				}
 
                 $xml_errors = false;
@@ -383,7 +348,11 @@ function pmxe_wp_ajax_wpae_preview(){
                         $preview_xml = str_replace('&amp;', '&', $preview_xml);
                         $preview_xml = str_replace('&', '&amp;', $preview_xml);
 
-                        $xml = PMXE_XMLWriter::preprocess_xml( XmlExportEngine::$exportOptions['custom_xml_template_header'] ) . "\n" . $xml . "\n" . PMXE_XMLWriter::preprocess_xml( XmlExportEngine::$exportOptions['custom_xml_template_footer'] );
+                        try {
+                            $xml = PMXE_XMLWriter::preprocess_xml( XmlExportEngine::$exportOptions['custom_xml_template_header'] ) . "\n" . $xml . "\n" . PMXE_XMLWriter::preprocess_xml( XmlExportEngine::$exportOptions['custom_xml_template_footer'] );
+                        } catch (WpaeMethodNotFoundException | WpaeInvalidStringException | WpaeTooMuchRecursionException $e) {
+                            pmxe_wpae_preview_exit_with_snippet_error($e, $originalXmlTemplate, $wpml_switched);
+                        }
 
                         $xml = str_replace('<![CDATA[', 'CDATABEGIN', $xml);
                         $xml = str_replace(']]>', 'CDATACLOSE', $xml);
@@ -436,6 +405,7 @@ function pmxe_wp_ajax_wpae_preview(){
                           $error_msg .= '</li>';
                           $error_msg .= '</ul>';
                           echo $error_msg;
+                          \Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
                           exit( json_encode(array('html' => ob_get_clean())) );
                         }
                     break;
@@ -462,6 +432,7 @@ function pmxe_wp_ajax_wpae_preview(){
 						}
 						$error_msg .= '</ul>';
 						echo $error_msg;
+						\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 						exit( json_encode(array('html' => ob_get_clean())) );
 					}
 					else{
@@ -476,6 +447,7 @@ function pmxe_wp_ajax_wpae_preview(){
 							$error_msg .= '</li>';
 							$error_msg .= '</ul>';
 							echo $error_msg;
+							\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 							exit( json_encode(array('html' => ob_get_clean())) );
 						}
 					}
@@ -497,7 +469,7 @@ function pmxe_wp_ajax_wpae_preview(){
 							<table class="pmxe_preview" cellpadding="0" cellspacing="0">
 							<?php
 							foreach ($csv_rows as $rkey => $row) {
-								$cells = str_getcsv($row, $exportOptions['delimiter'], '"', '\\');
+								$cells = str_getcsv($row, $exportOptions['delimiter'], '"', \Wpae\Csv\CsvWriter::escapeFor($exportOptions));
 								if ($cells){
 									?>
 									<tr>
@@ -544,5 +516,13 @@ function pmxe_wp_ajax_wpae_preview(){
 
 	<?php
 
+	\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
 	exit(json_encode(array('html' => ob_get_clean()))); die;
+}
+
+function pmxe_wpae_preview_exit_with_snippet_error(Exception $e, $originalXmlTemplate, $wpml_switched)
+{
+	echo '<span class="error">' . wp_kses_post(wp_all_export_snippet_error_message($e, $originalXmlTemplate)) . '</span>';
+	\Wpae\WordPress\WpmlLanguage::restore($wpml_switched);
+	exit( json_encode(array('html' => ob_get_clean())) );
 }
