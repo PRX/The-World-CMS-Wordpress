@@ -31,32 +31,86 @@ class URE_Grant_Roles {
     
     
     public function load() {
-        
-        add_action('restrict_manage_users', array($this, 'show_roles_manage_html') );
-        add_action('admin_head', array(User_Role_Editor::get_instance(), 'add_css_to_users_page') );
-        add_action('admin_enqueue_scripts', array($this, 'load_js') );        
-        
+        add_action( 'restrict_manage_users', [$this, 'show_roles_manage_html'] );
+        add_action( 'admin_head', [User_Role_Editor::get_instance(), 'add_css_to_users_page'] );
+        add_action( 'admin_enqueue_scripts', [$this, 'load_js'] );
+
     }
     // end of load()
+
+
+    /**
+     * Intercept WP's built-in "Change Role" bulk action (action=promote) before users.php
+     * processes it. This runs on load-users.php, which fires before the switch statement.
+     */
+    public static function check_promote_bulk_action() {
+        if ( ! empty( $_REQUEST['filter_action'] ) ) {
+            return;
+        }
+        // WP_Users_List_Table::current_action() returns 'promote' when the Change Role
+        // button is submitted (name="changeit" top / name="changeit2" bottom), regardless
+        // of the action/action2 bulk-action selectors.  Mirror that logic here so the
+        // check fires on the same requests that users.php case 'promote': handles.
+        if ( isset( $_REQUEST['changeit'] ) ) {
+            $action   = 'promote';
+            $new_role = sanitize_key( $_REQUEST['new_role'] ?? '' );
+        } elseif ( isset( $_REQUEST['changeit2'] ) ) {
+            $action   = 'promote';
+            $new_role = sanitize_key( $_REQUEST['new_role2'] ?? '' );
+        } elseif ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
+            $action   = sanitize_key( $_REQUEST['action'] );
+            $new_role = sanitize_key( $_REQUEST['new_role'] ?? '' );
+        } elseif ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
+            $action   = sanitize_key( $_REQUEST['action2'] );
+            $new_role = sanitize_key( $_REQUEST['new_role2'] ?? '' );
+        } else {
+            return;
+        }
+        if ( 'promote' !== $action || empty( $_REQUEST['users'] ) ) {
+            return;
+        }
+        $user_ids = array_map( 'intval', (array) $_REQUEST['users'] );
+        $answer   = self::validate_users( $user_ids );
+        if ( $answer['result'] === 'error' ) {
+            wp_die( esc_html( $answer['message'] ), 403 );
+        }
+        if ( ! empty( $new_role ) && 'none' !== $new_role ) {
+            $answer = self::validate_roles( [ $new_role => $new_role ] );
+            if ( $answer['result'] === 'error' ) {
+                wp_die( esc_html( $answer['message'] ), 403 );
+            }
+        }
+    }
+    // end of check_promote_bulk_action()
             
     
-    private static function validate_users( array $users ) {
+    public static function validate_users( array $users ) {
 
+	$current_user_id = get_current_user_id();
+	$answer['result'] = 'error';
         foreach ( $users as $user_id ) {
             if ( !is_numeric( $user_id ) ) {
-                return false;
+		$answer['message'] = esc_html__('Invalid data at the users list', 'user-role-editor');
+                return $answer;
             }
+	    if ( (int) $user_id === $current_user_id ) {
+		$answer['message'] = esc_html__('You can not change own user role', 'user-role-editor');
+                return $answer;
+	    }
             if ( !current_user_can( 'promote_user', $user_id ) ) {
-                return false;
+	        $answer['message'] = esc_html__('You can not edit this user', 'user-role-editor') .': '. $user_id;
+                return $answer;
             }
 
             if ( is_multisite() && !is_user_member_of_blog( $user_id ) ) {
-                return false;
+		$answer['message'] = esc_html__('User does not belong to this blog', 'user-role-editor') .' '. $user_id;
+                return $answer;
             }
-
         }
         
-        return true;
+	$answer['result'] = true;
+	
+        return $answer;
     }
     // end of validate_users()
     
@@ -73,15 +127,15 @@ class URE_Grant_Roles {
              return $answer;
         }
         
-        if ( !self::validate_users( $users ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
+	$answer = self::validate_users( $users );
+        if ( $answer['result']==='error' ) {
             return $answer;
         }
         
         $lib = URE_Lib::get_instance();
         $role = $lib->get_request_var('role', 'post', 'string');
-        if ( !self::validate_roles( array($role=>$role) ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Invalid role', 'user-role-editor') );
+	$answer = self::validate_roles( array($role=>$role) );
+        if ( $answer['result']==='error' ) {            
             return $answer;
         }
         
@@ -154,15 +208,15 @@ class URE_Grant_Roles {
              return $answer;
         }
         
-        if ( !self::validate_users( $users ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
+        $answer = self::validate_users( $users );
+        if ( $answer['result']==='error' ) {
             return $answer;
         }
         
         $lib = URE_Lib::get_instance();
         $role = $lib->get_request_var('role', 'post', 'string');
-        if ( !self::validate_roles( array($role=>$role) ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Invalid role', 'user-role-editor') );
+	$answer = self::validate_roles( array($role=>$role) );
+        if ( $answer['result']==='error' ) {
             return $answer;
         }
                  
@@ -192,12 +246,51 @@ class URE_Grant_Roles {
         return $answer;
     }
     // end of revoke_role()
+    
+    
+    // Compare role capabilities with the list critical capabilities
+    private static function check_for_critical_caps( $critical_caps, $role_caps ) {
+	
+        foreach ( $critical_caps as $cap ) {
+            if ( !current_user_can( $cap ) && ! empty( $role_caps[$cap] ) ) {
+		return false;
+            }
+        }
+	
+	return true;
+    }
+    // end of check_role_for_prohibited_capabilities()
+    
 
+    /*
+     * Current user can grant role with one of critical user capabilities only if he can that capability
+     */
+    public static function check_roles_for_critical_caps( $roles ) {
+	
+	// List of capabilities prohibited for promotion by the current user
+	$critical_caps = apply_filters( 
+	    'ure_get_critical_capabilities', 
+	    ['manage_options', 'activate_plugins', 'delete_plugins', 'edit_users', 'delete_users']
+	);
+	foreach( $roles as $role ) {
+	    $role_obj = get_role( $role );
+	    $role_caps = $role_obj ? $role_obj->capabilities : array();
+	    if ( !self::check_for_critical_caps( $critical_caps, $role_caps ) ) {
+		return false;
+	    }
+	}
+	
+	return true;
+    }
+    // end of check_roles_for_critical_caps()
+    
 
-    private static function validate_roles( $roles ) {
+    public static function validate_roles( $roles ) {
 
+	$answer = ['result'=>'error'];
         if ( !is_array( $roles ) ) {
-            return false;
+	    $answer['message'] = esc_html__('Invalid user roles data', 'user-role-editor');
+            return $answer;
         }
         
         $lib = URE_Lib::get_instance();
@@ -205,11 +298,19 @@ class URE_Grant_Roles {
         $valid_roles = array_keys( $editable_roles );
         foreach( $roles as $role ) {
             if ( !in_array( $role, $valid_roles ) ) {
-                return false;
+		$answer['message'] = esc_html__('User role is not allowed', 'user-role-editor');
+                return $answer;
             }
         }
+	
+	if ( !self::check_roles_for_critical_caps( $roles ) ) {
+	    $answer['message'] = esc_html__('Target role contains capabilities you are not allowed to assign.', 'user-role-editor');
+            return $answer;
+	}
         
-        return true;        
+	$answer = ['result'=>'success'];
+	
+        return $answer;        
     }
     // end of validate_roles()
         
@@ -306,16 +407,19 @@ class URE_Grant_Roles {
             return $answer;
         }
                 
-        if ( !self::validate_users( $users ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Can not edit user or invalid data at the users list', 'user-role-editor') );
+	$answer = self::validate_users( $users );
+        if ( $answer['result']==='error' ) {
             return $answer;
         }
-
+	
 // Primary role       
-        if ( !empty( $primary_role ) && ( $primary_role!==self::NO_ROLE_FOR_THIS_SITE ) && 
-            !self::validate_roles( [$primary_role=>$primary_role] ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Invalid primary role', 'user-role-editor'));
-            return $answer;
+        if ( !empty( $primary_role ) && ( $primary_role!==self::NO_ROLE_FOR_THIS_SITE ))  {
+	    
+	    $answer = self::validate_roles( [$primary_role=>$primary_role] );
+            if ( $answer['result']==='error') {
+		$answer['message'] = esc_html__('Primary role', 'user-role-editor') .': '. $answer['message'];
+		return $answer;
+	    }
         }
                 
         if ( self::is_select_primary_role( $primary_role ) ) {            
@@ -325,9 +429,12 @@ class URE_Grant_Roles {
         }
         
 // Other roles                
-        if ( !empty( $other_roles ) && !self::validate_roles( $other_roles ) ) {
-            $answer = array('result'=>'error', 'message'=>esc_html__('Invalid data at the other roles list', 'user-role-editor'));
-            return $answer;
+        if ( !empty( $other_roles ) ) { 
+	    $answer = self::validate_roles( $other_roles );
+	    if ( $answer['result']==='error') {
+		$answer['message'] = esc_html__('Other roles', 'user-role-editor')  .': '. $answer['message'];
+		return $answer;
+	    }
         }
         
         if ( !empty( $other_roles ) ) {
@@ -520,6 +627,7 @@ class URE_Grant_Roles {
         ));
     }
     // end of load_js()
+    
     
 }
 // end of URE_Grant_Roles class

@@ -47,7 +47,8 @@ class URE_Ajax_Processor {
             'grant_roles',
             'get_grant_roles',
             'add_role_to_user',
-            'revoke_role_from_user'
+            'revoke_role_from_user',
+	    'get_users_without_role'
         );
         if ( in_array( $this->action, $promote_users_actions ) ) {
             $cap = 'promote_users';

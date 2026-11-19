@@ -355,6 +355,9 @@ class URE_User_Other_Roles {
         if ( !current_user_can('edit_user', $user_id) ) {
             return -1;  // No permissions to edit this user
         }
+        if ( (int) $user_id === get_current_user_id() ) {
+            return -1;  // Users may not assign roles to themselves
+        }
         // phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- update() is hooked to WordPress core's own 'profile_update' action, which core only fires after its own check_admin_referer('update-user_...') nonce check on the user-edit/profile screen; verified entirely outside this plugin, WPCS can't see it at all. Below, each role ID extracted from $_POST['ure_other_roles'] is checked against $editable_roles (WP core's own get_editable_roles()) via isset() before use - the function returns early (-2) for any role that isn't a real, existing editable role, so unslashing/sanitizing the raw POST value first would be a no-op.
         if ( !isset( $_POST['ure_other_roles'] ) ) {
             return 3;   // Add default other roles, there is no related data at the POST
@@ -379,11 +382,14 @@ class URE_User_Other_Roles {
                 $ure_other_roles[] = $role_id;
             }
         }
+        if ( !empty( $ure_other_roles ) && !URE_Grant_Roles::check_roles_for_critical_caps( $ure_other_roles ) ) {
+            return -2;  // Target role carries capabilities the current user does not hold
+        }
         foreach( $ure_other_roles as $role ) {
             $user->add_role( $role );
         }
-        
-        return 2;        
+
+        return 2;
     }
     // end of update()
 
