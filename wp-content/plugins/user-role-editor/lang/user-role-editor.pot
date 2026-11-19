@@ -2,14 +2,14 @@
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: User Role Editor 4.66.3\n"
+"Project-Id-Version: User Role Editor 4.67\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/user-role-editor\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-23T08:19:54+00:00\n"
+"POT-Creation-Date: 2026-11-03T05:08:59+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: user-role-editor\n"
@@ -45,9 +45,6 @@ msgid "Vladimir Garagulya"
 msgstr ""
 
 #: includes/classes/ajax-processor.php:250
-#: includes/classes/grant-roles.php:77
-#: includes/classes/grant-roles.php:158
-#: includes/classes/grant-roles.php:310
 msgid "Can not edit user or invalid data at the users list"
 msgstr ""
 
@@ -568,106 +565,129 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: includes/classes/grant-roles.php:72
-#: includes/classes/grant-roles.php:153
-#: includes/classes/grant-roles.php:305
-#: includes/classes/grant-roles.php:428
+#: includes/classes/grant-roles.php:49
+msgid "Invalid data at the users list"
+msgstr ""
+
+#: includes/classes/grant-roles.php:53
+msgid "You can not change own user role"
+msgstr ""
+
+#: includes/classes/grant-roles.php:57
+msgid "You can not edit this user"
+msgstr ""
+
+#: includes/classes/grant-roles.php:62
+msgid "User does not belong to this blog"
+msgstr ""
+
+#: includes/classes/grant-roles.php:82
+#: includes/classes/grant-roles.php:163
+#: includes/classes/grant-roles.php:362
+#: includes/classes/grant-roles.php:491
 msgid "Not enough permissions"
 msgstr ""
 
-#: includes/classes/grant-roles.php:84
-#: includes/classes/grant-roles.php:165
-msgid "Invalid role"
-msgstr ""
-
 #. translators: template %d is a quantity of users to whom role was added
-#: includes/classes/grant-roles.php:102
+#: includes/classes/grant-roles.php:112
 #, php-format
 msgid "Role added to %d user(s)."
 msgstr ""
 
-#: includes/classes/grant-roles.php:105
+#: includes/classes/grant-roles.php:115
 msgid "Error: Role not added"
 msgstr ""
 
 #. translators: template %d is a quantity of users to whom role was added
-#: includes/classes/grant-roles.php:186
+#: includes/classes/grant-roles.php:196
 #, php-format
 msgid "Role revoked from %d user(s)."
 msgstr ""
 
-#: includes/classes/grant-roles.php:189
+#: includes/classes/grant-roles.php:199
 msgid "Error: Role not revoked"
 msgstr ""
 
-#: includes/classes/grant-roles.php:317
-msgid "Invalid primary role"
+#: includes/classes/grant-roles.php:248
+msgid "Invalid user roles data"
 msgstr ""
 
-#: includes/classes/grant-roles.php:329
-msgid "Invalid data at the other roles list"
+#: includes/classes/grant-roles.php:257
+msgid "User role is not allowed"
 msgstr ""
 
-#: includes/classes/grant-roles.php:338
-msgid "Roles were granted to users successfully"
+#: includes/classes/grant-roles.php:263
+msgid "Target role contains capabilities you are not allowed to assign."
 msgstr ""
 
 #: includes/classes/grant-roles.php:376
+msgid "Primary role"
+msgstr ""
+
+#: includes/classes/grant-roles.php:391
+msgid "Other roles"
+msgstr ""
+
+#: includes/classes/grant-roles.php:401
+msgid "Roles were granted to users successfully"
+msgstr ""
+
+#: includes/classes/grant-roles.php:439
 msgid "Primary Role: "
 msgstr ""
 
-#: includes/classes/grant-roles.php:382
+#: includes/classes/grant-roles.php:445
 #: includes/classes/user-view.php:98
 msgid "&mdash; No role for this site &mdash;"
 msgstr ""
 
-#: includes/classes/grant-roles.php:397
+#: includes/classes/grant-roles.php:460
 msgid "Other Roles: "
 msgstr ""
 
-#: includes/classes/grant-roles.php:468
+#: includes/classes/grant-roles.php:531
 msgid "Grant Roles"
 msgstr ""
 
-#: includes/classes/grant-roles.php:470
-#: includes/classes/grant-roles.php:472
+#: includes/classes/grant-roles.php:533
+#: includes/classes/grant-roles.php:535
 msgid "Add role&hellip;"
 msgstr ""
 
-#: includes/classes/grant-roles.php:476
+#: includes/classes/grant-roles.php:539
 msgid "Add"
 msgstr ""
 
-#: includes/classes/grant-roles.php:478
-#: includes/classes/grant-roles.php:480
+#: includes/classes/grant-roles.php:541
+#: includes/classes/grant-roles.php:543
 msgid "Revoke role&hellip;"
 msgstr ""
 
-#: includes/classes/grant-roles.php:484
+#: includes/classes/grant-roles.php:547
 msgid "Revoke"
 msgstr ""
 
-#: includes/classes/grant-roles.php:513
+#: includes/classes/grant-roles.php:576
 msgid "Grant roles to selected users"
 msgstr ""
 
-#: includes/classes/grant-roles.php:514
+#: includes/classes/grant-roles.php:577
 msgid "Select users to which you wish to grant roles!"
 msgstr ""
 
-#: includes/classes/grant-roles.php:515
+#: includes/classes/grant-roles.php:578
 msgid "Select role(s) which you wish to grant!"
 msgstr ""
 
-#: includes/classes/grant-roles.php:516
+#: includes/classes/grant-roles.php:579
 msgid "Select role first!"
 msgstr ""
 
-#: includes/classes/grant-roles.php:517
+#: includes/classes/grant-roles.php:580
 msgid "Select users to which you wish to add role!"
 msgstr ""
 
-#: includes/classes/grant-roles.php:518
+#: includes/classes/grant-roles.php:581
 msgid "Select users from which you wish revoke role!"
 msgstr ""
 

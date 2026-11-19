@@ -100,13 +100,14 @@ var URE_No_Role_Users = {
         var options = jQuery("#ure_new_role > option").clone();
         jQuery('#new_role').empty().append(options);
         jQuery("#new_role").val(data.new_role);
-        var el = jQuery('.bulkactions').append();
         for(var i=0; i<data.users.length; i++) {
             if (jQuery('#user_'+ data.users[i]).length>0) {
                 jQuery('#user_'+ data.users[i]).prop('checked', true);
             } else {
-                var html = '<input type="checkbox" name="users[]" id="user_'+ data.users[i] +'" value="'+ data.users[i] +'" checked="checked" style="display: none;">';
-                el.append(html);
+                // WP validates via '.wp-list-table tbody .check-column input[type="checkbox"]:checked',
+                // so hidden checkboxes must live inside that structure, not in .bulkactions.
+                var html = '<tr style="display:none;"><th class="check-column"><input type="checkbox" name="users[]" id="user_'+ data.users[i] +'" value="'+ data.users[i] +'" checked="checked"></th></tr>';
+                jQuery('.wp-list-table tbody').append(html);
             }
         }
 

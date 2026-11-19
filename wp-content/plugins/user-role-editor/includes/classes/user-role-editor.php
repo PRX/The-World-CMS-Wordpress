@@ -203,11 +203,11 @@ class User_Role_Editor {
         }
 
         $bulk_grant_roles = apply_filters('ure_bulk_grant_roles', true);
-        if ($bulk_grant_roles) {
+        if ( $bulk_grant_roles ) {
             new URE_Grant_Roles();
         }
-       
-        add_action('wp_ajax_ure_ajax', array($this, 'ure_ajax'));
+        add_action( 'load-users.php', ['URE_Grant_Roles', 'check_promote_bulk_action'] );
+	add_action('wp_ajax_ure_ajax', array($this, 'ure_ajax'));
         
         add_action('editable_roles', array( $this, 'translate_custom_roles' ), 10, 1 );
         

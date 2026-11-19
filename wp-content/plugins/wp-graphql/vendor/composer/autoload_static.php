@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit6a14378ab276a946136982f450fb5ab9
+class ComposerStaticInitb45b53a4bc020ab810acb17cefce2999
 {
     public static $prefixLengthsPsr4 = array (
         'W' =>
@@ -320,6 +320,7 @@ class ComposerStaticInit6a14378ab276a946136982f450fb5ab9
         'WPGraphQL\\Data\\Connection\\ThemeConnectionResolver' => __DIR__ . '/../..' . '/src/Data/Connection/ThemeConnectionResolver.php',
         'WPGraphQL\\Data\\Connection\\UserConnectionResolver' => __DIR__ . '/../..' . '/src/Data/Connection/UserConnectionResolver.php',
         'WPGraphQL\\Data\\Connection\\UserRoleConnectionResolver' => __DIR__ . '/../..' . '/src/Data/Connection/UserRoleConnectionResolver.php',
+        'WPGraphQL\\Data\\ConnectorCredentials' => __DIR__ . '/../..' . '/src/Data/ConnectorCredentials.php',
         'WPGraphQL\\Data\\Cursor\\AbstractCursor' => __DIR__ . '/../..' . '/src/Data/Cursor/AbstractCursor.php',
         'WPGraphQL\\Data\\Cursor\\CommentObjectCursor' => __DIR__ . '/../..' . '/src/Data/Cursor/CommentObjectCursor.php',
         'WPGraphQL\\Data\\Cursor\\CursorBuilder' => __DIR__ . '/../..' . '/src/Data/Cursor/CursorBuilder.php',
@@ -364,6 +365,7 @@ class ComposerStaticInit6a14378ab276a946136982f450fb5ab9
         'WPGraphQL\\Model\\Menu' => __DIR__ . '/../..' . '/src/Model/Menu.php',
         'WPGraphQL\\Model\\MenuItem' => __DIR__ . '/../..' . '/src/Model/MenuItem.php',
         'WPGraphQL\\Model\\Model' => __DIR__ . '/../..' . '/src/Model/Model.php',
+        'WPGraphQL\\Model\\NodeContext' => __DIR__ . '/../..' . '/src/Model/NodeContext.php',
         'WPGraphQL\\Model\\Plugin' => __DIR__ . '/../..' . '/src/Model/Plugin.php',
         'WPGraphQL\\Model\\Post' => __DIR__ . '/../..' . '/src/Model/Post.php',
         'WPGraphQL\\Model\\PostType' => __DIR__ . '/../..' . '/src/Model/PostType.php',
@@ -524,9 +526,9 @@ class ComposerStaticInit6a14378ab276a946136982f450fb5ab9
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit6a14378ab276a946136982f450fb5ab9::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb45b53a4bc020ab810acb17cefce2999::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb45b53a4bc020ab810acb17cefce2999::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb45b53a4bc020ab810acb17cefce2999::$classMap;
 
         }, null, ClassLoader::class);
     }

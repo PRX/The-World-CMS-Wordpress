@@ -2,9 +2,9 @@
 # This file is distributed under the GPL-3.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Disable Comments 2.9.1\n"
+"Project-Id-Version: Disable Comments 2.9.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/disable-comments\n"
-"POT-Creation-Date: 2026-10-25 10:50:13+00:00\n"
+"POT-Creation-Date: 2026-11-19 12:33:08+00:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -40,11 +40,11 @@ msgstr ""
 msgid "200"
 msgstr ""
 
-#: disable-comments.php:319
+#: disable-comments.php:332
 msgid "Want to help make Disable Comments even better?"
 msgstr ""
 
-#: disable-comments.php:322
+#: disable-comments.php:335
 #. translators: 1: service host name, 2: privacy policy URL.
 msgid ""
 "If you agree, the plugin sends this to WPInsight (%1$s), WPDeveloper's "
@@ -67,35 +67,37 @@ msgid ""
 "rel=\"noopener noreferrer\">Privacy Policy</a>"
 msgstr ""
 
-#: disable-comments.php:338
+#: disable-comments.php:351
 #. translators: %s: WordPress version no.
 msgid "Disable Comments requires WordPress version %s or greater."
 msgstr ""
 
-#: disable-comments.php:1261
+#: disable-comments.php:1420
 msgid "Comment form submissions"
 msgstr ""
 
-#: disable-comments.php:1262
+#: disable-comments.php:1421
 msgid "Trackbacks"
 msgstr ""
 
-#: disable-comments.php:1263
+#: disable-comments.php:1422
 msgid "REST API comment requests"
 msgstr ""
 
-#: disable-comments.php:1364 disable-comments.php:2909
-#: disable-comments.php:3170 disable-comments.php:3649
-#: disable-comments.php:4108 disable-comments.php:4138
-#: disable-comments.php:5412 disable-comments.php:5433
+#: disable-comments.php:1523 disable-comments.php:3068
+#: disable-comments.php:3329 disable-comments.php:3808
+#: disable-comments.php:4267 disable-comments.php:4297
+#: disable-comments.php:5571 disable-comments.php:5592
+#: includes/class-xspeed-tips.php:261 includes/class-xspeed-tips.php:376
 msgid "Invalid request."
 msgstr ""
 
-#: disable-comments.php:1368 disable-comments.php:2913
-#: disable-comments.php:3174 disable-comments.php:3658
-#: disable-comments.php:3661 disable-comments.php:4119
-#: disable-comments.php:4146 disable-comments.php:5418
-#: disable-comments.php:5439
+#: disable-comments.php:1527 disable-comments.php:3072
+#: disable-comments.php:3333 disable-comments.php:3817
+#: disable-comments.php:3820 disable-comments.php:4278
+#: disable-comments.php:4305 disable-comments.php:5577
+#: disable-comments.php:5598 includes/class-xspeed-tips.php:265
+#: includes/class-xspeed-tips.php:380
 msgid "Insufficient permissions."
 msgstr ""
 
@@ -103,32 +105,32 @@ msgstr ""
 msgid "Disable Comments"
 msgstr ""
 
-#: disable-comments.php:1900 disable-comments.php:1937
+#: disable-comments.php:2059 disable-comments.php:2096
 msgid "Sorry, this kind of comment is no longer being accepted on this item."
 msgstr ""
 
-#: disable-comments.php:1901
+#: disable-comments.php:2060
 msgid "Comment Type Closed"
 msgstr ""
 
-#: disable-comments.php:2088
+#: disable-comments.php:2247
 msgid "Notes - WordPress 6.9+ (note)"
 msgstr ""
 
-#: disable-comments.php:2095 disable-comments.php:2771
+#: disable-comments.php:2254 disable-comments.php:2930
 msgid "Product reviews - WooCommerce (review)"
 msgstr ""
 
-#: disable-comments.php:2203 disable-comments.php:2559
-#: disable-comments.php:2567
+#: disable-comments.php:2362 disable-comments.php:2718
+#: disable-comments.php:2726
 msgid "Comments are closed."
 msgstr ""
 
-#: disable-comments.php:2381
+#: disable-comments.php:2540
 msgid "Comments are disabled."
 msgstr ""
 
-#: disable-comments.php:2515
+#: disable-comments.php:2674
 #. translators: %s: disabled post types.
 msgid ""
 "Note: The <em>Disable Comments</em> plugin is currently active, and "
@@ -136,11 +138,11 @@ msgid ""
 "not be applicable for those post types."
 msgstr ""
 
-#: disable-comments.php:2515
+#: disable-comments.php:2674
 msgid ", "
 msgstr ""
 
-#: disable-comments.php:2548
+#: disable-comments.php:2707
 #. translators: %s: URL to Disabled Comment settings page.
 msgid ""
 "The <strong>Disable Comments</strong> plugin is active, but isn't "
@@ -148,76 +150,76 @@ msgid ""
 "page</a> to choose which post types to disable comments on."
 msgstr ""
 
-#: disable-comments.php:2683 views/partials/_disable.php:7
+#: disable-comments.php:2842 views/partials/_disable.php:7
 msgid "Settings"
 msgstr ""
 
-#: disable-comments.php:2684
+#: disable-comments.php:2843
 msgid "Tools"
 msgstr ""
 
-#: disable-comments.php:2701 views/partials/_delete.php:14
+#: disable-comments.php:2860 views/partials/_delete.php:14
 #: views/partials/_delete.php:258
 msgid "Delete Comments"
 msgstr ""
 
-#: disable-comments.php:2767
+#: disable-comments.php:2926
 msgid "Default (no type)"
 msgstr ""
 
-#: disable-comments.php:2798 disable-comments.php:5869
+#: disable-comments.php:2957 disable-comments.php:6028
 msgid "Logged out users"
 msgstr ""
 
-#: disable-comments.php:2822
+#: disable-comments.php:2981
 msgid "You do not have sufficient permissions to access this page."
 msgstr ""
 
-#: disable-comments.php:3141
+#: disable-comments.php:3300
 #. translators: %s: number of comments deleted.
 msgid "Disable Comments just cleared %s comment for you."
 msgid_plural "Disable Comments just cleared %s comments for you."
 msgstr[0] ""
 msgstr[1] ""
 
-#: disable-comments.php:3145
+#: disable-comments.php:3304
 msgid "If it saved you some time, a quick review helps other people find it."
 msgstr ""
 
-#: disable-comments.php:3153
+#: disable-comments.php:3312
 msgid "Leave a review"
 msgstr ""
 
-#: disable-comments.php:3156
+#: disable-comments.php:3315
 msgid "No thanks, don't ask again"
 msgstr ""
 
-#: disable-comments.php:3345
+#: disable-comments.php:3504
 #. translators: %s: error message from the HTTP request.
 msgid ""
 "Could not load the front end to check it (%s). Some hosts block a site from "
 "requesting its own pages; that is not a problem with your theme."
 msgstr ""
 
-#: disable-comments.php:3358
+#: disable-comments.php:3517
 #. translators: %d: HTTP status code.
 msgid "The front end returned HTTP %d, so there was nothing to check."
 msgstr ""
 
-#: disable-comments.php:3444
+#: disable-comments.php:3603
 msgid ""
 "The page loaded, but this plugin could not report from inside it. That "
 "usually means a page cache served an older copy. Try again, or clear your "
 "cache first."
 msgstr ""
 
-#: disable-comments.php:3451
+#: disable-comments.php:3610
 msgid ""
 "Comments are off on this page and your theme is respecting that. Nothing to "
 "fix."
 msgstr ""
 
-#: disable-comments.php:3463
+#: disable-comments.php:3622
 msgid ""
 "Comments are off on this page, but you have chosen to keep existing "
 "comments (or certain comment types) visible — so the comment area is still "
@@ -225,13 +227,13 @@ msgid ""
 "Comments\" and \"Enable Certain Comment Types\" in the settings."
 msgstr ""
 
-#: disable-comments.php:3470
+#: disable-comments.php:3629
 msgid ""
 "Comments are still open on this page, so there is nothing for the theme to "
 "hide yet. Check the settings above before reading anything into this."
 msgstr ""
 
-#: disable-comments.php:3480
+#: disable-comments.php:3639
 #. translators: 1: theme name, 2: template file path.
 msgid ""
 "%1$s never calls comments_template(), so this plugin has no way to replace "
@@ -239,14 +241,14 @@ msgid ""
 "Look in %2$s, or in the single-post template that draws the comment area."
 msgstr ""
 
-#: disable-comments.php:3492
+#: disable-comments.php:3651
 #. translators: 1: theme name, 2: resolved template path.
 msgid ""
 "%1$s calls comments_template(), but something is overriding the empty "
 "template this plugin substitutes. The template actually rendered was %2$s."
 msgstr ""
 
-#: disable-comments.php:3503
+#: disable-comments.php:3662
 #. translators: %s: theme name.
 msgid ""
 "This plugin replaced the comments template successfully, but comment markup "
@@ -254,21 +256,21 @@ msgid ""
 "comments_template(). That part has to be removed in the theme."
 msgstr ""
 
-#: disable-comments.php:3668
+#: disable-comments.php:3827
 msgid ""
 "There is no published content with comments disabled to check yet. Disable "
 "comments on a post type that has published content, then run this again."
 msgstr ""
 
-#: disable-comments.php:3834
+#: disable-comments.php:3993
 msgid "That file is not valid JSON."
 msgstr ""
 
-#: disable-comments.php:3838
+#: disable-comments.php:3997
 msgid "That file does not contain Disable Comments settings."
 msgstr ""
 
-#: disable-comments.php:3848
+#: disable-comments.php:4007
 #. translators: 1: schema version in the file, 2: schema version this plugin
 #. understands.
 msgid ""
@@ -276,183 +278,183 @@ msgid ""
 "this site understands %2$d). Update the plugin first."
 msgstr ""
 
-#: disable-comments.php:3872
+#: disable-comments.php:4031
 msgid "That file contains no settings this version recognises."
 msgstr ""
 
-#: disable-comments.php:4223
+#: disable-comments.php:4382
 msgid "Saved"
 msgstr ""
 
-#: disable-comments.php:4593
+#: disable-comments.php:4752
 msgid "All comments"
 msgstr ""
 
-#: disable-comments.php:4647
+#: disable-comments.php:4806
 msgid "Spam comments"
 msgstr ""
 
-#: disable-comments.php:4832
+#: disable-comments.php:4991
 msgid "Anonymous"
 msgstr ""
 
-#: disable-comments.php:5608
+#: disable-comments.php:5767
 msgid "All spam comments have been deleted."
 msgstr ""
 
-#: disable-comments.php:5609
+#: disable-comments.php:5768
 msgid "All comments have been deleted"
 msgstr ""
 
-#: disable-comments.php:5947
+#: disable-comments.php:6106
 msgid "Comments are disabled site-wide for all content types"
 msgstr ""
 
-#: disable-comments.php:5948
+#: disable-comments.php:6107
 msgid "Comments are disabled only for blog posts"
 msgstr ""
 
-#: disable-comments.php:5949
+#: disable-comments.php:6108
 msgid "Comments are disabled only for pages"
 msgstr ""
 
-#: disable-comments.php:5950
+#: disable-comments.php:6109
 msgid "Comments are disabled for both posts and pages"
 msgstr ""
 
-#: disable-comments.php:5951
+#: disable-comments.php:6110
 msgid "Comments are disabled for multiple specific content types"
 msgstr ""
 
-#: disable-comments.php:5952
+#: disable-comments.php:6111
 msgid "Comments are enabled everywhere"
 msgstr ""
 
-#: disable-comments.php:5956
+#: disable-comments.php:6115
 #. translators: %s: disabled post types.
 msgid "Comments are disabled for: %s"
 msgstr ""
 
-#: disable-comments.php:5969
+#: disable-comments.php:6128
 #. translators: %s: sentence describing the global and post-type settings.
 msgid "%s. Conditional rules then close or reopen comments on individual posts"
 msgstr ""
 
-#: disable-comments.php:5976 disable-comments.php:6011
-#: disable-comments.php:6015 disable-comments.php:6031
-#: disable-comments.php:6046
+#: disable-comments.php:6135 disable-comments.php:6170
+#: disable-comments.php:6174 disable-comments.php:6190
+#: disable-comments.php:6205
 msgid "Enabled"
 msgstr ""
 
-#: disable-comments.php:5977 disable-comments.php:6011
-#: disable-comments.php:6015 disable-comments.php:6031
-#: disable-comments.php:6047
+#: disable-comments.php:6136 disable-comments.php:6170
+#: disable-comments.php:6174 disable-comments.php:6190
+#: disable-comments.php:6206
 msgid "Disabled"
 msgstr ""
 
-#: disable-comments.php:5978
+#: disable-comments.php:6137
 msgid "Not applicable"
 msgstr ""
 
-#: disable-comments.php:5984
+#: disable-comments.php:6143
 msgid "Comment Status"
 msgstr ""
 
-#: disable-comments.php:5988
+#: disable-comments.php:6147
 msgid "Plugin Configured"
 msgstr ""
 
-#: disable-comments.php:5989 disable-comments.php:5997
-#: disable-comments.php:6019 disable-comments.php:6023
+#: disable-comments.php:6148 disable-comments.php:6156
+#: disable-comments.php:6178 disable-comments.php:6182
 msgid "Yes"
 msgstr ""
 
-#: disable-comments.php:5989 disable-comments.php:5997
-#: disable-comments.php:6019 disable-comments.php:6023
+#: disable-comments.php:6148 disable-comments.php:6156
+#: disable-comments.php:6178 disable-comments.php:6182
 msgid "No"
 msgstr ""
 
-#: disable-comments.php:5992
+#: disable-comments.php:6151
 msgid "Total Comments"
 msgstr ""
 
-#: disable-comments.php:5996
+#: disable-comments.php:6155
 msgid "Global Disable Active"
 msgstr ""
 
-#: disable-comments.php:6000
+#: disable-comments.php:6159
 msgid "Disabled Post Types Count"
 msgstr ""
 
-#: disable-comments.php:6004
+#: disable-comments.php:6163
 msgid "Disabled Post Types"
 msgstr ""
 
-#: disable-comments.php:6007 disable-comments.php:6037
+#: disable-comments.php:6166 disable-comments.php:6196
 msgid "None"
 msgstr ""
 
-#: disable-comments.php:6010
+#: disable-comments.php:6169
 msgid "XML-RPC Comments"
 msgstr ""
 
-#: disable-comments.php:6014
+#: disable-comments.php:6173
 msgid "REST API Comments"
 msgstr ""
 
-#: disable-comments.php:6018 views/partials/_disable.php:194
+#: disable-comments.php:6177 views/partials/_disable.php:194
 msgid "Show Existing Comments"
 msgstr ""
 
-#: disable-comments.php:6022
+#: disable-comments.php:6181
 msgid "Network Active"
 msgstr ""
 
-#: disable-comments.php:6026
+#: disable-comments.php:6185
 msgid "Site-wide Settings"
 msgstr ""
 
-#: disable-comments.php:6030
+#: disable-comments.php:6189
 msgid "Role-based Exclusions"
 msgstr ""
 
-#: disable-comments.php:6034
+#: disable-comments.php:6193
 msgid "Excluded Roles"
 msgstr ""
 
-#: disable-comments.php:6044 views/partials/_settings.php:59
+#: disable-comments.php:6203 views/partials/_settings.php:59
 msgid "Conditional Rules"
 msgstr ""
 
-#: disable-comments.php:6050
+#: disable-comments.php:6209
 msgid "Conditional Rules Configured"
 msgstr ""
 
-#: disable-comments.php:6054
+#: disable-comments.php:6213
 msgid "Auto-close Comments After"
 msgstr ""
 
-#: disable-comments.php:6058
+#: disable-comments.php:6217
 #. translators: %s: number of days.
 msgid "%s day"
 msgid_plural "%s days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: disable-comments.php:6061
+#: disable-comments.php:6220
 msgid "No age limit"
 msgstr ""
 
-#: disable-comments.php:6072
+#: disable-comments.php:6231
 msgid "Counting Blocked Attempts Since"
 msgstr ""
 
-#: disable-comments.php:6079
+#: disable-comments.php:6238
 #. translators: %s: name of the blocked request type.
 msgid "Blocked: %s"
 msgstr ""
 
-#: disable-comments.php:6088
+#: disable-comments.php:6247
 msgid "Complete overview of comment disable settings and configuration."
 msgstr ""
 
@@ -841,6 +843,108 @@ msgstr ""
 msgid "Just Deactivate"
 msgstr ""
 
+#: includes/class-xspeed-tips.php:237
+msgid "Starting scan…"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:238
+msgid "Starting your speed scan…"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:271
+msgid "Unknown tip."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:329
+msgid "xSpeed Scan could not be reached, so it opens without starting a scan."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:345
+msgid "xSpeed Scan could not start a scan of this site, so it opens without one."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:347
+msgid ""
+"This site is not reachable from the internet (for example a local or "
+"staging site), so xSpeed Scan opens without starting a scan."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:407
+#. translators: %s: link to a free speed scan.
+msgid ""
+"Your comment settings are live. Want to see how fast these pages load for "
+"visitors? %s"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:408
+msgid "Run a free speed scan"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:417
+#. translators: 1: number of comments removed, 2: link to xSpeed's database
+#. docs.
+msgid ""
+"Your database is %1$s rows lighter. xSpeed's Database Clean can also remove "
+"old revisions, expired transients and orphaned metadata, and shows you the "
+"list before deleting. %2$s"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:419
+msgid "See what xSpeed cleans"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:424
+msgid "Free Speed Test"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:436
+msgid ""
+"xSpeed Cache is active. Disable Comments refreshes its page cache whenever "
+"you save."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:445 includes/class-xspeed-tips.php:510
+msgid "Dismiss this tip"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:454
+msgid "How fast is your site?"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:456
+msgid ""
+"Run a free speed scan. No sign-up and nothing to install. You get a score "
+"and a fix for each slow spot."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:462
+#. translators: 1: name of the active cache plugin, 2: link to the migration
+#. docs.
+msgid "Using %1$s? xSpeed Cache can import its settings in one click! %2$s"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:464
+msgid "How it works"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:469
+msgid "Scan my site free"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:475
+#. translators: %s: link to xSpeed Cache on WordPress.org.
+msgid "Fix what it finds with %s, free on WordPress.org."
+msgstr ""
+
+#: includes/class-xspeed-tips.php:476
+msgid "xSpeed Cache"
+msgstr ""
+
+#: includes/class-xspeed-tips.php:489
+#. translators: %s: WPDeveloper, the team name.
+msgid "Backed by your trusted %s team"
+msgstr ""
+
 #: includes/cli.php:303
 msgid "Comments is disabled everywhere. "
 msgstr ""
@@ -893,7 +997,7 @@ msgstr ""
 #: views/partials/_disable.php:67 views/partials/_disable.php:170
 #: views/partials/_disable.php:264 views/partials/_disable.php:330
 #: views/partials/_disable.php:432 views/partials/_disable.php:467
-#: views/partials/_disable.php:522 views/partials/_settings.php:245
+#: views/partials/_disable.php:522 views/partials/_settings.php:240
 msgid "Note:"
 msgstr ""
 
@@ -1035,7 +1139,7 @@ msgid ""
 "be undone."
 msgstr ""
 
-#: views/partials/_delete.php:401
+#: views/partials/_delete.php:406
 msgid "No comments are available for deletion."
 msgstr ""
 
@@ -1301,11 +1405,11 @@ msgid ""
 "via XML-RPC or REST API specifications."
 msgstr ""
 
-#: views/partials/_disable.php:588 views/partials/_settings.php:381
+#: views/partials/_disable.php:588 views/partials/_settings.php:376
 msgid "Save all disable comments settings"
 msgstr ""
 
-#: views/partials/_disable.php:589 views/partials/_settings.php:382
+#: views/partials/_disable.php:589 views/partials/_settings.php:377
 msgid "Save Changes"
 msgstr ""
 
@@ -1325,11 +1429,11 @@ msgstr ""
 msgid "Docs"
 msgstr ""
 
-#: views/partials/_menu.php:12
+#: views/partials/_menu.php:17
 msgid "Terms Of Service"
 msgstr ""
 
-#: views/partials/_menu.php:13
+#: views/partials/_menu.php:18
 msgid "Privacy"
 msgstr ""
 
@@ -1347,11 +1451,11 @@ msgstr ""
 msgid "For posts in these terms:"
 msgstr ""
 
-#: views/partials/_settings.php:111 views/partials/_settings.php:186
+#: views/partials/_settings.php:111 views/partials/_settings.php:181
 msgid "Disable comments"
 msgstr ""
 
-#: views/partials/_settings.php:114 views/partials/_settings.php:189
+#: views/partials/_settings.php:114 views/partials/_settings.php:184
 msgid "Keep comments open (exception)"
 msgstr ""
 
@@ -1367,116 +1471,116 @@ msgstr ""
 msgid "Terms"
 msgstr ""
 
-#: views/partials/_settings.php:181
+#: views/partials/_settings.php:176
 msgid "For content using this page template:"
 msgstr ""
 
-#: views/partials/_settings.php:194
+#: views/partials/_settings.php:189
 msgid "Page template"
 msgstr ""
 
-#: views/partials/_settings.php:197
+#: views/partials/_settings.php:192
 msgid "— No template rule —"
 msgstr ""
 
-#: views/partials/_settings.php:221
+#: views/partials/_settings.php:216
 #. translators: %s: page template file name.
 msgid "%s (not in the active theme)"
 msgstr ""
 
-#: views/partials/_settings.php:231
+#: views/partials/_settings.php:226
 msgid "Close comments on content older than"
 msgstr ""
 
-#: views/partials/_settings.php:240
+#: views/partials/_settings.php:235
 msgid "days (0 = no age limit)"
 msgstr ""
 
-#: views/partials/_settings.php:246
+#: views/partials/_settings.php:241
 msgid ""
 "Rules are applied per post, on top of the settings on the Disable Comments "
 "tab. An exception keeps comments open even where those settings would close "
 "them, and it also survives the age limit."
 msgstr ""
 
-#: views/partials/_settings.php:256
+#: views/partials/_settings.php:251
 msgid "Blocked Attempts"
 msgstr ""
 
-#: views/partials/_settings.php:259
+#: views/partials/_settings.php:254
 msgid ""
 "How much this plugin has actually turned away, broken down by where the "
 "attempt came from."
 msgstr ""
 
-#: views/partials/_settings.php:268
+#: views/partials/_settings.php:263
 #. translators: 1: number of blocked attempts, 2: date counting started.
 msgid "%1$s attempts blocked since %2$s."
 msgstr ""
 
-#: views/partials/_settings.php:287
+#: views/partials/_settings.php:282
 msgid ""
 "Comments blocked over XML-RPC are not counted: that method is removed from "
 "the server rather than rejected, so there is no request to observe."
 msgstr ""
 
-#: views/partials/_settings.php:291
+#: views/partials/_settings.php:286
 msgid "Reset counters"
 msgstr ""
 
-#: views/partials/_settings.php:301
+#: views/partials/_settings.php:296
 msgid "Copy These Settings To Another Site"
 msgstr ""
 
-#: views/partials/_settings.php:304
+#: views/partials/_settings.php:299
 msgid ""
 "Download this configuration as a file, then import it on your next site "
 "instead of setting everything up again."
 msgstr ""
 
-#: views/partials/_settings.php:317
+#: views/partials/_settings.php:312
 msgid "Export"
 msgstr ""
 
-#: views/partials/_settings.php:320
+#: views/partials/_settings.php:315
 msgid "Download settings"
 msgstr ""
 
-#: views/partials/_settings.php:326
+#: views/partials/_settings.php:321
 msgid "Import"
 msgstr ""
 
-#: views/partials/_settings.php:329
+#: views/partials/_settings.php:324
 msgid "Choose file"
 msgstr ""
 
-#: views/partials/_settings.php:330
+#: views/partials/_settings.php:325
 msgid "No file chosen"
 msgstr ""
 
-#: views/partials/_settings.php:339
+#: views/partials/_settings.php:334
 msgid "Preview import"
 msgstr ""
 
-#: views/partials/_settings.php:343
+#: views/partials/_settings.php:338
 msgid "Apply import"
 msgstr ""
 
-#: views/partials/_settings.php:349
+#: views/partials/_settings.php:344
 msgid "Choose a settings file to preview what it would change."
 msgstr ""
 
-#: views/partials/_settings.php:361
+#: views/partials/_settings.php:356
 msgid "Still Seeing a Comment Form?"
 msgstr ""
 
-#: views/partials/_settings.php:364
+#: views/partials/_settings.php:359
 msgid ""
 "If comments are off but the form is still showing on your site, this checks "
 "a real page and tells you what is putting it there."
 msgstr ""
 
-#: views/partials/_settings.php:370
+#: views/partials/_settings.php:365
 msgid "Check my theme"
 msgstr ""
 
@@ -1508,7 +1612,7 @@ msgstr ""
 msgid "How To Exclude Disable Comments Settings Based On User Roles"
 msgstr ""
 
-#: views/partials/_sidebar.php:157
+#: views/partials/_sidebar.php:162
 msgid "Disable Comments For WordPress Pages"
 msgstr ""
 
@@ -1579,7 +1683,7 @@ msgstr ""
 msgid "https://wpdeveloper.com"
 msgstr ""
 
-#: disable-comments.php:2692
+#: disable-comments.php:2851
 msgctxt "settings menu title"
 msgid "Disable Comments"
 msgstr ""

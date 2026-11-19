@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 class URE_Core {
-    const PLUGIN_VERSION = '4.66.3';
+    const PLUGIN_VERSION = '4.67.1';
     const PLUGIN_SLUG = 'user-role-editor';
     const PLUGIN_NAME = 'User Role Editor';
     const TEXT_DOMAIN = 'user-role-editor';

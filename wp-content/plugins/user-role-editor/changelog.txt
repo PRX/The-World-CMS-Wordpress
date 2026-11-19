@@ -1,6 +1,15 @@
 CHANGES LOG (full version).
 ===========================
 
+= [4.67.1] 16.11.2026 =
+* Security fix: User profile page: a user with the "promote_users" capability could assign themselves or others roles with capabilities beyond their own by crafting a POST request to their own profile page. The self-assignment guard and critical-capability check introduced in 4.67 for the Users page role-assignment actions are now applied to the profile_update path as well. Thanks to Ahmed Mahmoud (Haktrak Networks) and Brandlion Cyber for the responsible disclosure.
+
+= [4.67] 04.11.2026 =
+* Security fix: Users page: Change Role, Grant Role, Add Role: a user with the "promote_users" capability could grant themselves (or others) roles with capabilities beyond their own, when custom high-privilege roles existed on the site. Role assignment now requires that the acting user already holds all critical capabilities of the target role; self-assignment of roles is no longer allowed. Thanks to Ahmed Mahmoud (Haktrak Networks) for the responsible disclosure.
+* New: custom filter 'ure_get_critical_capabilities' allows to modify the list of critical capabilities used for the role assignment check. 'manage_options', 'activate_plugins', 'delete_plugins', 'edit_users', 'delete_users' capabilities are under control by default.
+* Fix: "Without role" button on the Users page stopped working (showed "Please select at least one item to perform this action on." after role selection). 
+* Update: allow users with only the 'promote_users' capability to use the "Without role" button.
+
 = [4.66.3] 26.10.2026 =
 * Update: Marked as compatible with WordPress version 7.2
 * Update: Required PHP version increased up to 8.2

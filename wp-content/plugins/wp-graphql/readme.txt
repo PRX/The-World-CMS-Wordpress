@@ -4,7 +4,7 @@ Tags: GraphQL, Headless, REST API, Decoupled, React
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 2.26.0
+Stable tag: 2.28.0
 License: GPL-3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 Author: WPGraphQL, WordPress.org
@@ -59,7 +59,7 @@ Yes! WPGraphQL works with any client that can make HTTP requests to the GraphQL 
 You can join the WPGraphQL [Discord community](https://discord.gg/AGVBqqyaUY) for support, discussions, and announcements.
 
 = How does WPGraphQL handle privacy and telemetry? =
-WPGraphQL uses the [Appsero SDK](https://appsero.com/privacy-policy) to collect telemetry data **only after user consent**. This helps improve the plugin while respecting user privacy. When telemetry is enabled, the same payloads are also mirrored to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com. You can opt out at any time under **GraphQL → Settings**.
+WPGraphQL uses the [Appsero SDK](https://appsero.com/privacy-policy) to collect telemetry data **only after user consent**. This helps improve the plugin while respecting user privacy. When telemetry is enabled, the same payloads are also mirrored to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com. You can opt out at any time under **GraphQL → Settings**. Sharing usage data doesn't sign anyone up for email.
 
 == Privacy Policy ==
 
@@ -69,7 +69,9 @@ Appsero SDK **does not gather any data by default.** The SDK starts gathering ba
 
 You can stop sharing at any time by unchecking **Share Usage Data** under **GraphQL → Settings**. Opting out stops all further check-ins, including the copies sent to https://telemetry.wpgraphql.com. When you opt out, one final request records the opt-out with Appsero (and its copy at https://telemetry.wpgraphql.com). It includes a hashed identifier for your site, but no site details.
 
-When you opt in, each telemetry request is sent to Appsero and a duplicate is sent in a non-blocking request to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com (the same categories of data as described for Appsero below).
+When you opt in, each telemetry request is sent to Appsero and a duplicate is sent in a non-blocking request to WPGraphQL-operated infrastructure at https://telemetry.wpgraphql.com (the same categories of data as described for Appsero below). If you deactivate the plugin from the Plugins screen while opted in, a feedback form may ask why; submitting it sends that reason with the same categories of site details as a regular check-in. If you have not opted in, deactivation skips the form and sends nothing.
+
+Sharing usage data doesn't sign anyone up for email, even though the usage data includes this site's admin email address and an administrator's name.
 
 Learn more about how [Appsero collects and uses this data](https://appsero.com/privacy-policy/).
 
@@ -79,6 +81,34 @@ Learn more about how [Appsero collects and uses this data](https://appsero.com/p
 2. WPGraphQL settings — configure the GraphQL endpoint, batch queries, query depth limiting, debug mode, and more.
 
 == Upgrade Notice ==
+
+= 2.28.0 =
+
+**Fields now see the right post, term or user as the current object.** Values that depend on the current object, such as some SEO, template, block and gallery output, now come from the node a field is selected under, including in lists, where they could come from a different node before. After updating, purge cached GraphQL responses (WPGraphQL Smart Cache, your CDN and your front end) so the corrected values appear. If you have custom resolvers that read the current post with functions like `get_the_ID()` or `is_singular()` in root fields or in Deferred callbacks, check them against https://www.wpgraphql.com/docs/node-context/. Details: https://github.com/wp-graphql/wp-graphql/issues/4572.
+
+= 2.27.1 =
+
+**Posts in custom statuses that aren't public now need `edit_others_posts` to read.** A post in a status a plugin registers with `'public' => false`, such as an editorial workflow status, now returns its content only to its author and to users who can edit other users' posts, the same way WordPress treats drafts and pending posts. Other users who can edit posts still see that the post exists, with its title, slug, link and status, but not its content, as they do for someone else's draft. The same applies to posts left in a status that is no longer registered. If your site relies on the old behavior, the `graphql_restricted_data_cap` filter can change the capability these posts require.
+
+= 2.26.2 =
+
+**A malformed pagination cursor now returns no results.** Passing `after` or `before` a value that isn't a cursor WPGraphQL returned, such as `posts(after: "foo")` or a random string taken from a URL, used to return the first page, as if no cursor was passed. Connections now return no results for it. A cursor for an item that no longer exists, an empty string and `null` still return results from the start. If you relied on the old behavior, leave the argument out or pass `null`, or see the [connections guide](https://www.wpgraphql.com/docs/connections#cursors) for a filter that ignores malformed cursors again. See [#2795](https://github.com/wp-graphql/wp-graphql/issues/2795).
+
+= 2.26.1 =
+
+**Settings registered only for the REST API now require `manage_options`.** A setting registered with `show_in_rest => true` but without `show_in_graphql` is still in the Schema, but users without `manage_options` now get `null` for it on `<group>Settings` and `allSettings`. With debugging enabled, the response names each field that resolved to `null` this way. WordPress core's own settings (site title, tagline, URL, timezone, reading settings and the rest) are unchanged and stay public. To make one of your settings public again, register it with `show_in_graphql => true`, or remove its `graphql_capability` with the `graphql_normalized_settings` filter.
+
+**Connector API keys are masked.** On WordPress 7.0 and later, the settings that hold connector API keys (such as Akismet's) always require `manage_options` and are returned masked, showing only the last four characters, as the REST API does. Saving the masked value back through `updateSettings` leaves the stored key unchanged.
+
+**Comment queries now only return and count comments the requesting user can see.** Moderators (users with `moderate_comments`) see no change. For everyone else:
+
+**Comment lists that aren't limited to specific content only include comments on published content.** The root `comments` list and `user { comments }` only return comments on published content of public content types, which leaves out comments on media items and on the user's own drafts. Comments on a media item stay available by item, through `mediaItem { comments }` or the `contentId` and `contentIdIn` arguments, which now match nothing for content the user can't see. A media item is visible when the content it's attached to is, or when it isn't attached to anything.
+
+**Filters, search and ordering only use what the user can see.** Filtering by `authorEmail` matches no comments, so filter by `authorIn` or `userId` instead. `search` no longer matches the author's email or IP address, and ordering by them, or by the user agent, orders by date. `statusIn`, the deprecated `status`, and `contentStatus` ignore the statuses the user can't view, and when none are left the query returns no comments. That includes a logged-in user's own pending comments when they filter by `statusIn: [HOLD]`; those still appear in the default, unfiltered query.
+
+**Notes are only visible to users who can edit them.** On WordPress 6.9 and later, the notes editors leave on content aren't returned to other users, by ID or in lists, including when `commentType` or `commentTypeIn` asks for them.
+
+None of this returns an error.
 
 = 2.24.2 =
 
@@ -351,6 +381,46 @@ The `uri` field was non-null on some Types in the Schema but has been changed to
 Composer dependencies are no longer versioned in Github. Recommended install source is WordPress.org or using Composer to get the code from Packagist.org or WPackagist.org.
 
 == Changelog ==
+
+= 2.28.0 =
+
+**New Features**
+
+* give resolvers the right current post, term or user, and restore global state afterward ([#4575](https://github.com/wp-graphql/wp-graphql/issues/4575))
+
+= 2.27.1 =
+
+**Bug Fixes**
+
+* require edit_others_posts to read other users' posts in any non-public status ([#4702](https://github.com/wp-graphql/wp-graphql/issues/4702))
+
+= 2.27.0 =
+
+**New Features**
+
+* add hasPublishedContent user connection arg and deprecate hasPublishedPosts ([#4612](https://github.com/wp-graphql/wp-graphql/issues/4612))
+* **mutations:** add graphql_term_object_mutation_update_additional_data action ([#4623](https://github.com/wp-graphql/wp-graphql/issues/4623))
+* preview the post format from the preview context ([#4617](https://github.com/wp-graphql/wp-graphql/issues/4617))
+
+**Bug Fixes**
+
+* **mutations:** pass updateComment as the mutation name when updating a comment ([#4625](https://github.com/wp-graphql/wp-graphql/issues/4625))
+* only show deactivation feedback when usage tracking is opted in ([#4655](https://github.com/wp-graphql/wp-graphql/issues/4655))
+
+= 2.26.2 =
+
+**Bug Fixes**
+
+* return no results for malformed connection cursors ([#4613](https://github.com/wp-graphql/wp-graphql/issues/4613))
+
+= 2.26.1 =
+
+**Bug Fixes**
+
+* **deps-dev:** bump the wp-graphql-composer-dev-minor-patch group in /plugins/wp-graphql with 2 updates ([#4630](https://github.com/wp-graphql/wp-graphql/issues/4630))
+* **deps:** bump webonyx/graphql-php from 15.38.1 to 15.39.0 in /plugins/wp-graphql ([#4633](https://github.com/wp-graphql/wp-graphql/issues/4633))
+* limit comment connection filters and counts to comments the requester can see ([#4642](https://github.com/wp-graphql/wp-graphql/issues/4642))
+* require manage_options to read settings exposed only through the REST API ([#4641](https://github.com/wp-graphql/wp-graphql/issues/4641))
 
 = 2.26.0 =
 
