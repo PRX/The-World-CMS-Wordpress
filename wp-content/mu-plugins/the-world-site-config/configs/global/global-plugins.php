@@ -52,6 +52,7 @@ define(
 		'visual-term-description-editor/visual-term-description-editor.php',
 		'wordpress-importer/wordpress-importer.php',
 		'wordpress-seo/wp-seo.php',
+		'wp-crontrol/wp-crontrol.php',
 		'wp-rest-menu/wp-rest-menus.php',
 		'xml-sitemap-feed/xml-sitemap.php',
 		'svg-block/svg-block.php',
