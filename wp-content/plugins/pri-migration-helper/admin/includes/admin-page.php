@@ -1822,7 +1822,7 @@ function f_pmh_save_settings_cron() {
 
 		wp_schedule_event( time(), 'hourly', s_pmh_get_cron_name() );
 
-	} else {
+	} elseif ( ! $a_enabled_crons && $i_timestamp ) {
 
 		wp_unschedule_event( $i_timestamp, s_pmh_get_cron_name() );
 	}
@@ -1840,7 +1840,7 @@ add_action( 'admin_post_pmh-save-settings-cron', 'f_pmh_save_settings_cron' );
  */
 function f_pmh_cron_run() {
 
-	$a_pmh_enabled_crons = get_option( 'pmh_enabled_crons' );
+	$a_pmh_enabled_crons = (array) get_option( 'pmh_enabled_crons', array() );
 
 	if ( in_array( 'media', $a_pmh_enabled_crons ) ) {
 
