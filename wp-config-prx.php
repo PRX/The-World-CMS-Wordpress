@@ -124,6 +124,11 @@ if ( false !== getenv( 'WP_REDIS_HOST' ) ) {
 		define( 'WP_REDIS_PORT', getenv( 'WP_REDIS_PORT' ) );
 	}
 
+	// Enable/disable metrics collection
+	if ( false !== getenv( 'WP_REDIS_DISABLE_METRICS' ) ) {
+		define( 'WP_REDIS_DISABLE_METRICS', getenv( 'WP_REDIS_DISABLE_METRICS' ) );
+	}
+
 	// Change the prefix and database for each site to avoid cache data collisions.
 	if ( false !== getenv( 'WP_REDIS_PREFIX' ) ) {
 		define( 'WP_REDIS_PREFIX', getenv( 'WP_REDIS_PREFIX' ) );
