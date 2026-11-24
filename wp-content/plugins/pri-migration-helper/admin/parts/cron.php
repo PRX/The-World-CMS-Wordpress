@@ -1,5 +1,5 @@
 <?php
-$a_pmh_enabled_crons = get_option( 'pmh_enabled_crons' );
+$a_pmh_enabled_crons = (array) get_option( 'pmh_enabled_crons', array() );
  ?>
 <div class="wrap">
 
